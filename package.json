@@ -1,0 +1,84 @@
+{
+  "name": "atticus",
+  "version": "0.9.0",
+  "description": "Atticus - In-House AI Counsel",
+  "main": "dist-electron/main.js",
+  "author": "John Kost",
+  "license": "Apache-2.0 OR Commercial",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "ajv": "^6.12.6",
+    "dompurify": "^3.0.8",
+    "html2canvas": "^1.4.1",
+    "js-yaml": "^4.1.0",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.303.0",
+    "marked": "^11.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.6.2",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vite-plugin-electron": "^0.28.1",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "ca.jdai.atticus",
+    "productName": "Atticus",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "!dist-electron/**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "dist",
+        "to": "dist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asarUnpack": [
+      "dist/config/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icon/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "public/icon/icon.png"
+    }
+  }
+}
