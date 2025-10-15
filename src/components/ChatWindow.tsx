@@ -4,6 +4,7 @@ import { Send, Paperclip, Loader2, Settings } from "lucide-react";
 import { Message, Jurisdiction } from "../types";
 import { sendChatMessage } from "../services/api";
 import { detectPracticeArea } from "../modules/practiceArea";
+import { detectAdvisoryArea } from "../modules/advisoryArea";
 import {
   JURISDICTIONS,
   getJurisdictionSystemPromptAppendix,
@@ -32,6 +33,9 @@ export default function ChatWindow() {
   const [selectedJurisdictions, setSelectedJurisdictions] = useState<
     Set<Jurisdiction>
   >(new Set());
+  const [currentDomain, setCurrentDomain] = useState<
+    "practice" | "advisory" | undefined
+  >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load provider templates on mount
@@ -48,6 +52,28 @@ export default function ChatWindow() {
   useEffect(() => {
     scrollToBottom();
   }, [currentConversation?.messages]);
+
+  // Detect domain from input to filter models appropriately
+  useEffect(() => {
+    if (!input.trim()) {
+      setCurrentDomain(undefined);
+      return;
+    }
+
+    // Detect both areas
+    const practiceArea = detectPracticeArea(input);
+    const advisoryArea = detectAdvisoryArea(input);
+
+    // Determine which domain to filter by
+    // If advisory area is detected (not general), prioritize advisory
+    if (advisoryArea.id !== "general-advisory") {
+      setCurrentDomain("advisory");
+    } else if (practiceArea.id !== "general") {
+      setCurrentDomain("practice");
+    } else {
+      setCurrentDomain(undefined); // Both general, show all models
+    }
+  }, [input]);
 
   // Initialize selected models from conversation or default to active provider
   useEffect(() => {
@@ -128,7 +154,7 @@ export default function ChatWindow() {
   }, [currentConversation?.id]);
 
   // Get all available provider/model combinations
-  const getAllAvailableModels = () => {
+  const getAllAvailableModels = (filterDomain?: "practice" | "advisory") => {
     const allModels: Array<{
       providerId: string;
       providerName: string;
@@ -150,6 +176,19 @@ export default function ChatWindow() {
         template.models.forEach((model) => {
           // Only include models that are enabled for this provider
           if (enabledModelIds.includes(model.id)) {
+            // Check domain configuration if filter is specified
+            if (filterDomain) {
+              const modelDomainConfig = provider.modelDomains?.find(
+                (d) => d.modelId === model.id
+              );
+              const modelDomain = modelDomainConfig?.domains || "both";
+
+              // Skip if model doesn't match the required domain
+              if (modelDomain !== filterDomain && modelDomain !== "both") {
+                return;
+              }
+            }
+
             allModels.push({
               providerId: provider.id,
               providerName: template.displayName,
@@ -229,14 +268,25 @@ export default function ChatWindow() {
       return;
     }
 
-    // Detect practice area
+    // Detect practice area and advisory area
     const practiceArea = detectPracticeArea(input);
+    const advisoryArea = detectAdvisoryArea(input);
 
     // Build system prompt with jurisdiction appendix
+    // Combine both practice and advisory prompts if advisory area is detected
     const jurisdictions = currentConversation.selectedJurisdictions || [];
     const jurisdictionPrompt =
       getJurisdictionSystemPromptAppendix(jurisdictions);
-    const fullSystemPrompt = practiceArea.systemPrompt + jurisdictionPrompt;
+
+    let fullSystemPrompt = practiceArea.systemPrompt;
+
+    // If advisory area is detected (not general-advisory), append its guidance
+    if (advisoryArea.id !== "general-advisory") {
+      fullSystemPrompt +=
+        "\n\n--- BUSINESS ADVISORY CONTEXT ---\n\n" + advisoryArea.systemPrompt;
+    }
+
+    fullSystemPrompt += jurisdictionPrompt;
 
     // Create user message
     const userMessage: Message = {
@@ -246,6 +296,8 @@ export default function ChatWindow() {
       timestamp: new Date(),
       attachments: attachments.length > 0 ? attachments : undefined,
       practiceArea: practiceArea.name,
+      advisoryArea:
+        advisoryArea.id !== "general-advisory" ? advisoryArea.name : undefined,
     };
 
     addMessage(userMessage);
@@ -323,6 +375,10 @@ export default function ChatWindow() {
           content: response.content,
           timestamp: new Date(),
           practiceArea: practiceArea.name,
+          advisoryArea:
+            advisoryArea.id !== "general-advisory"
+              ? advisoryArea.name
+              : undefined,
           modelInfo: response.modelInfo,
         };
 
@@ -494,12 +550,38 @@ export default function ChatWindow() {
                       {selectedModelKeys.size} selected
                     </span>
                   </div>
+
+                  {/* Domain Filter Indicator */}
+                  {currentDomain && (
+                    <div className="bg-gray-700 rounded-lg px-3 py-2 mb-3">
+                      <div className="text-xs text-gray-300">
+                        {currentDomain === "practice" ? (
+                          <span>
+                            ⚖️ Showing models configured for{" "}
+                            <strong className="text-legal-blue">
+                              Practice Areas
+                            </strong>{" "}
+                            (legal)
+                          </span>
+                        ) : (
+                          <span>
+                            📊 Showing models configured for{" "}
+                            <strong className="text-legal-gold">
+                              Advisory Areas
+                            </strong>{" "}
+                            (business)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="text-xs text-gray-400 mb-3">
                     Select one or more models to get diverse opinions and reduce
                     hallucinations:
                   </div>
                   <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                    {getAllAvailableModels().map((model) => {
+                    {getAllAvailableModels(currentDomain).map((model) => {
                       const key = `${model.providerId}:${model.modelId}`;
                       const isSelected = selectedModelKeys.has(key);
                       return (
@@ -685,11 +767,18 @@ export default function ChatWindow() {
                       </span>
                     )}
                   </div>
-                  {message.practiceArea && (
-                    <span className="text-xs text-legal-gold">
-                      {message.practiceArea}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {message.practiceArea && (
+                      <span className="text-xs px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-700">
+                        ⚖️ {message.practiceArea}
+                      </span>
+                    )}
+                    {message.advisoryArea && (
+                      <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700">
+                        💼 {message.advisoryArea}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="markdown-content">

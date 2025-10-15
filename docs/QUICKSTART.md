@@ -103,7 +103,7 @@ Explain the SR&ED tax credit application process in Canada.
 
 Atticus automatically detects:
 
-- 🏛️ **Practice Area** (26 legal specializations)
+- 🏛️ **Practice Area** (44 legal specializations)
 - 💼 **Advisory Area** (11 business domains)
 - 🌍 **Jurisdiction** (if you mention Canada, US, or EU)
 
@@ -122,7 +122,7 @@ The AI will apply specialized prompts and expertise automatically!
 
 ### Tab 2: ⚖️ Practice Areas
 
-- View all **26 legal practice areas**
+- View all **44 legal practice areas**
 - Click **"+X more"** to expand full keyword lists
 - Understand what triggers each area
 - Legal domains include:
@@ -146,7 +146,7 @@ The AI will apply specialized prompts and expertise automatically!
 - Mission and coverage statistics
 - Geographic coverage: 🇨🇦 80% Canada, 🇺🇸 92% US, 🇪🇺 75% EU
 - Privacy guarantees and legal disclaimers
-- System statistics (37 specialized domains, 3,200+ keywords)
+- System statistics (55 specialized domains, 4,500+ keywords)
 
 ---
 
@@ -515,7 +515,7 @@ npm run electron:dev
 4. ✅ Organize conversations with descriptive titles
 5. ✅ Use search to find past analysis
 6. ✅ Export important conversations to PDF
-7. ✅ Explore all 37 specialized domains in Settings
+7. ✅ Explore all 55 specialized domains in Settings
 
 ### Get Help
 

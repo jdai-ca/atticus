@@ -59,7 +59,7 @@ The app uses three main configuration files (YAML format):
 
 - **Location**: `public/config/practices.yaml`
 - **Remote**: `https://jdai.ca/atticus/practices.yaml`
-- **Content**: 26 legal practice areas with 2,000+ keywords
+- **Content**: 44 legal practice areas with 3,500+ keywords
 - **Updates**: Automatic background updates
 
 ### advisory.yaml

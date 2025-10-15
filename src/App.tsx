@@ -12,14 +12,19 @@ function App() {
     loadConversations,
     loadProviderTemplates,
     loadPracticeAreas,
+    loadAdvisoryAreas,
     config,
   } = useStore();
 
   useEffect(() => {
     // Load configurations and conversations on startup
-    // Practice areas and provider templates are loaded in parallel
+    // Practice areas, advisory areas, and provider templates are loaded in parallel
     const initialize = async () => {
-      await Promise.all([loadProviderTemplates(), loadPracticeAreas()]);
+      await Promise.all([
+        loadProviderTemplates(),
+        loadPracticeAreas(),
+        loadAdvisoryAreas(),
+      ]);
       loadConfig();
       loadConversations();
     };

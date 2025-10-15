@@ -28,6 +28,13 @@ export type AIProvider =
   | 'perplexity'
   | 'custom';
 
+export type ModelDomain = 'practice' | 'advisory' | 'both';
+
+export interface ModelDomainConfig {
+  modelId: string;
+  domains: ModelDomain;
+}
+
 export interface ProviderConfig {
   id: string;
   name: string;
@@ -39,6 +46,7 @@ export interface ProviderConfig {
   supportsMultimodal?: boolean;
   supportsRAG?: boolean;
   enabledModels?: string[]; // Array of model IDs that are enabled for selection
+  modelDomains?: ModelDomainConfig[]; // Domain-specific model configuration (practice/advisory/both)
 }
 
 // Provider Template (from config file)
@@ -67,6 +75,7 @@ export interface AppConfig {
   activeProviderId: string;
   theme: 'light' | 'dark';
   legalPracticeAreas: LegalPracticeArea[];
+  advisoryAreas?: LegalPracticeArea[]; // Optional for backward compatibility
 }
 
 // Legal Practice Areas
@@ -87,6 +96,7 @@ export interface Message {
   timestamp: Date;
   attachments?: Attachment[];
   practiceArea?: string;
+  advisoryArea?: string;
   modelInfo?: {
     providerId: string;
     providerName: string;
@@ -121,7 +131,7 @@ export interface SelectedModel {
   modelId: string;
 }
 
-export type Jurisdiction = 'CA' | 'US' | 'EU';
+export type Jurisdiction = 'CA' | 'US' | 'MX' | 'EU';
 
 export interface JurisdictionInfo {
   code: Jurisdiction;

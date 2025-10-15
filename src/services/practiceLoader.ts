@@ -253,15 +253,25 @@ class PracticeConfigLoader {
     }
 
     /**
-     * Emergency fallback configuration
+     * Emergency fallback configuration (minimal general practice area)
      */
     private getEmergencyFallback(): PracticeConfigFile {
-        // Import the original definitions as a last resort
+        // Return minimal configuration with a single general practice area
+        // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
             minAppVersion: '0.9.0',
             lastUpdated: new Date().toISOString(),
-            practiceAreas: []
+            practiceAreas: [
+                {
+                    id: 'general',
+                    name: 'General Legal',
+                    keywords: ['legal', 'law', 'attorney', 'lawyer', 'counsel'],
+                    description: 'General legal assistance and guidance',
+                    systemPrompt: 'You are a helpful legal AI assistant providing general legal guidance. Always remind users to consult with licensed attorneys for specific legal advice.',
+                    color: '#6b7280'
+                }
+            ]
         };
     }
 

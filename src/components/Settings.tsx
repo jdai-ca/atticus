@@ -5,9 +5,9 @@ import {
   ProviderConfig,
   AIProvider,
   ProviderTemplate,
-  LegalPracticeArea,
+  ModelDomain,
+  ModelDomainConfig,
 } from "../types";
-import { advisoryLoader } from "../services/advisoryLoader";
 
 interface SettingsProps {
   readonly onClose: () => void;
@@ -31,7 +31,6 @@ export default function Settings({ onClose }: SettingsProps) {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(
     {}
   );
-  const [advisoryAreas, setAdvisoryAreas] = useState<LegalPracticeArea[]>([]);
   const [expandedPracticeAreas, setExpandedPracticeAreas] = useState<
     Set<string>
   >(new Set());
@@ -46,22 +45,45 @@ export default function Settings({ onClose }: SettingsProps) {
     }
   }, []);
 
-  // Load advisory areas on mount
-  useEffect(() => {
-    advisoryLoader
-      .loadConfig()
-      .then((areas) => setAdvisoryAreas(areas))
-      .catch((err) => {
-        console.error("[Settings] Failed to load advisory areas:", err);
-        setAdvisoryAreas([]);
-      });
-  }, []);
-
   // Get configured provider for a template
   const getConfiguredProvider = (
     templateId: AIProvider
   ): ProviderConfig | undefined => {
     return config.providers.find((p) => p.provider === templateId);
+  };
+
+  // Get model domain configuration
+  const getModelDomain = (
+    provider: ProviderConfig | undefined,
+    modelId: string
+  ): ModelDomain => {
+    if (!provider?.modelDomains) return "both";
+    const domainConfig = provider.modelDomains.find(
+      (d) => d.modelId === modelId
+    );
+    return domainConfig?.domains || "both";
+  };
+
+  // Update model domain configuration
+  const updateModelDomain = (
+    provider: ProviderConfig,
+    modelId: string,
+    domain: ModelDomain
+  ) => {
+    const currentDomains = provider.modelDomains || [];
+    const existingIndex = currentDomains.findIndex(
+      (d) => d.modelId === modelId
+    );
+
+    let newDomains: ModelDomainConfig[];
+    if (existingIndex >= 0) {
+      newDomains = [...currentDomains];
+      newDomains[existingIndex] = { modelId, domains: domain };
+    } else {
+      newDomains = [...currentDomains, { modelId, domains: domain }];
+    }
+
+    updateProvider(provider.id, { modelDomains: newDomains });
   };
 
   // Handle API key save
@@ -266,8 +288,8 @@ export default function Settings({ onClose }: SettingsProps) {
                             {isConfigured && (
                               <div className="mb-4">
                                 <label className="block text-xs font-medium text-gray-400 mb-2">
-                                  Available Models (check to enable in
-                                  conversations)
+                                  Available Models (check to enable, select
+                                  domain usage)
                                 </label>
                                 <div className="bg-gray-800 rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
                                   {template.models.map((model) => {
@@ -276,48 +298,121 @@ export default function Settings({ onClose }: SettingsProps) {
                                       existingProvider.enabledModels.includes(
                                         model.id
                                       );
+                                    const currentDomain = getModelDomain(
+                                      existingProvider,
+                                      model.id
+                                    );
+
                                     return (
-                                      <label
+                                      <div
                                         key={model.id}
-                                        className="flex items-start gap-3 cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors"
+                                        className="bg-gray-700 p-2 rounded"
                                       >
-                                        <input
-                                          type="checkbox"
-                                          checked={isEnabled}
-                                          onChange={(e) => {
-                                            const currentEnabled =
-                                              existingProvider?.enabledModels ||
-                                              template.models.map((m) => m.id);
-                                            const newEnabled = e.target.checked
-                                              ? [...currentEnabled, model.id]
-                                              : currentEnabled.filter(
-                                                  (id) => id !== model.id
+                                        <label className="flex items-start gap-3 cursor-pointer hover:bg-gray-600 p-2 rounded transition-colors">
+                                          <input
+                                            type="checkbox"
+                                            checked={isEnabled}
+                                            onChange={(e) => {
+                                              const currentEnabled =
+                                                existingProvider?.enabledModels ||
+                                                template.models.map(
+                                                  (m) => m.id
                                                 );
-                                            // Ensure at least one model is enabled
-                                            if (newEnabled.length > 0) {
-                                              updateProvider(
-                                                existingProvider!.id,
-                                                { enabledModels: newEnabled }
-                                              );
-                                            }
-                                          }}
-                                          className="mt-1 w-4 h-4 text-legal-blue bg-gray-700 border-gray-600 rounded focus:ring-legal-blue focus:ring-2"
-                                        />
-                                        <div className="flex-1">
-                                          <div className="text-sm text-white font-medium">
-                                            {model.name}
+                                              const newEnabled = e.target
+                                                .checked
+                                                ? [...currentEnabled, model.id]
+                                                : currentEnabled.filter(
+                                                    (id) => id !== model.id
+                                                  );
+                                              // Ensure at least one model is enabled
+                                              if (newEnabled.length > 0) {
+                                                updateProvider(
+                                                  existingProvider!.id,
+                                                  { enabledModels: newEnabled }
+                                                );
+                                              }
+                                            }}
+                                            className="mt-1 w-4 h-4 text-legal-blue bg-gray-700 border-gray-600 rounded focus:ring-legal-blue focus:ring-2"
+                                          />
+                                          <div className="flex-1">
+                                            <div className="text-sm text-white font-medium">
+                                              {model.name}
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-0.5">
+                                              {model.description}
+                                            </div>
                                           </div>
-                                          <div className="text-xs text-gray-400 mt-0.5">
-                                            {model.description}
+                                        </label>
+
+                                        {isEnabled && (
+                                          <div className="mt-2 ml-9 flex gap-2 items-center">
+                                            <span className="text-xs text-gray-400">
+                                              Use for:
+                                            </span>
+                                            <div className="flex gap-1">
+                                              <button
+                                                onClick={() =>
+                                                  updateModelDomain(
+                                                    existingProvider!,
+                                                    model.id,
+                                                    "practice"
+                                                  )
+                                                }
+                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                  currentDomain === "practice"
+                                                    ? "bg-legal-blue text-white"
+                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                }`}
+                                                title="Practice areas only"
+                                              >
+                                                ⚖️ Practice
+                                              </button>
+                                              <button
+                                                onClick={() =>
+                                                  updateModelDomain(
+                                                    existingProvider!,
+                                                    model.id,
+                                                    "advisory"
+                                                  )
+                                                }
+                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                  currentDomain === "advisory"
+                                                    ? "bg-legal-gold text-gray-900"
+                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                }`}
+                                                title="Advisory areas only"
+                                              >
+                                                📊 Advisory
+                                              </button>
+                                              <button
+                                                onClick={() =>
+                                                  updateModelDomain(
+                                                    existingProvider!,
+                                                    model.id,
+                                                    "both"
+                                                  )
+                                                }
+                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                  currentDomain === "both"
+                                                    ? "bg-purple-600 text-white"
+                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                }`}
+                                                title="Both practice and advisory"
+                                              >
+                                                🔄 Both
+                                              </button>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </label>
+                                        )}
+                                      </div>
                                     );
                                   })}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">
-                                  Only checked models will appear in the
-                                  conversation model selector
+                                  Configure each model for practice areas
+                                  (legal), advisory areas (business consulting),
+                                  or both. This allows you to optimize specific
+                                  models for their strengths.
                                 </p>
                               </div>
                             )}
@@ -466,6 +561,35 @@ export default function Settings({ onClose }: SettingsProps) {
                     );
                   })}
               </div>
+
+              {/* Info Box */}
+              <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
+                <h4 className="text-sm font-semibold text-white mb-2">
+                  Legal Practice Areas Coverage
+                </h4>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>
+                    • {config.legalPracticeAreas.length} specialized practice
+                    areas with{" "}
+                    {config.legalPracticeAreas.reduce(
+                      (sum, area) => sum + area.keywords.length,
+                      0
+                    )}{" "}
+                    keywords
+                  </li>
+                  <li>
+                    • Automatic area detection and context-aware legal guidance
+                  </li>
+                  <li>
+                    • Covers corporate law, IP, employment, contracts,
+                    compliance, privacy, and more
+                  </li>
+                  <li>
+                    • Optimized for startup and entrepreneurship with 90%
+                    coverage
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
 
@@ -477,13 +601,13 @@ export default function Settings({ onClose }: SettingsProps) {
                 advisory topics and adjusts guidance accordingly.
               </p>
 
-              {advisoryAreas.length === 0 ? (
+              {!config.advisoryAreas || config.advisoryAreas.length === 0 ? (
                 <div className="bg-gray-900 rounded-lg p-6 text-center">
                   <p className="text-gray-400">Loading advisory areas...</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {[...advisoryAreas]
+                  {[...config.advisoryAreas]
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((area) => {
                       const isExpanded = expandedAdvisoryAreas.has(area.id);
@@ -548,11 +672,12 @@ export default function Settings({ onClose }: SettingsProps) {
                 </h4>
                 <ul className="text-xs text-gray-400 space-y-1">
                   <li>
-                    • {advisoryAreas.length} specialized advisory areas with{" "}
-                    {advisoryAreas.reduce(
+                    • {config.advisoryAreas?.length || 0} specialized advisory
+                    areas with{" "}
+                    {config.advisoryAreas?.reduce(
                       (sum, area) => sum + area.keywords.length,
                       0
-                    )}{" "}
+                    ) || 0}{" "}
                     keywords
                   </li>
                   <li>
@@ -644,7 +769,7 @@ export default function Settings({ onClose }: SettingsProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-semibold text-legal-blue mb-2">
-                        Legal Practice Areas (26)
+                        Legal Practice Areas (44)
                       </h4>
                       <ul className="text-xs text-gray-400 space-y-1">
                         <li>• Corporate & Business Law</li>
@@ -654,7 +779,7 @@ export default function Settings({ onClose }: SettingsProps) {
                         <li>• Venture Capital Finance</li>
                         <li>• Cross-Border Operations</li>
                         <li>• Privacy & Data Protection</li>
-                        <li>• And 19 more specialized areas</li>
+                        <li>• And 37 more specialized areas</li>
                       </ul>
                     </div>
                     <div>

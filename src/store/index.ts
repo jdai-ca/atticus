@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { AppConfig, Conversation, Message, ProviderConfig, SelectedModel, Jurisdiction, ProviderTemplate } from '../types';
-import { DEFAULT_PRACTICE_AREAS } from '../modules/practiceArea';
 import { configLoader } from '../services/configLoader';
 import { practiceLoader } from '../services/practiceLoader';
+import { advisoryLoader } from '../services/advisoryLoader';
+import { practiceAreaManager } from '../modules/practiceArea';
+import { advisoryAreaManager } from '../modules/advisoryArea';
 
 // Helper function to truncate message content
 const truncateMessage = (content: string, maxLength = 50): string => {
@@ -27,13 +29,14 @@ interface AppState {
   setActiveProvider: (id: string) => void;
   loadProviderTemplates: () => Promise<void>;
   loadPracticeAreas: () => Promise<void>;
+  loadAdvisoryAreas: () => Promise<void>;
 
   createConversation: (providerId: string) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
   addMessage: (message: Message) => void;
   updateMessage: (messageId: string, updates: Partial<Message>) => void;
   deleteConversation: (id: string) => void;
-  updateConversationTitle: (conversationId: string, title: string) => void;
+  updateConversationTitle: (conversationId: string, title: string) => Promise<void>;
   setConversationModel: (conversationId: string, model: string) => void;
   setConversationSelectedModels: (conversationId: string, models: SelectedModel[]) => void;
   setConversationJurisdictions: (conversationId: string, jurisdictions: Jurisdiction[]) => void;
@@ -51,7 +54,8 @@ const defaultConfig: AppConfig = {
   providers: [],
   activeProviderId: '',
   theme: 'dark',
-  legalPracticeAreas: DEFAULT_PRACTICE_AREAS,
+  legalPracticeAreas: [], // Will be loaded from YAML
+  advisoryAreas: [], // Will be loaded from YAML
 };
 
 export const useStore = create<AppState>((set, get) => ({
@@ -80,15 +84,40 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const practiceAreas = await practiceLoader.loadConfig();
+
+      // Load practice areas into the manager
+      practiceAreaManager.loadPracticeAreas(practiceAreas);
+
       const config = get().config;
       set({
         config: { ...config, legalPracticeAreas: practiceAreas },
         isLoading: false
       });
-      console.log(`[Store] Loaded ${practiceAreas.length} practice areas`);
+      console.log(`[Store] Loaded ${practiceAreas.length} practice areas into manager and store`);
     } catch (error) {
       console.error('[Store] Failed to load practice areas:', error);
       set({ error: 'Failed to load practice area configuration', isLoading: false });
+    }
+  },
+
+  loadAdvisoryAreas: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const advisoryAreas = await advisoryLoader.loadConfig();
+
+      // Load advisory areas into the manager
+      advisoryAreaManager.loadAdvisoryAreas(advisoryAreas);
+
+      // Store in config (consistent with practice areas)
+      const config = get().config;
+      set({
+        config: { ...config, advisoryAreas: advisoryAreas },
+        isLoading: false
+      });
+      console.log(`[Store] Loaded ${advisoryAreas.length} advisory areas into manager and store`);
+    } catch (error) {
+      console.error('[Store] Failed to load advisory areas:', error);
+      set({ error: 'Failed to load advisory area configuration', isLoading: false });
     }
   },
 
@@ -207,10 +236,12 @@ export const useStore = create<AppState>((set, get) => ({
     });
   },
 
-  updateConversationTitle: (conversationId, title) => {
+  updateConversationTitle: async (conversationId, title) => {
     const current = get().currentConversation;
+    let updatedConversation: Conversation;
+
     if (current?.id === conversationId) {
-      const updatedConversation = {
+      updatedConversation = {
         ...current,
         title,
         updatedAt: new Date(),
@@ -222,11 +253,23 @@ export const useStore = create<AppState>((set, get) => ({
         ),
       });
     } else {
+      // Find the conversation in the list
+      const conversation = get().conversations.find(c => c.id === conversationId);
+      if (!conversation) return;
+
+      updatedConversation = { ...conversation, title, updatedAt: new Date() };
       set({
         conversations: get().conversations.map(c =>
-          c.id === conversationId ? { ...c, title, updatedAt: new Date() } : c
+          c.id === conversationId ? updatedConversation : c
         ),
       });
+    }
+
+    // Persist the updated conversation to storage
+    try {
+      await window.electronAPI.saveConversation(updatedConversation);
+    } catch (error) {
+      console.error('Failed to save conversation title:', error);
     }
   },
 
@@ -329,7 +372,17 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await window.electronAPI.loadConversations();
 
       if (result.success && result.data) {
-        set({ conversations: result.data });
+        // Deduplicate conversations by ID (in case old timestamp files exist)
+        const conversationMap = new Map<string, Conversation>();
+        result.data.forEach((conv: Conversation) => {
+          // Keep the most recently updated version if duplicates exist
+          const existing = conversationMap.get(conv.id);
+          if (!existing || new Date(conv.updatedAt) > new Date(existing.updatedAt)) {
+            conversationMap.set(conv.id, conv);
+          }
+        });
+        const conversations = Array.from(conversationMap.values());
+        set({ conversations });
       }
     } catch (error) {
       set({ error: (error as Error).message });

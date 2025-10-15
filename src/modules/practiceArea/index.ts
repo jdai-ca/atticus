@@ -2,14 +2,16 @@
  * Practice Area Management Module
  * 
  * This module handles all legal practice area logic including:
- * - Practice area definitions and configurations
+ * - Practice area configurations loaded from YAML
  * - Keyword-based practice area detection
  * - Specialized system prompts for each area
  * - Practice area metadata and settings
+ * 
+ * Practice areas are now loaded dynamically from external YAML configuration
+ * via the practiceLoader service and managed by the PracticeAreaManager.
  */
 
 export { PracticeAreaManager, practiceAreaManager } from './PracticeAreaManager';
-export { DEFAULT_PRACTICE_AREAS } from './definitions';
 export {
     detectPracticeArea,
     detectPracticeAreaWithConfidence,

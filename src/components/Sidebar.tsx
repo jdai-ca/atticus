@@ -58,9 +58,9 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
     setEditingTitle(conv.title);
   };
 
-  const handleSaveEdit = (convId: string) => {
+  const handleSaveEdit = async (convId: string) => {
     if (editingTitle.trim()) {
-      updateConversationTitle(convId, editingTitle.trim());
+      await updateConversationTitle(convId, editingTitle.trim());
     }
     setEditingId(null);
     setEditingTitle("");
@@ -71,10 +71,10 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
     setEditingTitle("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, convId: string) => {
+  const handleKeyDown = async (e: React.KeyboardEvent, convId: string) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleSaveEdit(convId);
+      await handleSaveEdit(convId);
     } else if (e.key === "Escape") {
       e.preventDefault();
       handleCancelEdit();

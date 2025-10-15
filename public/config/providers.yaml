@@ -1,11 +1,11 @@
 # Atticus AI Provider Configuration
 # This file defines all available AI providers, their models, and capabilities
 # Format: YAML 1.2
-# Last Updated: 2025-10-09
+# Last Updated: 2025-10-14
 
-version: "1.0.0"
-minAppVersion: "0.9.0"
-lastUpdated: "2025-10-09T00:00:00Z"
+version: "1.1.0"
+minAppVersion: "0.9.1"
+lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 
 # AI Provider Templates
@@ -15,19 +15,44 @@ providers:
   - id: openai
     name: OpenAI
     displayName: OpenAI
-    description: GPT-4, GPT-4 Turbo, and GPT-3.5 models
+    description: GPT-4o, o1, GPT-4 Turbo, and GPT-3.5 models
     endpoint: https://api.openai.com/v1/chat/completions
-    defaultModel: gpt-4-turbo-preview
+    defaultModel: gpt-4o
 
     models:
-      - id: gpt-4-turbo-preview
+      - id: gpt-4o
+        name: GPT-4o
+        description: Most advanced multimodal model, faster and cheaper than GPT-4 Turbo
+        enabled: true
+
+      - id: gpt-4o-mini
+        name: GPT-4o mini
+        description: Affordable small model for fast, lightweight tasks
+        enabled: true
+
+      - id: o1-preview
+        name: O1 Preview
+        description: Advanced reasoning model, excels at complex problem-solving
+        enabled: true
+
+      - id: o1-mini
+        name: O1 Mini
+        description: Faster reasoning model, great for code and STEM
+        enabled: true
+
+      - id: gpt-4-turbo
         name: GPT-4 Turbo
-        description: Most capable, best for complex legal analysis
+        description: GPT-4 with 128K context, vision capabilities
+        enabled: true
+
+      - id: gpt-4-turbo-preview
+        name: GPT-4 Turbo Preview
+        description: Preview version of GPT-4 Turbo
         enabled: true
 
       - id: gpt-4
         name: GPT-4
-        description: High quality, comprehensive responses
+        description: High quality, comprehensive responses (8K context)
         enabled: true
 
       - id: gpt-3.5-turbo
@@ -38,6 +63,8 @@ providers:
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
+      supportsVision: true
+      supportsFunctionCalling: true
 
     authentication:
       apiKeyFormat: sk-...
@@ -52,34 +79,42 @@ providers:
   - id: anthropic
     name: Anthropic
     displayName: Anthropic Claude
-    description: Claude 3 family - Opus, Sonnet, and Haiku
+    description: Claude 3.5 and Claude 3 family - Opus, Sonnet, and Haiku
     endpoint: https://api.anthropic.com/v1/messages
     defaultModel: claude-3-5-sonnet-20241022
 
     models:
       - id: claude-3-5-sonnet-20241022
-        name: Claude 3.5 Sonnet
-        description: Best balance of intelligence and speed
+        name: Claude 3.5 Sonnet (Latest)
+        description: Most intelligent model, best for complex analysis and coding
+        enabled: true
+
+      - id: claude-3-5-sonnet-20240620
+        name: Claude 3.5 Sonnet (June)
+        description: Previous version of 3.5 Sonnet
         enabled: true
 
       - id: claude-3-opus-20240229
         name: Claude 3 Opus
-        description: Most intelligent, best for complex analysis
+        description: Powerful model for highly complex tasks
         enabled: true
 
       - id: claude-3-sonnet-20240229
         name: Claude 3 Sonnet
-        description: Great performance, lower cost
+        description: Balanced performance and speed
         enabled: true
 
       - id: claude-3-haiku-20240307
         name: Claude 3 Haiku
-        description: Fastest, most cost-effective
+        description: Fastest and most compact model
         enabled: true
 
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
+      supportsVision: true
+      supportsFunctionCalling: true
+      maxContextWindow: 200000
 
     authentication:
       apiKeyFormat: sk-ant-...
@@ -94,24 +129,37 @@ providers:
   - id: google
     name: Google
     displayName: Google Gemini
-    description: Gemini Pro and Ultra models
+    description: Gemini 1.5 Pro, Flash, and legacy models
     endpoint: https://generativelanguage.googleapis.com/v1beta/models
-    defaultModel: gemini-pro
+    defaultModel: gemini-1.5-pro
 
     models:
+      - id: gemini-1.5-pro
+        name: Gemini 1.5 Pro
+        description: Most capable model, 2M token context, multimodal
+        enabled: true
+
+      - id: gemini-1.5-flash
+        name: Gemini 1.5 Flash
+        description: Fast and efficient, 1M token context, multimodal
+        enabled: true
+
       - id: gemini-pro
-        name: Gemini Pro
-        description: High-quality text generation
+        name: Gemini Pro (Legacy)
+        description: Previous generation, 32K context
         enabled: true
 
       - id: gemini-pro-vision
-        name: Gemini Pro Vision
-        description: Multimodal with image understanding
+        name: Gemini Pro Vision (Legacy)
+        description: Previous generation multimodal
         enabled: true
 
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
+      supportsVision: true
+      supportsFunctionCalling: true
+      maxContextWindow: 2000000
 
     authentication:
       apiKeyFormat: AI...
@@ -126,14 +174,24 @@ providers:
   - id: azure-openai
     name: Azure OpenAI
     displayName: Azure OpenAI
-    description: OpenAI models via Microsoft Azure
+    description: GPT-4o, GPT-4 Turbo, and GPT-3.5 via Microsoft Azure
     endpoint: "" # User must provide their endpoint
-    defaultModel: gpt-4
+    defaultModel: gpt-4o
 
     models:
+      - id: gpt-4o
+        name: GPT-4o
+        description: GPT-4o via Azure (if deployed)
+        enabled: true
+
+      - id: gpt-4-turbo
+        name: GPT-4 Turbo
+        description: GPT-4 Turbo with 128K context via Azure
+        enabled: true
+
       - id: gpt-4
         name: GPT-4
-        description: GPT-4 via Azure
+        description: GPT-4 8K via Azure
         enabled: true
 
       - id: gpt-35-turbo
@@ -144,6 +202,8 @@ providers:
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
+      supportsVision: true
+      supportsFunctionCalling: true
 
     authentication:
       apiKeyFormat: "..."
@@ -176,6 +236,8 @@ providers:
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
+      supportsVision: true
+      supportsFunctionCalling: false
 
     authentication:
       apiKeyFormat: xai-...
@@ -190,14 +252,14 @@ providers:
   - id: mistral
     name: Mistral
     displayName: Mistral AI
-    description: Mistral, Mixtral, and other open-source models
+    description: Mistral Large 2, Mixtral, and open-source models
     endpoint: https://api.mistral.ai/v1/chat/completions
     defaultModel: mistral-large-latest
 
     models:
       - id: mistral-large-latest
-        name: Mistral Large
-        description: Most capable model, best for complex reasoning
+        name: Mistral Large 2
+        description: Most capable model (123B), best for complex reasoning
         enabled: true
 
       - id: mistral-medium-latest
@@ -223,6 +285,7 @@ providers:
     capabilities:
       supportsMultimodal: false
       supportsRAG: true
+      supportsFunctionCalling: true
 
     authentication:
       apiKeyFormat: "..."
@@ -265,6 +328,7 @@ providers:
     capabilities:
       supportsMultimodal: false
       supportsRAG: true
+      supportsFunctionCalling: true
 
     authentication:
       apiKeyFormat: "..."
@@ -279,14 +343,19 @@ providers:
   - id: groq
     name: Groq
     displayName: Groq
-    description: Ultra-fast inference with Llama, Mixtral, and Gemma models
+    description: Ultra-fast inference with Llama 3.3, Llama 3.1, Mixtral, and Gemma
     endpoint: https://api.groq.com/openai/v1/chat/completions
-    defaultModel: llama-3.1-70b-versatile
+    defaultModel: llama-3.3-70b-versatile
 
     models:
+      - id: llama-3.3-70b-versatile
+        name: Llama 3.3 70B
+        description: Latest and most capable Llama model, excellent reasoning
+        enabled: true
+
       - id: llama-3.1-70b-versatile
         name: Llama 3.1 70B
-        description: Most capable, excellent reasoning and analysis
+        description: Previous generation, excellent reasoning and analysis
         enabled: true
 
       - id: llama-3.1-8b-instant
@@ -307,6 +376,7 @@ providers:
     capabilities:
       supportsMultimodal: false
       supportsRAG: true
+      supportsFunctionCalling: true
 
     authentication:
       apiKeyFormat: gsk_...
@@ -349,6 +419,9 @@ providers:
     capabilities:
       supportsMultimodal: false
       supportsRAG: true
+      supportsFunctionCalling: false
+      supportsWebSearch: true
+      supportsCitations: true
 
     authentication:
       apiKeyFormat: pplx-...

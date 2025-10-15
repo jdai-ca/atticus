@@ -1,22 +1,22 @@
 /**
- * Practice Area Manager
+ * Advisory Area Manager
  * 
- * Main class for managing practice areas including:
- * - Custom practice area definitions
+ * Main class for managing advisory areas including:
+ * - Advisory area definitions loaded from YAML
  * - System prompt customization
  * - Detection configuration
  */
 
 import { LegalPracticeArea } from '../../types';
 import {
-    PracticeAreaConfig,
-    PracticeAreaDetectionResult,
+    AdvisoryAreaConfig,
+    AdvisoryAreaDetectionResult,
     DetectionSettings
 } from './types';
-import { detectPracticeAreaWithConfidence } from './detector';
+import { detectAdvisoryAreaWithConfidence } from './detector';
 
-export class PracticeAreaManager {
-    private readonly customAreas: Map<string, PracticeAreaConfig>;
+export class AdvisoryAreaManager {
+    private readonly customAreas: Map<string, AdvisoryAreaConfig>;
     private detectionSettings: DetectionSettings;
     private loadedAreas: LegalPracticeArea[];
 
@@ -37,11 +37,11 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Initialize practice areas from loaded configuration
+     * Initialize advisory areas from loaded configuration
      */
     private initializeAreas(areas: LegalPracticeArea[]): void {
         areas.forEach(area => {
-            const config: PracticeAreaConfig = {
+            const config: AdvisoryAreaConfig = {
                 ...area,
                 enabled: true,
                 priority: 1,
@@ -54,44 +54,44 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Load practice areas (called after YAML config is loaded)
+     * Load advisory areas (called after YAML config is loaded)
      */
-    loadPracticeAreas(areas: LegalPracticeArea[]): void {
+    loadAdvisoryAreas(areas: LegalPracticeArea[]): void {
         this.loadedAreas = areas;
         this.customAreas.clear();
         this.initializeAreas(areas);
     }
 
     /**
-     * Get all practice areas (enabled and disabled)
+     * Get all advisory areas (enabled and disabled)
      */
-    getAllAreas(): PracticeAreaConfig[] {
+    getAllAreas(): AdvisoryAreaConfig[] {
         return Array.from(this.customAreas.values());
     }
 
     /**
-     * Get only enabled practice areas
+     * Get only enabled advisory areas
      */
-    getEnabledAreas(): PracticeAreaConfig[] {
+    getEnabledAreas(): AdvisoryAreaConfig[] {
         return this.getAllAreas().filter(area => area.enabled);
     }
 
     /**
-     * Get a practice area by ID
+     * Get an advisory area by ID
      */
-    getAreaById(id: string): PracticeAreaConfig | undefined {
+    getAreaById(id: string): AdvisoryAreaConfig | undefined {
         return this.customAreas.get(id);
     }
 
     /**
-     * Add or update a custom practice area
+     * Add or update a custom advisory area
      */
-    setCustomArea(config: PracticeAreaConfig): void {
+    setCustomArea(config: AdvisoryAreaConfig): void {
         this.customAreas.set(config.id, config);
     }
 
     /**
-     * Update system prompt for a practice area
+     * Update system prompt for an advisory area
      */
     updateSystemPrompt(areaId: string, systemPrompt: string): boolean {
         const area = this.customAreas.get(areaId);
@@ -103,7 +103,7 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Update keywords for a practice area
+     * Update keywords for an advisory area
      */
     updateKeywords(areaId: string, keywords: string[]): boolean {
         const area = this.customAreas.get(areaId);
@@ -115,7 +115,7 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Enable or disable a practice area
+     * Enable or disable an advisory area
      */
     setAreaEnabled(areaId: string, enabled: boolean): boolean {
         const area = this.customAreas.get(areaId);
@@ -141,7 +141,7 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Detect practice area from text
+     * Detect advisory area from text
      */
     detectArea(text: string): LegalPracticeArea {
         const result = this.detectAreaWithConfidence(text);
@@ -149,13 +149,10 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Detect practice area with confidence scores
+     * Detect advisory area with confidence scores
      */
-    detectAreaWithConfidence(text: string): PracticeAreaDetectionResult {
-        // Use the detector with current settings
-        // Note: This uses the global DEFAULT_PRACTICE_AREAS
-        // In a future enhancement, we could make the detector use custom areas
-        return detectPracticeAreaWithConfidence(text, this.detectionSettings);
+    detectAreaWithConfidence(text: string): AdvisoryAreaDetectionResult {
+        return detectAdvisoryAreaWithConfidence(text, this.detectionSettings);
     }
 
     /**
@@ -169,14 +166,14 @@ export class PracticeAreaManager {
     /**
      * Export all custom configurations
      */
-    exportConfigs(): PracticeAreaConfig[] {
+    exportConfigs(): AdvisoryAreaConfig[] {
         return this.getAllAreas();
     }
 
     /**
      * Import custom configurations
      */
-    importConfigs(configs: PracticeAreaConfig[]): void {
+    importConfigs(configs: AdvisoryAreaConfig[]): void {
         configs.forEach(config => {
             this.customAreas.set(config.id, config);
         });
@@ -191,7 +188,7 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Create a new custom practice area
+     * Create a new custom advisory area
      */
     createCustomArea(
         id: string,
@@ -199,9 +196,9 @@ export class PracticeAreaManager {
         keywords: string[],
         description: string,
         systemPrompt: string,
-        color: string = '#6b7280'
-    ): PracticeAreaConfig {
-        const config: PracticeAreaConfig = {
+        color: string = '#1e40af'
+    ): AdvisoryAreaConfig {
+        const config: AdvisoryAreaConfig = {
             id,
             name,
             keywords,
@@ -220,10 +217,10 @@ export class PracticeAreaManager {
     }
 
     /**
-     * Delete a custom practice area
+     * Delete a custom advisory area
      */
     deleteCustomArea(areaId: string): boolean {
-        // Don't allow deleting loaded practice areas (only truly custom ones)
+        // Don't allow deleting loaded advisory areas (only truly custom ones)
         const loadedIds = this.loadedAreas.map(a => a.id);
         if (loadedIds.includes(areaId)) {
             return false;
@@ -234,4 +231,4 @@ export class PracticeAreaManager {
 }
 
 // Export singleton instance (initialized empty, will be loaded from YAML)
-export const practiceAreaManager = new PracticeAreaManager();
+export const advisoryAreaManager = new AdvisoryAreaManager();

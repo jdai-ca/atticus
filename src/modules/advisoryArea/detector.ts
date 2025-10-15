@@ -1,15 +1,15 @@
 /**
- * Practice Area Detection Logic
+ * Advisory Area Detection Logic
  * 
- * Handles automatic detection of legal practice areas based on:
+ * Handles automatic detection of business advisory areas based on:
  * - Keyword matching
  * - Context-aware phrase analysis
  * - Confidence scoring
  */
 
 import { LegalPracticeArea } from '../../types';
-import { PracticeAreaDetectionResult, DetectionSettings } from './types';
-import { practiceAreaManager } from './PracticeAreaManager';
+import { AdvisoryAreaDetectionResult, DetectionSettings } from './types';
+import { advisoryAreaManager } from './AdvisoryAreaManager';
 
 /**
  * Default detection settings
@@ -22,40 +22,40 @@ const DEFAULT_DETECTION_SETTINGS: DetectionSettings = {
 };
 
 /**
- * Detects the most appropriate practice area based on input text
+ * Detects the most appropriate advisory area based on input text
  * 
  * @param text - The text to analyze (chat message, document content, etc.)
  * @param settings - Optional detection settings to override defaults
- * @param practiceAreas - Optional array of practice areas (defaults to loaded areas from manager)
- * @returns The detected practice area (or general if no strong match)
+ * @param advisoryAreas - Optional array of advisory areas (defaults to loaded areas from manager)
+ * @returns The detected advisory area (or general if no strong match)
  */
-export function detectPracticeArea(
+export function detectAdvisoryArea(
     text: string,
     settings: Partial<DetectionSettings> = {},
-    practiceAreas?: LegalPracticeArea[]
+    advisoryAreas?: LegalPracticeArea[]
 ): LegalPracticeArea {
-    const result = detectPracticeAreaWithConfidence(text, settings, practiceAreas);
+    const result = detectAdvisoryAreaWithConfidence(text, settings, advisoryAreas);
     return result.area;
 }
 
 /**
- * Detects practice area with detailed confidence information
+ * Detects advisory area with detailed confidence information
  * 
  * @param text - The text to analyze
  * @param settings - Optional detection settings
- * @param practiceAreas - Optional array of practice areas (defaults to loaded areas from manager)
+ * @param advisoryAreas - Optional array of advisory areas (defaults to loaded areas from manager)
  * @returns Detailed detection result with confidence scores
  */
-export function detectPracticeAreaWithConfidence(
+export function detectAdvisoryAreaWithConfidence(
     text: string,
     settings: Partial<DetectionSettings> = {},
-    practiceAreas?: LegalPracticeArea[]
-): PracticeAreaDetectionResult {
+    advisoryAreas?: LegalPracticeArea[]
+): AdvisoryAreaDetectionResult {
     const config = { ...DEFAULT_DETECTION_SETTINGS, ...settings };
     const lowerText = text.toLowerCase();
 
-    // Use provided practice areas or fall back to manager's loaded areas
-    const areas = practiceAreas || practiceAreaManager.getAllAreas().map(a => ({
+    // Use provided advisory areas or fall back to manager's loaded areas
+    const areas = advisoryAreas || advisoryAreaManager.getAllAreas().map(a => ({
         id: a.id,
         name: a.name,
         keywords: a.keywords,
@@ -64,16 +64,16 @@ export function detectPracticeAreaWithConfidence(
         color: a.color
     } as LegalPracticeArea));
 
-    // If no areas available, return a minimal general area
+    // If no areas available, return a minimal general advisory area
     if (areas.length === 0) {
         return {
             area: {
-                id: 'general',
-                name: 'General Legal',
+                id: 'general-advisory',
+                name: 'General Business Advisory',
                 keywords: [],
-                description: 'General legal assistance',
-                systemPrompt: 'You are a helpful legal AI assistant.',
-                color: '#6b7280'
+                description: 'General business consulting',
+                systemPrompt: 'You are a business advisory AI assistant.',
+                color: '#1e40af'
             },
             confidence: 0,
             matchCount: 0,
@@ -81,9 +81,9 @@ export function detectPracticeAreaWithConfidence(
         };
     }
 
-    // Score each practice area based on keyword matches
+    // Score each advisory area based on keyword matches
     const scores = areas
-        .filter(area => area.id !== 'general') // Don't score general (it's the fallback)
+        .filter(area => area.id !== 'general-advisory') // Don't score general (it's the fallback)
         .map(area => {
             const matchedKeywords: string[] = [];
 
@@ -124,15 +124,15 @@ export function detectPracticeAreaWithConfidence(
     // Get the best match
     const bestMatch = scores[0];
 
-    // If no matches or confidence too low, return general
+    // If no matches or confidence too low, return general advisory
     if (!bestMatch || bestMatch.confidence < config.minConfidence) {
-        const generalArea = areas.find(a => a.id === 'general') || {
-            id: 'general',
-            name: 'General Legal',
+        const generalArea = areas.find(a => a.id === 'general-advisory') || {
+            id: 'general-advisory',
+            name: 'General Business Advisory',
             keywords: [],
-            description: 'General legal assistance',
-            systemPrompt: 'You are a helpful legal AI assistant.',
-            color: '#6b7280'
+            description: 'General business consulting',
+            systemPrompt: 'You are a business advisory AI assistant providing general consulting guidance.',
+            color: '#1e40af'
         };
         return {
             area: generalArea,
@@ -143,7 +143,7 @@ export function detectPracticeAreaWithConfidence(
     }
 
     // Build the result
-    const result: PracticeAreaDetectionResult = {
+    const result: AdvisoryAreaDetectionResult = {
         area: bestMatch.area,
         confidence: bestMatch.confidence,
         matchCount: bestMatch.matchCount,
@@ -166,10 +166,10 @@ export function detectPracticeAreaWithConfidence(
 }
 
 /**
- * Get all available practice areas (from manager)
+ * Get all available advisory areas (from manager)
  */
-export function getAllPracticeAreas(): LegalPracticeArea[] {
-    return practiceAreaManager.getAllAreas().map(a => ({
+export function getAllAdvisoryAreas(): LegalPracticeArea[] {
+    return advisoryAreaManager.getAllAreas().map(a => ({
         id: a.id,
         name: a.name,
         keywords: a.keywords,
@@ -180,10 +180,10 @@ export function getAllPracticeAreas(): LegalPracticeArea[] {
 }
 
 /**
- * Get a practice area by ID (from manager)
+ * Get an advisory area by ID (from manager)
  */
-export function getPracticeAreaById(id: string): LegalPracticeArea | undefined {
-    const area = practiceAreaManager.getAreaById(id);
+export function getAdvisoryAreaById(id: string): LegalPracticeArea | undefined {
+    const area = advisoryAreaManager.getAreaById(id);
     if (!area) return undefined;
 
     return {
@@ -197,11 +197,11 @@ export function getPracticeAreaById(id: string): LegalPracticeArea | undefined {
 }
 
 /**
- * Get practice areas that match any of the provided keywords (from manager)
+ * Get advisory areas that match any of the provided keywords (from manager)
  */
-export function searchPracticeAreasByKeyword(keyword: string): LegalPracticeArea[] {
+export function searchAdvisoryAreasByKeyword(keyword: string): LegalPracticeArea[] {
     const lowerKeyword = keyword.toLowerCase();
-    const allAreas = practiceAreaManager.getAllAreas();
+    const allAreas = advisoryAreaManager.getAllAreas();
 
     return allAreas
         .filter(area =>
