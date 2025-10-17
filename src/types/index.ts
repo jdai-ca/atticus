@@ -1,12 +1,32 @@
-// Window API types
+// Operation result type for secure IPC communication
+export interface OperationResult<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+}
+
+// Window API types - UI safe, no API keys exposed
 export interface ElectronAPI {
-  saveConfig: (config: any) => Promise<any>;
-  loadConfig: () => Promise<any>;
-  saveConversation: (conversation: any) => Promise<any>;
-  loadConversations: () => Promise<any>;
-  uploadFile: () => Promise<any>;
-  savePDF: (data: { filename: string; data: string }) => Promise<any>;
-  loadBundledConfig: (configName: string) => Promise<{ success: boolean; data?: string; error?: string }>;
+  saveConfig: (config: AppConfig) => Promise<OperationResult>;
+  loadConfig: () => Promise<OperationResult<AppConfig>>;
+  saveConversation: (conversation: Conversation) => Promise<OperationResult>;
+  loadConversations: () => Promise<OperationResult<Conversation[]>>;
+  uploadFile: () => Promise<OperationResult<FileUploadResult>>;
+  savePDF: (data: { filename: string; data: string }) => Promise<OperationResult>;
+  loadBundledConfig: (configName: string) => Promise<OperationResult<string>>;
+  secureChatRequest: (request: SecureChatRequest) => Promise<OperationResult<ChatResponse>>;
+}
+
+export interface FileUploadResult {
+  name: string;
+  path: string;
+  extension: string;
+  size: number;
+  data: string; // base64
 }
 
 declare global {
@@ -35,11 +55,11 @@ export interface ModelDomainConfig {
   domains: ModelDomain;
 }
 
+// UI-safe provider config (no API keys)
 export interface ProviderConfig {
   id: string;
   name: string;
   provider: AIProvider;
-  apiKey: string;
   endpoint?: string;
   model: string;
   enabled: boolean;
@@ -47,6 +67,21 @@ export interface ProviderConfig {
   supportsRAG?: boolean;
   enabledModels?: string[]; // Array of model IDs that are enabled for selection
   modelDomains?: ModelDomainConfig[]; // Domain-specific model configuration (practice/advisory/both)
+  hasApiKey?: boolean; // Indicates if API key is configured (main process only knows the actual key)
+}
+
+// Secure provider config with API key (main process only)
+export interface SecureProviderConfig extends ProviderConfig {
+  apiKey: string;
+}
+
+// Secure chat request (sent to main process)
+export interface SecureChatRequest {
+  provider: ProviderConfig; // UI-safe provider info
+  messages: Message[];
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 // Provider Template (from config file)
@@ -93,7 +128,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp: string; // ISO string for consistent persistence
   attachments?: Attachment[];
   practiceArea?: string;
   advisoryArea?: string;
@@ -118,8 +153,8 @@ export interface Conversation {
   title: string;
   messages: Message[];
   practiceArea?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO string for consistent persistence
+  updatedAt: string; // ISO string for consistent persistence
   provider: string; // Deprecated: kept for backward compatibility
   model?: string; // Deprecated: kept for backward compatibility
   selectedModels?: SelectedModel[]; // Array of models to query for each message
@@ -138,12 +173,22 @@ export interface JurisdictionInfo {
   name: string;
   flag: string;
   description: string;
+  coverage: number; // Coverage percentage (0-100)
 }
 
 // API Request/Response types
 export interface ChatRequest {
   messages: Message[];
   provider: ProviderConfig;
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+// Secure chat request (used in main process with API keys)
+export interface SecureChatRequestInternal {
+  messages: Message[];
+  provider: SecureProviderConfig;
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;

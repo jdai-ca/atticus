@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { Conversation } from '../types';
+import { DateUtils } from './dateUtils';
 
 export async function exportConversationToPDF(conversation: Conversation): Promise<string> {
   const pdf = new jsPDF({
@@ -25,7 +26,7 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
   pdf.text(`Conversation: ${conversation.title}`, margin, yPosition);
   yPosition += 6;
 
-  const dateStr = new Date(conversation.createdAt).toLocaleString();
+  const dateStr = DateUtils.formatDateTime(conversation.createdAt);
   pdf.text(`Date: ${dateStr}`, margin, yPosition);
   yPosition += 6;
 
@@ -73,7 +74,7 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     const role = message.role === 'user' ? 'You' : 'Assistant';
-    const timestamp = new Date(message.timestamp).toLocaleTimeString();
+    const timestamp = DateUtils.formatTime(message.timestamp);
     pdf.text(`${role} (${timestamp})`, margin, yPosition);
     yPosition += 7;
 
@@ -152,8 +153,8 @@ export async function downloadPDF(conversation: Conversation): Promise<void> {
       data: pdfData,
     });
 
-    if (result.success) {
-      console.log('PDF saved:', result.filepath);
+    if (result.success && result.data) {
+      console.log('PDF saved:', (result.data as any).filepath);
     }
   } catch (error) {
     console.error('Error downloading PDF:', error);

@@ -5,6 +5,10 @@ import { practiceLoader } from '../services/practiceLoader';
 import { advisoryLoader } from '../services/advisoryLoader';
 import { practiceAreaManager } from '../modules/practiceArea';
 import { advisoryAreaManager } from '../modules/advisoryArea';
+import { createLogger } from '../services/logger';
+import { DateUtils } from '../utils/dateUtils';
+
+const logger = createLogger('Store');
 
 // Helper function to truncate message content
 const truncateMessage = (content: string, maxLength = 50): string => {
@@ -73,9 +77,9 @@ export const useStore = create<AppState>((set, get) => ({
       set({ isLoading: true, error: null });
       const templates = await configLoader.loadConfig();
       set({ providerTemplates: templates, isLoading: false });
-      console.log(`[Store] Loaded ${templates.length} provider templates`);
+      logger.info('Loaded provider templates', { count: templates.length });
     } catch (error) {
-      console.error('[Store] Failed to load provider templates:', error);
+      logger.error('Failed to load provider templates', { error });
       set({ error: 'Failed to load provider configuration', isLoading: false });
     }
   },
@@ -93,9 +97,9 @@ export const useStore = create<AppState>((set, get) => ({
         config: { ...config, legalPracticeAreas: practiceAreas },
         isLoading: false
       });
-      console.log(`[Store] Loaded ${practiceAreas.length} practice areas into manager and store`);
+      logger.info('Loaded practice areas', { count: practiceAreas.length });
     } catch (error) {
-      console.error('[Store] Failed to load practice areas:', error);
+      logger.error('Failed to load practice areas', { error });
       set({ error: 'Failed to load practice area configuration', isLoading: false });
     }
   },
@@ -114,9 +118,9 @@ export const useStore = create<AppState>((set, get) => ({
         config: { ...config, advisoryAreas: advisoryAreas },
         isLoading: false
       });
-      console.log(`[Store] Loaded ${advisoryAreas.length} advisory areas into manager and store`);
+      logger.info('Loaded advisory areas', { count: advisoryAreas.length });
     } catch (error) {
-      console.error('[Store] Failed to load advisory areas:', error);
+      logger.error('Failed to load advisory areas', { error });
       set({ error: 'Failed to load advisory area configuration', isLoading: false });
     }
   },
@@ -170,8 +174,8 @@ export const useStore = create<AppState>((set, get) => ({
       id: `conv-${Date.now()}`,
       title: 'New Conversation',
       messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: DateUtils.now(),
+      updatedAt: DateUtils.now(),
       provider: providerId,
       model: provider?.model, // Store the current model
     };
@@ -192,7 +196,7 @@ export const useStore = create<AppState>((set, get) => ({
     const updatedConversation = {
       ...current,
       messages: [...current.messages, message],
-      updatedAt: new Date(),
+      updatedAt: DateUtils.now(),
       title: current.messages.length === 0
         ? truncateMessage(message.content)
         : current.title,
@@ -215,7 +219,7 @@ export const useStore = create<AppState>((set, get) => ({
       messages: current.messages.map(m =>
         m.id === messageId ? { ...m, ...updates } : m
       ),
-      updatedAt: new Date(),
+      updatedAt: DateUtils.now(),
     };
 
     set({
@@ -244,7 +248,7 @@ export const useStore = create<AppState>((set, get) => ({
       updatedConversation = {
         ...current,
         title,
-        updatedAt: new Date(),
+        updatedAt: DateUtils.now(),
       };
       set({
         currentConversation: updatedConversation,
@@ -257,7 +261,7 @@ export const useStore = create<AppState>((set, get) => ({
       const conversation = get().conversations.find(c => c.id === conversationId);
       if (!conversation) return;
 
-      updatedConversation = { ...conversation, title, updatedAt: new Date() };
+      updatedConversation = { ...conversation, title, updatedAt: DateUtils.now() };
       set({
         conversations: get().conversations.map(c =>
           c.id === conversationId ? updatedConversation : c
@@ -269,7 +273,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       await window.electronAPI.saveConversation(updatedConversation);
     } catch (error) {
-      console.error('Failed to save conversation title:', error);
+      logger.error('Failed to save conversation title', { error });
     }
   },
 
@@ -279,7 +283,7 @@ export const useStore = create<AppState>((set, get) => ({
       const updatedConversation = {
         ...current,
         model,
-        updatedAt: new Date(),
+        updatedAt: DateUtils.now(),
       };
       set({
         currentConversation: updatedConversation,
@@ -290,7 +294,7 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       set({
         conversations: get().conversations.map(c =>
-          c.id === conversationId ? { ...c, model, updatedAt: new Date() } : c
+          c.id === conversationId ? { ...c, model, updatedAt: DateUtils.now() } : c
         ),
       });
     }
@@ -302,7 +306,7 @@ export const useStore = create<AppState>((set, get) => ({
       const updatedConversation = {
         ...current,
         selectedModels,
-        updatedAt: new Date(),
+        updatedAt: DateUtils.now(),
       };
       set({
         currentConversation: updatedConversation,
@@ -313,7 +317,7 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       set({
         conversations: get().conversations.map(c =>
-          c.id === conversationId ? { ...c, selectedModels, updatedAt: new Date() } : c
+          c.id === conversationId ? { ...c, selectedModels, updatedAt: DateUtils.now() } : c
         ),
       });
     }
@@ -325,7 +329,7 @@ export const useStore = create<AppState>((set, get) => ({
       const updatedConversation = {
         ...current,
         selectedJurisdictions,
-        updatedAt: new Date(),
+        updatedAt: DateUtils.now(),
       };
       set({
         currentConversation: updatedConversation,
@@ -336,7 +340,7 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       set({
         conversations: get().conversations.map(c =>
-          c.id === conversationId ? { ...c, selectedJurisdictions, updatedAt: new Date() } : c
+          c.id === conversationId ? { ...c, selectedJurisdictions, updatedAt: DateUtils.now() } : c
         ),
       });
     }
@@ -362,7 +366,7 @@ export const useStore = create<AppState>((set, get) => ({
       const config = get().config;
       await window.electronAPI.saveConfig(config);
     } catch (error) {
-      console.error('Failed to save config:', error);
+      logger.error('Failed to save config', { error });
     }
   },
 
@@ -375,10 +379,21 @@ export const useStore = create<AppState>((set, get) => ({
         // Deduplicate conversations by ID (in case old timestamp files exist)
         const conversationMap = new Map<string, Conversation>();
         result.data.forEach((conv: Conversation) => {
+          // Migrate date fields to ISO strings if needed (for backward compatibility)
+          const migratedConv: Conversation = {
+            ...conv,
+            createdAt: DateUtils.ensureISOString(conv.createdAt as any),
+            updatedAt: DateUtils.ensureISOString(conv.updatedAt as any),
+            messages: conv.messages.map((msg: Message): Message => ({
+              ...msg,
+              timestamp: DateUtils.ensureISOString(msg.timestamp as any)
+            }))
+          };
+
           // Keep the most recently updated version if duplicates exist
-          const existing = conversationMap.get(conv.id);
-          if (!existing || new Date(conv.updatedAt) > new Date(existing.updatedAt)) {
-            conversationMap.set(conv.id, conv);
+          const existing = conversationMap.get(migratedConv.id);
+          if (!existing || DateUtils.parse(migratedConv.updatedAt) > DateUtils.parse(existing.updatedAt)) {
+            conversationMap.set(migratedConv.id, migratedConv);
           }
         });
         const conversations = Array.from(conversationMap.values());
@@ -398,7 +413,7 @@ export const useStore = create<AppState>((set, get) => ({
 
       await window.electronAPI.saveConversation(current);
     } catch (error) {
-      console.error('Failed to save conversation:', error);
+      logger.error('Failed to save conversation', { error });
     }
   },
 

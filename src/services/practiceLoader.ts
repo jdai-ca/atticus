@@ -66,7 +66,8 @@ class PracticeConfigLoader {
                 const result = await window.electronAPI.loadBundledConfig('practices.yaml');
 
                 if (!result.success || !result.data) {
-                    throw new Error(result.error || 'Failed to load config from Electron');
+                    const errorMessage = result.error?.message || 'Failed to load config from Electron';
+                    throw new Error(errorMessage);
                 }
 
                 yamlText = result.data;
@@ -199,7 +200,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.0';
+        const appVersion = '0.9.2';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -260,7 +261,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.0',
+            minAppVersion: '0.9.2',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

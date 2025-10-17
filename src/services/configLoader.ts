@@ -15,7 +15,7 @@
 
 import yaml from 'js-yaml';
 import Ajv from 'ajv';
-import { ProviderTemplate } from '../types';
+import { ProviderTemplate, AIProvider } from '../types';
 import providerSchema from '../schemas/provider-config.schema.json';
 
 const ajv = new Ajv({ allErrors: true });
@@ -99,7 +99,8 @@ export class ConfigLoader {
                 const result = await window.electronAPI.loadBundledConfig('providers.yaml');
 
                 if (!result.success || !result.data) {
-                    throw new Error(result.error || 'Failed to load config from Electron');
+                    const errorMessage = result.error?.message || 'Failed to load config from Electron';
+                    throw new Error(errorMessage);
                 }
 
                 yamlText = result.data;
@@ -233,7 +234,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.0';
+        return '0.9.2';
     }
 
     /**
@@ -295,7 +296,7 @@ export class ConfigLoader {
      */
     private transformToProviderTemplates(config: ProviderConfigFile): ProviderTemplate[] {
         return config.providers.map(provider => ({
-            id: provider.id as any, // Cast to AIProvider type
+            id: provider.id as AIProvider, // Validated provider ID
             name: provider.name,
             displayName: provider.displayName,
             description: provider.description,

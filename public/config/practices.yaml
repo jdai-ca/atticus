@@ -1,5 +1,5 @@
 version: 1.0.0
-minAppVersion: 0.9.1
+minAppVersion: 0.9.2
 lastUpdated: "2025-10-11T12:00:00.000Z"
 updateUrl: https://jdai.ca/atticus/practices.yaml
 practiceAreas:
@@ -266,6 +266,8 @@ practiceAreas:
       - overtime
       - classification
       - independent contractor
+      - maquiladora
+      - CUSMA labor provisions
     systemPrompt: |
       You are a specialized legal AI assistant with deep expertise in Employment and Labor Law.
 
@@ -3565,6 +3567,10 @@ practiceAreas:
       - World Trade Organization
       - GATT
       - trade agreement
+      - CUSMA
+      - USMCA
+      - NAFTA
+      - maquiladora
       - customs
       - tariff
       - import

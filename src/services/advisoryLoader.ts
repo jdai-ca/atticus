@@ -65,7 +65,8 @@ class AdvisoryConfigLoader {
                 const result = await window.electronAPI.loadBundledConfig('advisory.yaml');
 
                 if (!result.success || !result.data) {
-                    throw new Error(result.error || 'Failed to load config from Electron');
+                    const errorMessage = result.error?.message || 'Failed to load config from Electron';
+                    throw new Error(errorMessage);
                 }
 
                 yamlText = result.data;
@@ -228,7 +229,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.0',
+            minAppVersion: '0.9.2',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

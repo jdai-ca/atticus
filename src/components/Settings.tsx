@@ -8,6 +8,7 @@ import {
   ModelDomain,
   ModelDomainConfig,
 } from "../types";
+import { JURISDICTIONS } from "../config/jurisdictions";
 
 interface SettingsProps {
   readonly onClose: () => void;
@@ -97,11 +98,15 @@ export default function Settings({ onClose }: SettingsProps) {
     const existingProvider = getConfiguredProvider(template.id);
     const selectedModel = selectedModels[template.id] || template.defaultModel;
 
+    // TODO: Implement secure API key storage in main process
+    // For now, we temporarily store API keys in config for backward compatibility
     if (existingProvider) {
       // Update existing provider
       updateProvider(existingProvider.id, {
-        apiKey: apiKey.trim(),
         model: selectedModel,
+        hasApiKey: Boolean(apiKey.trim()),
+        // Temporarily store API key for main process access
+        ...(apiKey.trim() && { _tempApiKey: apiKey.trim() }),
       });
     } else {
       // Create new provider
@@ -109,13 +114,15 @@ export default function Settings({ onClose }: SettingsProps) {
         id: `${template.id}-${Date.now()}`,
         name: template.displayName,
         provider: template.id,
-        apiKey: apiKey.trim(),
         endpoint: template.endpoint,
         model: selectedModel,
         enabled: true,
         supportsMultimodal: template.supportsMultimodal,
         supportsRAG: template.supportsRAG,
-      };
+        hasApiKey: Boolean(apiKey.trim()),
+        // Temporarily store API key for main process access
+        ...(apiKey.trim() && { _tempApiKey: apiKey.trim() }),
+      } as any; // Cast to any to allow temporary field
       addProvider(newProvider);
 
       // Set as active if it's the first provider
@@ -162,7 +169,7 @@ export default function Settings({ onClose }: SettingsProps) {
             onClick={() => setActiveTab("providers")}
             className={`px-6 py-3 font-medium transition-colors ${
               activeTab === "providers"
-                ? "text-legal-blue border-b-2 border-legal-blue"
+                ? "text-gray-200 border-b-2 border-gray-400"
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
@@ -172,7 +179,7 @@ export default function Settings({ onClose }: SettingsProps) {
             onClick={() => setActiveTab("practice")}
             className={`px-6 py-3 font-medium transition-colors ${
               activeTab === "practice"
-                ? "text-legal-blue border-b-2 border-legal-blue"
+                ? "text-gray-200 border-b-2 border-gray-400"
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
@@ -182,7 +189,7 @@ export default function Settings({ onClose }: SettingsProps) {
             onClick={() => setActiveTab("advisory")}
             className={`px-6 py-3 font-medium transition-colors ${
               activeTab === "advisory"
-                ? "text-legal-blue border-b-2 border-legal-blue"
+                ? "text-gray-200 border-b-2 border-gray-400"
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
@@ -192,7 +199,7 @@ export default function Settings({ onClose }: SettingsProps) {
             onClick={() => setActiveTab("about")}
             className={`px-6 py-3 font-medium transition-colors ${
               activeTab === "about"
-                ? "text-legal-blue border-b-2 border-legal-blue"
+                ? "text-gray-200 border-b-2 border-gray-400"
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
@@ -248,12 +255,12 @@ export default function Settings({ onClose }: SettingsProps) {
                                 {template.displayName}
                               </h3>
                               {isConfigured && (
-                                <span className="text-xs bg-green-600 text-white px-2 py-1 rounded font-semibold">
+                                <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded font-semibold border border-gray-600">
                                   ✓ Configured
                                 </span>
                               )}
                               {isActive && (
-                                <span className="text-xs bg-legal-gold text-gray-900 px-2 py-1 rounded font-semibold">
+                                <span className="text-xs bg-gray-600 text-gray-200 px-2 py-1 rounded font-semibold border border-gray-500">
                                   Active
                                 </span>
                               )}
@@ -332,7 +339,7 @@ export default function Settings({ onClose }: SettingsProps) {
                                                 );
                                               }
                                             }}
-                                            className="mt-1 w-4 h-4 text-legal-blue bg-gray-700 border-gray-600 rounded focus:ring-legal-blue focus:ring-2"
+                                            className="mt-1 w-4 h-4 text-gray-400 bg-gray-700 border-gray-600 rounded focus:ring-gray-500 focus:ring-2"
                                           />
                                           <div className="flex-1">
                                             <div className="text-sm text-white font-medium">
@@ -358,10 +365,10 @@ export default function Settings({ onClose }: SettingsProps) {
                                                     "practice"
                                                   )
                                                 }
-                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "practice"
-                                                    ? "bg-legal-blue text-white"
-                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                    ? "bg-gray-600 text-gray-200 border-gray-500"
+                                                    : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
                                                 title="Practice areas only"
                                               >
@@ -375,10 +382,10 @@ export default function Settings({ onClose }: SettingsProps) {
                                                     "advisory"
                                                   )
                                                 }
-                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "advisory"
-                                                    ? "bg-legal-gold text-gray-900"
-                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                    ? "bg-gray-600 text-gray-200 border-gray-500"
+                                                    : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
                                                 title="Advisory areas only"
                                               >
@@ -392,10 +399,10 @@ export default function Settings({ onClose }: SettingsProps) {
                                                     "both"
                                                   )
                                                 }
-                                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                                className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "both"
-                                                    ? "bg-purple-600 text-white"
-                                                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                                    ? "bg-gray-600 text-gray-200 border-gray-500"
+                                                    : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
                                                 title="Both practice and advisory"
                                               >
@@ -436,7 +443,7 @@ export default function Settings({ onClose }: SettingsProps) {
                               <button
                                 onClick={() => handleSaveApiKey(template)}
                                 disabled={!editingApiKeys[template.id]?.trim()}
-                                className="w-24 px-4 py-2 bg-legal-blue hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                                className="w-24 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0 border border-gray-500"
                               >
                                 {isConfigured ? "Update" : "Activate"}
                               </button>
@@ -447,7 +454,7 @@ export default function Settings({ onClose }: SettingsProps) {
                               href={template.getApiKeyUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-legal-blue hover:text-blue-400 mt-2"
+                              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-300 mt-2"
                             >
                               Get your {template.apiKeyLabel} →
                             </a>
@@ -548,7 +555,7 @@ export default function Settings({ onClose }: SettingsProps) {
                                   }
                                   setExpandedPracticeAreas(newExpanded);
                                 }}
-                                className="text-xs text-legal-blue hover:text-blue-400 cursor-pointer transition-colors"
+                                className="text-xs text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
                               >
                                 {isExpanded
                                   ? "Show less"
@@ -650,7 +657,7 @@ export default function Settings({ onClose }: SettingsProps) {
                                     }
                                     setExpandedAdvisoryAreas(newExpanded);
                                   }}
-                                  className="text-xs text-legal-blue hover:text-blue-400 cursor-pointer transition-colors"
+                                  className="text-xs text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
                                 >
                                   {isExpanded
                                     ? "Show less"
@@ -730,34 +737,23 @@ export default function Settings({ onClose }: SettingsProps) {
                     Atticus provides specialized support for startups and
                     businesses operating in:
                   </p>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-gray-800 rounded p-3 text-center">
-                      <div className="text-2xl mb-2">🇨🇦</div>
-                      <div className="text-sm font-semibold text-white">
-                        Canada
+                  <div className="grid grid-cols-4 gap-3 mb-4">
+                    {JURISDICTIONS.map((jurisdiction) => (
+                      <div
+                        key={jurisdiction.code}
+                        className="bg-gray-800 rounded p-3 text-center"
+                      >
+                        <div className="text-2xl mb-2">{jurisdiction.flag}</div>
+                        <div className="text-sm font-semibold text-white">
+                          {jurisdiction.name === "European Union"
+                            ? "Europe"
+                            : jurisdiction.name}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {jurisdiction.coverage}% Coverage
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        80% Coverage
-                      </div>
-                    </div>
-                    <div className="bg-gray-800 rounded p-3 text-center">
-                      <div className="text-2xl mb-2">🇺🇸</div>
-                      <div className="text-sm font-semibold text-white">
-                        United States
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        92% Coverage
-                      </div>
-                    </div>
-                    <div className="bg-gray-800 rounded p-3 text-center">
-                      <div className="text-2xl mb-2">🇪🇺</div>
-                      <div className="text-sm font-semibold text-white">
-                        Europe
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        75% Coverage
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
@@ -768,7 +764,7 @@ export default function Settings({ onClose }: SettingsProps) {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-legal-blue mb-2">
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2">
                         Legal Practice Areas (44)
                       </h4>
                       <ul className="text-xs text-gray-400 space-y-1">
@@ -783,7 +779,7 @@ export default function Settings({ onClose }: SettingsProps) {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-legal-gold mb-2">
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2">
                         Business Advisory (11)
                       </h4>
                       <ul className="text-xs text-gray-400 space-y-1">
@@ -855,25 +851,25 @@ export default function Settings({ onClose }: SettingsProps) {
                   </h3>
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li className="flex items-start gap-2">
-                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span className="text-gray-400 mt-0.5">✓</span>
                       <span>
                         All data stored locally on your machine - no cloud
                         storage
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span className="text-gray-400 mt-0.5">✓</span>
                       <span>
                         API calls made directly to your chosen providers - no
                         intermediaries
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span className="text-gray-400 mt-0.5">✓</span>
                       <span>Your API keys never leave your device</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span className="text-gray-400 mt-0.5">✓</span>
                       <span>
                         Full control over your data and conversations (including
                         API expenses
@@ -908,25 +904,25 @@ export default function Settings({ onClose }: SettingsProps) {
                       <ul className="text-xs text-gray-300 space-y-1">
                         <li>
                           Total Practice Areas:{" "}
-                          <span className="text-legal-blue font-semibold">
+                          <span className="text-gray-300 font-semibold">
                             26
                           </span>
                         </li>
                         <li>
                           Total Advisory Areas:{" "}
-                          <span className="text-legal-gold font-semibold">
+                          <span className="text-gray-300 font-semibold">
                             11
                           </span>
                         </li>
                         <li>
                           Total Keywords:{" "}
-                          <span className="text-green-500 font-semibold">
+                          <span className="text-gray-300 font-semibold">
                             ~2,000+
                           </span>
                         </li>
                         <li>
                           Supported Providers:{" "}
-                          <span className="text-purple-400 font-semibold">
+                          <span className="text-gray-300 font-semibold">
                             {config.providers.length} configured
                           </span>
                         </li>

@@ -6,24 +6,28 @@ export const JURISDICTIONS: JurisdictionInfo[] = [
         name: 'Canada',
         flag: '🇨🇦',
         description: 'Canadian federal and provincial law, including interprovincial trade and regulatory differences',
+        coverage: 80,
     },
     {
         code: 'US',
         name: 'United States',
         flag: '🇺🇸',
         description: 'U.S. federal and state law, including interstate commerce and jurisdictional conflicts',
+        coverage: 92,
     },
     {
         code: 'MX',
         name: 'Mexico',
         flag: '🇲🇽',
         description: 'Mexican federal and state law, including interstate commerce and regulatory variations',
+        coverage: 70,
     },
     {
         code: 'EU',
         name: 'European Union',
         flag: '🇪🇺',
         description: 'EU regulations and member state law, including cross-border harmonization',
+        coverage: 75,
     },
 ];
 

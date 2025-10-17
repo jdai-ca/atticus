@@ -1,15 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "../store";
 import { Send, Paperclip, Loader2, Settings } from "lucide-react";
-import { Message, Jurisdiction } from "../types";
-import { sendChatMessage } from "../services/api";
+import { Message, Jurisdiction, ModelDomain } from "../types";
+// Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
 import { detectAdvisoryArea } from "../modules/advisoryArea";
+import { createLogger } from "../services/logger";
+import { DateUtils } from "../utils/dateUtils";
 import {
   JURISDICTIONS,
   getJurisdictionSystemPromptAppendix,
 } from "../config/jurisdictions";
 import ReactMarkdown from "react-markdown";
+
+const logger = createLogger("ChatWindow");
 
 export default function ChatWindow() {
   const {
@@ -162,6 +166,7 @@ export default function ChatWindow() {
       modelId: string;
       modelName: string;
       modelDescription: string;
+      domains: ModelDomain;
     }> = [];
 
     config.providers.forEach((provider) => {
@@ -189,6 +194,12 @@ export default function ChatWindow() {
               }
             }
 
+            // Get domain configuration for this model
+            const modelDomainConfig = provider.modelDomains?.find(
+              (d) => d.modelId === model.id
+            );
+            const modelDomain = modelDomainConfig?.domains || "both";
+
             allModels.push({
               providerId: provider.id,
               providerName: template.displayName,
@@ -196,6 +207,7 @@ export default function ChatWindow() {
               modelId: model.id,
               modelName: model.name,
               modelDescription: model.description,
+              domains: modelDomain,
             });
           }
         });
@@ -249,12 +261,12 @@ export default function ChatWindow() {
 
   const handleFileUpload = async () => {
     try {
-      const result = await window.electronAPI.uploadFile();
-      if (result.success && result.file) {
-        setAttachments([...attachments, result.file]);
+      const result = await globalThis.window.electronAPI.uploadFile();
+      if (result.success && result.data) {
+        setAttachments([...attachments, result.data]);
       }
     } catch (error) {
-      console.error("File upload error:", error);
+      logger.error("File upload failed", { error });
     }
   };
 
@@ -293,7 +305,7 @@ export default function ChatWindow() {
       id: `msg-${Date.now()}`,
       role: "user",
       content: input,
-      timestamp: new Date(),
+      timestamp: DateUtils.now(),
       attachments: attachments.length > 0 ? attachments : undefined,
       practiceArea: practiceArea.name,
       advisoryArea:
@@ -327,13 +339,19 @@ export default function ChatWindow() {
         };
 
         try {
-          const response = await sendChatMessage({
+          const result = await globalThis.window.electronAPI.secureChatRequest({
             messages: [...currentConversation.messages, userMessage],
             provider: providerConfig,
             systemPrompt: fullSystemPrompt,
             temperature: 0.7,
             maxTokens: 4000,
           });
+
+          if (!result.success) {
+            throw new Error(result.error?.message || "Chat request failed");
+          }
+
+          const response = result.data!;
 
           return {
             content: response.content,
@@ -345,7 +363,10 @@ export default function ChatWindow() {
             },
           };
         } catch (error) {
-          console.error(`Error from ${provider.name}:`, error);
+          logger.error("Provider request failed", {
+            provider: provider.name,
+            error,
+          });
           return {
             content: `**Error from ${template?.displayName || provider.name} (${
               model?.name || selectedModel.modelId
@@ -373,7 +394,7 @@ export default function ChatWindow() {
           id: `msg-${Date.now()}-resp-${index}`,
           role: "assistant",
           content: response.content,
-          timestamp: new Date(),
+          timestamp: DateUtils.now(),
           practiceArea: practiceArea.name,
           advisoryArea:
             advisoryArea.id !== "general-advisory"
@@ -387,14 +408,14 @@ export default function ChatWindow() {
 
       await saveCurrentConversation();
     } catch (error) {
-      console.error("Chat error:", error);
+      logger.error("Chat request failed", { error });
       const errorMessage: Message = {
         id: `msg-${Date.now()}-error`,
         role: "assistant",
         content: `Error: ${
           (error as Error).message
         }. Please check your API configuration.`,
-        timestamp: new Date(),
+        timestamp: DateUtils.now(),
       };
       addMessage(errorMessage);
     } finally {
@@ -495,7 +516,7 @@ export default function ChatWindow() {
             {/* Configure Thread Button */}
             <button
               onClick={() => setShowConfigDialog(!showConfigDialog)}
-              className="flex items-center gap-2 bg-legal-blue hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg transition-colors border border-gray-500"
             >
               <Settings className="w-4 h-4" />
               <span className="text-sm font-medium text-white">
@@ -558,7 +579,7 @@ export default function ChatWindow() {
                         {currentDomain === "practice" ? (
                           <span>
                             ⚖️ Showing models configured for{" "}
-                            <strong className="text-legal-blue">
+                            <strong className="text-gray-200">
                               Practice Areas
                             </strong>{" "}
                             (legal)
@@ -566,7 +587,7 @@ export default function ChatWindow() {
                         ) : (
                           <span>
                             📊 Showing models configured for{" "}
-                            <strong className="text-legal-gold">
+                            <strong className="text-gray-200">
                               Advisory Areas
                             </strong>{" "}
                             (business)
@@ -609,7 +630,7 @@ export default function ChatWindow() {
                               </span>
                             </div>
                             {isSelected && (
-                              <span className="text-legal-gold text-xs">
+                              <span className="text-gray-400 text-xs">
                                 ✓ Selected
                               </span>
                             )}
@@ -619,6 +640,28 @@ export default function ChatWindow() {
                           </div>
                           <div className="text-xs text-gray-400 mt-1 ml-7">
                             {model.modelDescription}
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 ml-7">
+                            {model.domains === "practice" && (
+                              <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
+                                ⚖️ Law
+                              </span>
+                            )}
+                            {model.domains === "advisory" && (
+                              <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
+                                📊 Advisory
+                              </span>
+                            )}
+                            {model.domains === "both" && (
+                              <>
+                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
+                                  ⚖️ Law
+                                </span>
+                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
+                                  📊 Advisory
+                                </span>
+                              </>
+                            )}
                           </div>
                         </button>
                       );
@@ -662,12 +705,17 @@ export default function ChatWindow() {
                               <span className="text-2xl">
                                 {jurisdiction.flag}
                               </span>
-                              <span className="font-medium text-white text-base">
-                                {jurisdiction.name}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="font-medium text-white text-base">
+                                  {jurisdiction.name}
+                                </span>
+                                <span className="text-xs text-gray-400 font-medium">
+                                  {jurisdiction.coverage}% Coverage
+                                </span>
+                              </div>
                             </div>
                             {isSelected && (
-                              <span className="text-legal-gold text-xs">
+                              <span className="text-gray-400 text-xs">
                                 ✓ Selected
                               </span>
                             )}
@@ -709,7 +757,7 @@ export default function ChatWindow() {
               </div>
               <button
                 onClick={() => setShowConfigDialog(false)}
-                className="bg-legal-blue hover:bg-blue-700 px-6 py-2 rounded-lg text-white font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-500 px-6 py-2 rounded-lg text-white font-medium transition-colors border border-gray-500"
               >
                 Done
               </button>
@@ -800,7 +848,7 @@ export default function ChatWindow() {
                 )}
 
                 <div className="text-xs text-gray-400 mt-2">
-                  {new Date(message.timestamp).toLocaleTimeString()}
+                  {DateUtils.formatTime(message.timestamp)}
                 </div>
               </div>
             </div>

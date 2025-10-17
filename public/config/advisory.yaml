@@ -1,5 +1,5 @@
 version: 1.0.0
-minAppVersion: 0.9.1
+minAppVersion: 0.9.2
 lastUpdated: "2025-10-11T12:00:00.000Z"
 updateUrl: https://jdai.ca/atticus/advisory.yaml
 practiceAreas:
@@ -38,6 +38,10 @@ practiceAreas:
       - market penetration
       - market development
       - product development
+      - international expansion
+      - CUSMA expansion
+      - Mexico market entry
+      - maquiladora strategy
       - strategic partnerships
       - strategic alliances
       - vertical integration

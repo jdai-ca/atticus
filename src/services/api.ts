@@ -1,4 +1,4 @@
-import { ProviderConfig, ChatRequest, ChatResponse } from '../types';
+import { SecureProviderConfig, ChatRequest, SecureChatRequestInternal, ChatResponse } from '../types';
 import {
   fetchWithTimeout,
   validateOpenAIResponse,
@@ -9,31 +9,38 @@ import {
   createApiError,
 } from './apiHelpers';
 
-export async function sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
+export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
 
-  switch (provider.provider) {
+  // Ensure provider has API key (this service should only be used in main process)
+  if (!('apiKey' in provider) || !provider.apiKey) {
+    throw new Error('API service requires provider with API key - use secure IPC from renderer');
+  }
+
+  const secureProvider = provider as SecureProviderConfig;
+
+  switch (secureProvider.provider) {
     case 'openai':
-      return sendOpenAIMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendOpenAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'anthropic':
-      return sendAnthropicMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendAnthropicMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'google':
-      return sendGoogleMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendGoogleMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'azure-openai':
-      return sendAzureOpenAIMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendAzureOpenAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'xai':
-      return sendXAIMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendXAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'mistral':
-      return sendMistralMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendMistralMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'custom':
-      return sendCustomMessage(provider, messages, systemPrompt, temperature, maxTokens);
+      return sendCustomMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     default:
-      throw new Error(`Unsupported provider: ${provider.provider}`);
+      throw new Error(`Unsupported provider: ${secureProvider.provider}`);
   }
 }
 
 async function sendOpenAIMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -86,7 +93,7 @@ async function sendOpenAIMessage(
 }
 
 async function sendAnthropicMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -136,7 +143,7 @@ async function sendAnthropicMessage(
 }
 
 async function sendGoogleMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -198,7 +205,7 @@ async function sendGoogleMessage(
 }
 
 async function sendAzureOpenAIMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -256,7 +263,7 @@ async function sendAzureOpenAIMessage(
 }
 
 async function sendCustomMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -331,7 +338,7 @@ async function sendCustomMessage(
 }
 
 async function sendXAIMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
@@ -384,7 +391,7 @@ async function sendXAIMessage(
 }
 
 async function sendMistralMessage(
-  provider: ProviderConfig,
+  provider: SecureProviderConfig,
   messages: any[],
   systemPrompt?: string,
   temperature?: number,
