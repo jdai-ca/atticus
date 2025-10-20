@@ -432,7 +432,7 @@ export default function ChatWindow() {
 
   if (!currentConversation) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500">
+      <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
           <p className="text-xl mb-2">Welcome to Atticus</p>
           <p className="text-sm">Select a conversation or start a new one</p>
@@ -442,7 +442,7 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="h-full flex flex-col">
       {/* Thread Configuration Bar */}
       {currentConversation && (
         <div className="bg-gray-800 border-b border-gray-700 px-6 py-3">
@@ -918,11 +918,6 @@ export default function ChatWindow() {
           >
             <Send className="w-5 h-5" />
           </button>
-        </div>
-
-        <div className="mt-2 text-xs text-gray-500 text-center">
-          Atticus is an AI assistant. Always consult with a licensed attorney
-          for legal advice.
         </div>
       </div>
     </div>

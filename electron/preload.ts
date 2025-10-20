@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   uploadFile: () => ipcRenderer.invoke('upload-file'),
   savePDF: (data: { filename: string; data: string }) => ipcRenderer.invoke('save-pdf', data),
   loadBundledConfig: (configName: string) => ipcRenderer.invoke('load-bundled-config', configName),
+  secureChatRequest: (request: any) => ipcRenderer.invoke('secure-chat-request', request),
 });

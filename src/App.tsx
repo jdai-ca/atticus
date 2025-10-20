@@ -25,7 +25,8 @@ function App() {
         loadPracticeAreas(),
         loadAdvisoryAreas(),
       ]);
-      loadConfig();
+      // Load config AFTER areas are loaded (preserves them)
+      await loadConfig();
       loadConversations();
     };
 
@@ -45,9 +46,9 @@ function App() {
       <Sidebar onOpenSettings={() => setShowSettings(true)} />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Scale className="w-8 h-8 text-legal-gold" />
@@ -78,7 +79,17 @@ function App() {
         </header>
 
         {/* Chat Window */}
-        <ChatWindow />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ChatWindow />
+        </div>
+
+        {/* Global Footer Disclaimer */}
+        <footer className="bg-gray-800 border-t border-gray-700 px-6 py-2 flex-shrink-0">
+          <div className="text-xs text-gray-500 text-center">
+            Atticus is an AI assistant. Always consult with a licensed attorney
+            for legal advice.
+          </div>
+        </footer>
       </div>
 
       {/* Settings Modal */}

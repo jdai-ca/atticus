@@ -200,7 +200,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.2';
+        const appVersion = '0.9.3';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -261,7 +261,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.2',
+            minAppVersion: '0.9.3',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

@@ -30,6 +30,10 @@
             "format": "uri",
             "description": "URL to fetch config updates from"
         },
+        "license": {
+            "type": "string",
+            "description": "License identifier for this configuration file"
+        },
         "providers": {
             "type": "array",
             "minItems": 1,

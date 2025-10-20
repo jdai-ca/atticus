@@ -1,9 +1,13 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { createLogger } from '../src/services/logger';
 
 const isDev = process.env.NODE_ENV === 'development';
 let mainWindow: BrowserWindow | null = null;
+
+// Create logger for main process
+const logger = createLogger('Main');
 
 function createWindow() {
   // Remove the application menu for a cleaner UI
@@ -61,8 +65,14 @@ ipcMain.handle('save-config', async (_event, config) => {
     await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
     return { success: true };
   } catch (error) {
-    console.error('Error saving config:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to save configuration', { error });
+    return {
+      success: false,
+      error: {
+        code: 'CONFIG_SAVE_FAILED',
+        message: 'Failed to save configuration. Check logs for details.'
+      }
+    };
   }
 });
 
@@ -78,8 +88,14 @@ ipcMain.handle('load-config', async () => {
     }
     return { success: true, data: null };
   } catch (error) {
-    console.error('Error loading config:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to load configuration', { error });
+    return {
+      success: false,
+      error: {
+        code: 'CONFIG_LOAD_FAILED',
+        message: 'Failed to load configuration. Check logs for details.'
+      }
+    };
   }
 });
 
@@ -93,14 +109,21 @@ ipcMain.handle('save-conversation', async (_event, conversation) => {
       await fs.promises.mkdir(conversationsDir, { recursive: true });
     }
 
-    const filename = `conversation-${Date.now()}.json`;
+    // Use conversation ID for filename to enable updates
+    const filename = `${conversation.id}.json`;
     const filepath = path.join(conversationsDir, filename);
     await fs.promises.writeFile(filepath, JSON.stringify(conversation, null, 2));
 
-    return { success: true, filepath, filename };
+    return { success: true, data: { filepath, filename } };
   } catch (error) {
-    console.error('Error saving conversation:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to save conversation', { error });
+    return {
+      success: false,
+      error: {
+        code: 'CONVERSATION_SAVE_FAILED',
+        message: 'Failed to save conversation. Check logs for details.'
+      }
+    };
   }
 });
 
@@ -129,8 +152,14 @@ ipcMain.handle('load-conversations', async () => {
 
     return { success: true, data: conversations };
   } catch (error) {
-    console.error('Error loading conversations:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to load conversations', { error });
+    return {
+      success: false,
+      error: {
+        code: 'CONVERSATIONS_LOAD_FAILED',
+        message: 'Failed to load conversations. Check logs for details.'
+      }
+    };
   }
 });
 
@@ -154,13 +183,39 @@ ipcMain.handle('upload-file', async () => {
     const filename = path.basename(filepath);
     const ext = path.extname(filepath).toLowerCase();
 
+    // Security: Validate file type
+    const ALLOWED_EXTENSIONS = new Set(['.pdf', '.txt', '.doc', '.docx', '.md', '.jpg', '.jpeg', '.png', '.gif', '.webp']);
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_FILE_TYPE',
+          message: `File type ${ext} not allowed. Allowed types: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}`
+        }
+      };
+    }
+
+    // Security: Check file size before reading (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const stats = await fs.promises.stat(filepath);
+
+    if (stats.size > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        error: {
+          code: 'FILE_TOO_LARGE',
+          message: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB. File size: ${(stats.size / (1024 * 1024)).toFixed(2)}MB`
+        }
+      };
+    }
+
     // Read file as base64
     const fileBuffer = await fs.promises.readFile(filepath);
     const base64 = fileBuffer.toString('base64');
 
     return {
       success: true,
-      file: {
+      data: {
         name: filename,
         path: filepath,
         extension: ext,
@@ -169,8 +224,14 @@ ipcMain.handle('upload-file', async () => {
       }
     };
   } catch (error) {
-    console.error('Error uploading file:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to upload file', { error });
+    return {
+      success: false,
+      error: {
+        code: 'FILE_UPLOAD_FAILED',
+        message: 'Failed to upload file. Check logs for details.'
+      }
+    };
   }
 });
 
@@ -189,16 +250,99 @@ ipcMain.handle('save-pdf', async (_event, { filename, data }) => {
     const buffer = Buffer.from(data, 'base64');
     await fs.promises.writeFile(result.filePath, buffer);
 
-    return { success: true, filepath: result.filePath };
+    return { success: true, data: { filepath: result.filePath } };
   } catch (error) {
-    console.error('Error saving PDF:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to save PDF', { error });
+    return {
+      success: false,
+      error: {
+        code: 'PDF_SAVE_FAILED',
+        message: 'Failed to save PDF. Check logs for details.'
+      }
+    };
   }
 });
+
+// Secure chat request handler - API keys never leave main process
+ipcMain.handle('secure-chat-request', async (_event, request) => {
+  try {
+    // Import API functions only in main process
+    const { sendChatMessage } = await import('../src/services/api');
+
+    // Validate request structure
+    if (!request?.provider || !request?.messages) {
+      throw new Error('Invalid chat request structure');
+    }
+
+    // Load provider config with API key from secure storage
+    const providerWithKey = await loadProviderWithApiKey(request.provider.id);
+    if (!providerWithKey) {
+      throw new Error(`Provider ${request.provider.id} not configured or missing API key`);
+    }
+
+    const chatRequest = {
+      ...request,
+      provider: providerWithKey
+    };
+
+    const response = await sendChatMessage(chatRequest);
+    return { success: true, data: response };
+  } catch (error) {
+    logger.error('Secure chat request failed', { error });
+    return {
+      success: false,
+      error: {
+        code: 'CHAT_REQUEST_FAILED',
+        message: 'Failed to process chat request. Check logs for details.',
+      }
+    };
+  }
+});
+
+// Load provider configuration with API key from secure storage
+async function loadProviderWithApiKey(providerId: string): Promise<any> {
+  try {
+    // Load user config
+    const userDataPath = app.getPath('userData');
+    const configPath = path.join(userDataPath, 'user-config.json');
+
+    if (!fs.existsSync(configPath)) {
+      throw new Error('User configuration not found');
+    }
+
+    const configData = await fs.promises.readFile(configPath, 'utf-8');
+    const config = JSON.parse(configData);
+
+    const provider = config.providers?.find((p: any) => p.id === providerId);
+    if (!provider) {
+      throw new Error(`Provider ${providerId} not found in configuration`);
+    }
+
+    // TODO: Replace with secure storage. For now, use temporary API key field
+    if (provider._tempApiKey) {
+      return {
+        ...provider,
+        apiKey: provider._tempApiKey
+      };
+    }
+
+    throw new Error(`API key not found for provider ${providerId}`);
+  } catch (error) {
+    logger.error('Failed to load provider config', { error });
+    return null;
+  }
+}
 
 // Load bundled config file (providers.yaml or practices.yaml)
 ipcMain.handle('load-bundled-config', async (_event, configName: string) => {
   try {
+    // Security: Allowlist of valid config files
+    const ALLOWED_CONFIGS = new Set(['providers.yaml', 'practices.yaml', 'advisory.yaml']);
+
+    if (!ALLOWED_CONFIGS.has(configName)) {
+      throw new Error(`Invalid config file requested: ${configName}`);
+    }
+
     // In production, config files are in dist/config/ relative to the app
     let configPath: string;
 
@@ -221,7 +365,7 @@ ipcMain.handle('load-bundled-config', async (_event, configName: string) => {
       }
     }
 
-    console.log('[Main] Loading config from:', configPath);
+    logger.info('Loading bundled config', { configPath });
 
     if (!fs.existsSync(configPath)) {
       throw new Error(`Config file not found: ${configPath}`);
@@ -230,7 +374,13 @@ ipcMain.handle('load-bundled-config', async (_event, configName: string) => {
     const data = await fs.promises.readFile(configPath, 'utf-8');
     return { success: true, data };
   } catch (error) {
-    console.error('[Main] Error loading bundled config:', error);
-    return { success: false, error: (error as Error).message };
+    logger.error('Failed to load bundled config', { error });
+    return {
+      success: false,
+      error: {
+        code: 'BUNDLED_CONFIG_LOAD_FAILED',
+        message: 'Failed to load bundled configuration. Check logs for details.'
+      }
+    };
   }
 });

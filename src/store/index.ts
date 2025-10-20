@@ -107,19 +107,24 @@ export const useStore = create<AppState>((set, get) => ({
   loadAdvisoryAreas: async () => {
     try {
       set({ isLoading: true, error: null });
+      console.log('[Store] Loading advisory areas...');
       const advisoryAreas = await advisoryLoader.loadConfig();
+      console.log('[Store] Advisory areas loaded:', advisoryAreas.length, 'areas');
 
       // Load advisory areas into the manager
       advisoryAreaManager.loadAdvisoryAreas(advisoryAreas);
 
       // Store in config (consistent with practice areas)
       const config = get().config;
+      console.log('[Store] Current config before update:', config.advisoryAreas?.length || 0, 'advisory areas');
       set({
         config: { ...config, advisoryAreas: advisoryAreas },
         isLoading: false
       });
+      console.log('[Store] Config updated with', advisoryAreas.length, 'advisory areas');
       logger.info('Loaded advisory areas', { count: advisoryAreas.length });
     } catch (error) {
+      console.error('[Store] Failed to load advisory areas:', error);
       logger.error('Failed to load advisory areas', { error });
       set({ error: 'Failed to load advisory area configuration', isLoading: false });
     }
@@ -352,7 +357,21 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await window.electronAPI.loadConfig();
 
       if (result.success && result.data) {
-        set({ config: { ...defaultConfig, ...result.data } });
+        // Preserve practice areas and advisory areas when loading saved config
+        const currentConfig = get().config;
+        set({
+          config: {
+            ...defaultConfig,
+            ...result.data,
+            // Keep the dynamically loaded areas (they're not saved to disk)
+            legalPracticeAreas: currentConfig.legalPracticeAreas,
+            advisoryAreas: currentConfig.advisoryAreas,
+          }
+        });
+        console.log('[Store] Config loaded, preserved areas:', {
+          practice: currentConfig.legalPracticeAreas.length,
+          advisory: currentConfig.advisoryAreas.length
+        });
       }
     } catch (error) {
       set({ error: (error as Error).message });

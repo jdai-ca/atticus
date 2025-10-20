@@ -1,6 +1,6 @@
 {
   "name": "atticus",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Atticus - In-House AI Counsel",
   "main": "dist-electron/main.js",
   "author": "John Kost",
@@ -11,7 +11,13 @@
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder",
+    "validate:practices": "node scripts/validate-practices-clean.js",
+    "validate:advisory": "node scripts/validate-advisory-clean.js",
+    "validate:providers": "node scripts/validate-providers-clean.js",
+    "validate:all": "npm run validate:practices && npm run validate:advisory && npm run validate:providers",
+    "predev": "npm run validate:all",
+    "prebuild": "npm run validate:all"
   },
   "dependencies": {
     "ajv": "^6.12.6",

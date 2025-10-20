@@ -4,9 +4,10 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.2"
+minAppVersion: "0.9.3"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
+license: "Copyright (c) 2025 John Kost, All Rights Reserved."
 
 # AI Provider Templates
 # Each provider includes models, capabilities, authentication info, and UI settings

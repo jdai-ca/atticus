@@ -1,7 +1,8 @@
 version: 1.0.0
-minAppVersion: 0.9.2
+minAppVersion: 0.9.3
 lastUpdated: "2025-10-11T12:00:00.000Z"
 updateUrl: https://jdai.ca/atticus/practices.yaml
+license: "Copyright (c) 2025 John Kost, All Rights Reserved."
 practiceAreas:
   - id: corporate
     name: Corporate Law
@@ -8699,7 +8700,6 @@ practiceAreas:
       - FAA
       - Federal Aviation Administration
       - maritime
-      - shipping
       - ocean freight
       - FMC
       - Federal Maritime Commission
@@ -8767,12 +8767,9 @@ practiceAreas:
     enabled: true
     keywords:
       - nonprofit
-      - non-profit
-      - 501c3
       - 501(c)(3)
       - tax-exempt
       - charitable
-      - charity
       - foundation
       - private foundation
       - public charity
@@ -8782,7 +8779,6 @@ practiceAreas:
       - donation
       - charitable contribution
       - nonprofit governance
-      - board of directors
       - conflict of interest
       - unrelated business income
       - UBI

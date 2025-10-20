@@ -11,7 +11,7 @@
 import yaml from 'js-yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
-import practiceSchema from '../schemas/practice-config.schema.json';
+import advisorySchema from '../schemas/advisory-config.schema.json';
 
 interface AdvisoryConfigFile {
     version: string;
@@ -30,7 +30,7 @@ class AdvisoryConfigLoader {
         // Initialize JSON Schema validator
         // Note: Using AJV without format validation to avoid dependency issues
         const ajv = new Ajv({ allErrors: true });
-        this.validate = ajv.compile(practiceSchema);
+        this.validate = ajv.compile(advisorySchema);
     }
 
     /**
@@ -39,16 +39,19 @@ class AdvisoryConfigLoader {
     async loadConfig(): Promise<LegalPracticeArea[]> {
         // 1. Load bundled config (always available)
         const bundled = await this.loadBundledConfig();
+        console.log('[AdvisoryLoader] Bundled config loaded, areas:', bundled.practiceAreas.length);
 
         // 2. Try to load from cache
         const cached = this.loadCachedConfig();
         let current = this.selectNewerConfig(bundled, cached);
+        console.log('[AdvisoryLoader] Using config version:', current.version, 'with', current.practiceAreas.length, 'areas');
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         this.updateFromRemote(current.version).catch(err => {
             console.warn('[AdvisoryLoader] Remote update failed:', err.message);
         });
 
+        console.log('[AdvisoryLoader] Returning', current.practiceAreas.length, 'advisory areas');
         return current.practiceAreas;
     }
 
@@ -229,7 +232,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.2',
+            minAppVersion: '0.9.3',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

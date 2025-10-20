@@ -46,6 +46,15 @@ export default function Settings({ onClose }: SettingsProps) {
     }
   }, []);
 
+  // Debug: Log config changes
+  useEffect(() => {
+    console.log("[Settings] Config updated:", {
+      advisoryAreas: config.advisoryAreas?.length || 0,
+      practiceAreas: config.legalPracticeAreas?.length || 0,
+      providers: config.providers?.length || 0,
+    });
+  }, [config]);
+
   // Get configured provider for a template
   const getConfiguredProvider = (
     templateId: AIProvider
