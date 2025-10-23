@@ -351,16 +351,23 @@ AI Provider's servers/data centers
 
 **Mitigation:**
 
-- ❌ No PII detection warnings
-- ❌ No data classification guidance in UI
+- ✅ **MANDATORY PII Scanner** - Always-on detection of 29+ sensitive data types
+- ✅ **Jurisdiction-Aware** - Scans for region-specific identifiers (CA, US, MX, EU, UK)
+- ✅ **Complete Audit Trail** - All scans logged with user decisions for legal protection
+- ✅ **Cannot Be Disabled** - Scanner runs on every message to prevent liability gaps
 - ✅ Documentation warns against sensitive data input
 
-**Recommendation:**
+**Implemented Protection (October 2025):**
 
-- Implement client-side PII detection (regex for SSN, credit cards, etc.)
-- Display warning before sending queries with detected PII
-- Provide data sensitivity classification guide in Help
-- Option to enable "conservative privacy mode" (stricter warnings)
+The PII Scanner is now a **mandatory, always-enabled security feature** that:
+
+- Detects 29 types of sensitive information before transmission
+- Warns users with risk levels (Critical/High/Moderate/Low)
+- Provides options: Proceed, Cancel, or Anonymize
+- Maintains complete audit log accessible via Shield button
+- Protects Atticus from liability by proving users were warned
+
+**Scanner cannot be disabled** - This is intentional for legal protection.
 
 ---
 
@@ -527,16 +534,19 @@ AI Provider's servers/data centers
 - OS-level encrypted keychains
 - Keys not stored in plain text configuration
 
+✅ **Mandatory PII Scanner (Implemented October 2025)**
+
+- **Always-enabled** client-side detection of 29+ PII types
+- Jurisdiction-aware scanning (CA, US, MX, EU, UK)
+- Warning before sending potentially sensitive data
+- Complete audit trail with user decisions
+- **Cannot be disabled** for legal protection
+
 ---
 
 ### 5.2 Planned Privacy Enhancements
 
 #### **Short-Term (0-6 months)**
-
-🔄 **PII Detection Warnings**
-
-- Client-side regex detection of SSN, credit cards, emails
-- Warning before sending potentially sensitive data
 
 🔄 **Provider Privacy Ratings**
 
@@ -988,13 +998,21 @@ AI Provider's servers/data centers
 
 ### 13.2 For Developers
 
+**Completed (October 2025):**
+
+✅ **PII Scanner Implementation**
+
+- 29+ detection patterns with jurisdiction support
+- Mandatory scanning (cannot be disabled)
+- Complete audit trail with user decisions
+- Legal protection through tamper-evident logging
+
 **Immediate (0-3 months):**
 
-1. Implement PII detection warnings
-2. Add provider privacy ratings to Settings
-3. Create first-use privacy notice
-4. Remove \_tempApiKey temporary storage
-5. Add data classification guide to Help
+1. Add provider privacy ratings to Settings
+2. Create first-use privacy notice
+3. Remove \_tempApiKey temporary storage
+4. Add data classification guide to Help
 
 **Short-Term (3-9 months):**
 

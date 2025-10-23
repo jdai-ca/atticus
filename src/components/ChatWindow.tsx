@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "../store";
-import { Send, Paperclip, Loader2, Settings } from "lucide-react";
+import { Send, Paperclip, Loader2, Settings, Shield } from "lucide-react";
 import { Message, Jurisdiction, ModelDomain } from "../types";
 // Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
@@ -12,6 +12,14 @@ import {
   getJurisdictionSystemPromptAppendix,
 } from "../config/jurisdictions";
 import ReactMarkdown from "react-markdown";
+import { piiScanner, PIIScanResult } from "../services/piiScanner";
+import PrivacyWarningDialog from "./PrivacyWarningDialog";
+import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
+import {
+  auditLogger,
+  AuditEventType,
+  AuditSeverity,
+} from "../services/appLogger";
 
 const logger = createLogger("ChatWindow");
 
@@ -41,6 +49,14 @@ export default function ChatWindow() {
     "practice" | "advisory" | undefined
   >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // PII Scanner state
+  const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
+  const [piiScanResult, setPiiScanResult] = useState<PIIScanResult | null>(
+    null
+  );
+  const [pendingMessage, setPendingMessage] = useState<string>("");
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
   // Load provider templates on mount
   useEffect(() => {
@@ -280,13 +296,89 @@ export default function ChatWindow() {
       return;
     }
 
+    // AUDIT: User submitting message
+    const messageId = `msg_${Date.now()}`;
+    await auditLogger.logEvent(
+      AuditEventType.USER_MESSAGE_SUBMITTED,
+      AuditSeverity.INFO,
+      "USER",
+      "User submitted message for sending",
+      {
+        messageLength: input.length,
+        modelCount: selectedModels.length,
+        jurisdictions: Array.from(selectedJurisdictions),
+      },
+      currentConversation.id,
+      messageId
+    );
+
+    // PII Scan - MANDATORY security check for sensitive information
+    // This scanner is always active and cannot be disabled for legal protection
+    // Get active jurisdictions from conversation
+    const activeJurisdictions = Array.from(
+      selectedJurisdictions
+    ) as Jurisdiction[];
+
+    const scanResult = piiScanner.scan(
+      input,
+      activeJurisdictions.length > 0 ? activeJurisdictions : undefined
+    );
+
+    // AUDIT: PII scan performed
+    await auditLogger.logPIIScan(
+      currentConversation.id,
+      messageId,
+      {
+        hasFindings: scanResult.hasFindings,
+        findingsCount: scanResult.findings.length,
+        riskLevel: scanResult.riskLevel,
+        detectedTypes: Array.from(scanResult.detectedCategories),
+        jurisdictions: activeJurisdictions,
+      },
+      input.substring(0, 100) // Preview only
+    );
+
+    if (scanResult.hasFindings) {
+      // Show warning dialog and store the message
+      setPendingMessage(input);
+      setPiiScanResult(scanResult);
+      setShowPrivacyWarning(true);
+
+      // AUDIT: PII warning displayed
+      await auditLogger.logEvent(
+        AuditEventType.PII_WARNING_DISPLAYED,
+        AuditSeverity.WARNING,
+        "SYSTEM",
+        "PII warning displayed to user",
+        {
+          findingsCount: scanResult.findings.length,
+          riskLevel: scanResult.riskLevel,
+          displayedAt: new Date().toISOString(),
+        },
+        currentConversation.id,
+        messageId
+      );
+
+      logger.info("PII detected, showing privacy warning", {
+        findings: scanResult.findings.length,
+        riskLevel: scanResult.riskLevel,
+        jurisdictions: activeJurisdictions,
+      });
+      return; // Stop here, wait for user decision
+    }
+
+    // If no PII detected, proceed with sending
+    await sendMessage(input);
+  };
+
+  const sendMessage = async (messageText: string) => {
     // Detect practice area and advisory area
-    const practiceArea = detectPracticeArea(input);
-    const advisoryArea = detectAdvisoryArea(input);
+    const practiceArea = detectPracticeArea(messageText);
+    const advisoryArea = detectAdvisoryArea(messageText);
 
     // Build system prompt with jurisdiction appendix
     // Combine both practice and advisory prompts if advisory area is detected
-    const jurisdictions = currentConversation.selectedJurisdictions || [];
+    const jurisdictions = currentConversation!.selectedJurisdictions || [];
     const jurisdictionPrompt =
       getJurisdictionSystemPromptAppendix(jurisdictions);
 
@@ -300,11 +392,14 @@ export default function ChatWindow() {
 
     fullSystemPrompt += jurisdictionPrompt;
 
+    // Get selected models
+    const selectedModels = currentConversation!.selectedModels || [];
+
     // Create user message
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
       role: "user",
-      content: input,
+      content: messageText,
       timestamp: DateUtils.now(),
       attachments: attachments.length > 0 ? attachments : undefined,
       practiceArea: practiceArea.name,
@@ -338,6 +433,24 @@ export default function ChatWindow() {
           model: selectedModel.modelId,
         };
 
+        // AUDIT: API request initiated
+        const requestStartTime = Date.now();
+        await auditLogger.logAPIRequest(
+          currentConversation!.id,
+          userMessage.id,
+          {
+            provider: provider.provider,
+            providerDisplayName: template?.displayName || provider.name,
+            model: selectedModel.modelId,
+            endpoint: provider.endpoint || "default",
+            messageCount: currentConversation!.messages.length + 1,
+            systemPromptPresent: !!fullSystemPrompt,
+            temperature: 0.7,
+            maxTokens: 4000,
+            initiatedAt: new Date().toISOString(),
+          }
+        );
+
         try {
           const result = await globalThis.window.electronAPI.secureChatRequest({
             messages: [...currentConversation.messages, userMessage],
@@ -347,11 +460,62 @@ export default function ChatWindow() {
             maxTokens: 4000,
           });
 
+          const requestEndTime = Date.now();
+          const durationMs = requestEndTime - requestStartTime;
+
           if (!result.success) {
+            // AUDIT: API error occurred
+            await auditLogger.logAPIResponse(
+              currentConversation!.id,
+              userMessage.id,
+              {
+                provider: provider.provider,
+                model: selectedModel.modelId,
+                responseReceived: false,
+                error: {
+                  code: result.error?.code || "UNKNOWN_ERROR",
+                  message: result.error?.message || "Unknown error",
+                  httpStatus: (result.error as any)?.status,
+                  providerErrorCode: (result.error as any)?.providerCode,
+                  providerErrorMessage: (result.error as any)?.providerMessage,
+                  isProviderError: true, // Assuming provider error if request failed
+                  isUserError:
+                    result.error?.code === "INVALID_API_KEY" ||
+                    result.error?.code === "INVALID_CONFIG",
+                  isNetworkError:
+                    result.error?.code === "NETWORK_ERROR" ||
+                    result.error?.code === "TIMEOUT",
+                },
+                providerResponseMetadata: {
+                  durationMs,
+                  timestamp: new Date().toISOString(),
+                },
+              }
+            );
+
             throw new Error(result.error?.message || "Chat request failed");
           }
 
           const response = result.data!;
+
+          // AUDIT: API response successful
+          await auditLogger.logAPIResponse(
+            currentConversation!.id,
+            userMessage.id,
+            {
+              provider: provider.provider,
+              model: selectedModel.modelId,
+              responseReceived: true,
+              contentLength: response.content?.length,
+              usage: response.usage,
+              finishReason: (response as any).finishReason,
+              providerResponseMetadata: {
+                durationMs,
+                timestamp: new Date().toISOString(),
+                modelUsed: selectedModel.modelId,
+              },
+            }
+          );
 
           return {
             content: response.content,
@@ -363,6 +527,24 @@ export default function ChatWindow() {
             },
           };
         } catch (error) {
+          // AUDIT: Catch-all for unexpected errors
+          await auditLogger.logAPIResponse(
+            currentConversation!.id,
+            userMessage.id,
+            {
+              provider: provider.provider,
+              model: selectedModel.modelId,
+              responseReceived: false,
+              error: {
+                code: "UNEXPECTED_ERROR",
+                message: (error as Error).message,
+                isProviderError: false,
+                isUserError: false,
+                isNetworkError: false,
+              },
+            }
+          );
+
           logger.error("Provider request failed", {
             provider: provider.name,
             error,
@@ -421,6 +603,145 @@ export default function ChatWindow() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Privacy warning handlers
+  const handlePrivacyProceed = async () => {
+    if (!currentConversation || !piiScanResult) return;
+
+    const activeJurisdictions = Array.from(
+      selectedJurisdictions
+    ) as Jurisdiction[];
+
+    const messageId = `msg_${Date.now()}`;
+
+    // Log to PII scanner (original system)
+    piiScanner.logScan({
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      messageId,
+      conversationId: currentConversation.id,
+      scanResult: piiScanResult,
+      userDecision: "proceed",
+      messagePreview: pendingMessage.substring(0, 100),
+      jurisdictions: activeJurisdictions,
+    });
+
+    // AUDIT: User decided to proceed with PII
+    await auditLogger.logPIIScan(
+      currentConversation.id,
+      messageId,
+      {
+        hasFindings: piiScanResult.hasFindings,
+        findingsCount: piiScanResult.findings.length,
+        riskLevel: piiScanResult.riskLevel,
+        detectedTypes: Array.from(piiScanResult.detectedCategories),
+        jurisdictions: activeJurisdictions,
+      },
+      pendingMessage.substring(0, 100),
+      "proceed"
+    );
+
+    setShowPrivacyWarning(false);
+    logger.info("User chose to proceed despite PII warning");
+    // Send the pending message
+    await sendMessage(pendingMessage);
+    setPendingMessage("");
+    setPiiScanResult(null);
+  };
+
+  const handlePrivacyCancel = async () => {
+    if (!currentConversation || !piiScanResult) return;
+
+    const activeJurisdictions = Array.from(
+      selectedJurisdictions
+    ) as Jurisdiction[];
+
+    const messageId = `msg_${Date.now()}_cancelled`;
+
+    // Log to PII scanner (original system)
+    piiScanner.logScan({
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      messageId,
+      conversationId: currentConversation.id,
+      scanResult: piiScanResult,
+      userDecision: "cancel",
+      messagePreview: pendingMessage.substring(0, 100),
+      jurisdictions: activeJurisdictions,
+    });
+
+    // AUDIT: User decided to cancel
+    await auditLogger.logPIIScan(
+      currentConversation.id,
+      messageId,
+      {
+        hasFindings: piiScanResult.hasFindings,
+        findingsCount: piiScanResult.findings.length,
+        riskLevel: piiScanResult.riskLevel,
+        detectedTypes: Array.from(piiScanResult.detectedCategories),
+        jurisdictions: activeJurisdictions,
+      },
+      pendingMessage.substring(0, 100),
+      "cancel"
+    );
+
+    setShowPrivacyWarning(false);
+    logger.info("User cancelled message due to PII warning");
+    // Keep the input so user can edit it
+    // Message stays in input field
+    setPendingMessage("");
+    setPiiScanResult(null);
+  };
+
+  const handlePrivacyAnonymize = async () => {
+    if (!currentConversation || !piiScanResult) return;
+
+    const activeJurisdictions = Array.from(
+      selectedJurisdictions
+    ) as Jurisdiction[];
+
+    const messageId = `msg_${Date.now()}_anonymized`;
+
+    // Log to PII scanner (original system)
+    piiScanner.logScan({
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      messageId,
+      conversationId: currentConversation.id,
+      scanResult: piiScanResult,
+      userDecision: "anonymize",
+      messagePreview: pendingMessage.substring(0, 100),
+      jurisdictions: activeJurisdictions,
+    });
+
+    // AUDIT: User decided to anonymize
+    await auditLogger.logPIIScan(
+      currentConversation.id,
+      messageId,
+      {
+        hasFindings: piiScanResult.hasFindings,
+        findingsCount: piiScanResult.findings.length,
+        riskLevel: piiScanResult.riskLevel,
+        detectedTypes: Array.from(piiScanResult.detectedCategories),
+        jurisdictions: activeJurisdictions,
+      },
+      pendingMessage.substring(0, 100),
+      "anonymize"
+    );
+
+    setShowPrivacyWarning(false);
+    logger.info("User chose to anonymize PII");
+
+    // Anonymize the message
+    const anonymized = piiScanner.anonymize(pendingMessage, piiScanResult);
+
+    // Update the input with anonymized version
+    setInput(anonymized);
+
+    // Don't send automatically - let user review
+    setPendingMessage("");
+    setPiiScanResult(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -514,15 +835,29 @@ export default function ChatWindow() {
             </div>
 
             {/* Configure Thread Button */}
-            <button
-              onClick={() => setShowConfigDialog(!showConfigDialog)}
-              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg transition-colors border border-gray-500"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="text-sm font-medium text-white">
-                Configure Thread
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Privacy Audit Log Button */}
+              <button
+                onClick={() => setShowAuditLog(true)}
+                className="flex items-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 px-4 py-2 rounded-lg transition-colors border border-blue-500/50"
+                title="View Privacy Scan Audit Log"
+              >
+                <Shield className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-blue-300">
+                  Audit Log
+                </span>
+              </button>
+
+              <button
+                onClick={() => setShowConfigDialog(!showConfigDialog)}
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg transition-colors border border-gray-500"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium text-white">
+                  Configure Thread
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -920,6 +1255,26 @@ export default function ChatWindow() {
           </button>
         </div>
       </div>
+
+      {/* Privacy Warning Dialog */}
+      {showPrivacyWarning && piiScanResult && (
+        <PrivacyWarningDialog
+          scanResult={piiScanResult}
+          onProceed={handlePrivacyProceed}
+          onCancel={handlePrivacyCancel}
+          onAnonymize={handlePrivacyAnonymize}
+          showAnonymizeOption={true}
+        />
+      )}
+
+      {/* Privacy Audit Log Viewer */}
+      {showAuditLog && currentConversation && (
+        <PrivacyAuditLogViewer
+          conversationId={currentConversation.id}
+          onClose={() => setShowAuditLog(false)}
+          piiScanner={piiScanner}
+        />
+      )}
     </div>
   );
 }

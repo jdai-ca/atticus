@@ -9,6 +9,7 @@ import {
   ModelDomainConfig,
 } from "../types";
 import { JURISDICTIONS } from "../config/jurisdictions";
+import { piiScanner } from "../services/piiScanner";
 
 interface SettingsProps {
   readonly onClose: () => void;
@@ -24,7 +25,7 @@ export default function Settings({ onClose }: SettingsProps) {
     loadProviderTemplates,
   } = useStore();
   const [activeTab, setActiveTab] = useState<
-    "providers" | "practice" | "advisory" | "about"
+    "providers" | "practice" | "advisory" | "privacy" | "about"
   >("providers");
   const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>(
     {}
@@ -203,6 +204,16 @@ export default function Settings({ onClose }: SettingsProps) {
             }`}
           >
             Advisory Areas
+          </button>
+          <button
+            onClick={() => setActiveTab("privacy")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "privacy"
+                ? "text-gray-200 border-b-2 border-gray-400"
+                : "text-gray-400 hover:text-gray-300"
+            }`}
+          >
+            Privacy & PII
           </button>
           <button
             onClick={() => setActiveTab("about")}
@@ -950,6 +961,246 @@ export default function Settings({ onClose }: SettingsProps) {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy & PII Scanner Tab */}
+          {activeTab === "privacy" && (
+            <div>
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Privacy & Data Protection
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  PII (Personally Identifiable Information) scanning to help
+                  protect your sensitive data before sending it to AI providers.
+                </p>
+              </div>
+
+              {/* PII Scanner - ALWAYS ENABLED Notice */}
+              <div className="bg-gray-900 rounded-lg p-6 mb-6 border-2 border-green-700">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                      <span>🛡️</span>
+                      <span>PII Scanner</span>
+                      <span className="text-xs bg-green-900/30 text-green-400 px-3 py-1 rounded border border-green-700 font-bold">
+                        ALWAYS ENABLED
+                      </span>
+                    </h4>
+                    <p className="text-gray-400 text-sm mb-2">
+                      Automatically scans your messages for sensitive
+                      information like SSN, credit cards, emails, phone numbers,
+                      and more before sending to AI providers.
+                    </p>
+                    <div className="bg-yellow-900/20 border border-yellow-700 rounded p-3 mt-3">
+                      <p className="text-yellow-300 text-xs font-medium flex items-start gap-2">
+                        <span>⚠️</span>
+                        <span>
+                          <strong>Legal Protection:</strong> PII scanning cannot
+                          be disabled. This mandatory security feature protects
+                          both you and Atticus from liability by ensuring you're
+                          always warned before sharing sensitive data.
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scanner Statistics - Always visible */}
+                <div className="bg-gray-800 rounded p-4 border border-gray-700">
+                  <h5 className="text-sm font-semibold text-gray-300 mb-3">
+                    Scanner Coverage
+                  </h5>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    {(() => {
+                      const stats = piiScanner.getStatistics();
+                      return (
+                        <>
+                          <div className="bg-red-900/20 border border-red-800 rounded p-2">
+                            <div className="text-red-400 font-bold text-lg">
+                              {stats.criticalPatterns}
+                            </div>
+                            <div className="text-red-300">Critical</div>
+                          </div>
+                          <div className="bg-orange-900/20 border border-orange-800 rounded p-2">
+                            <div className="text-orange-400 font-bold text-lg">
+                              {stats.highPatterns}
+                            </div>
+                            <div className="text-orange-300">High Risk</div>
+                          </div>
+                          <div className="bg-yellow-900/20 border border-yellow-800 rounded p-2">
+                            <div className="text-yellow-400 font-bold text-lg">
+                              {stats.moderatePatterns}
+                            </div>
+                            <div className="text-yellow-300">Moderate</div>
+                          </div>
+                          <div className="bg-blue-900/20 border border-blue-800 rounded p-2">
+                            <div className="text-blue-400 font-bold text-lg">
+                              {stats.totalPatterns}
+                            </div>
+                            <div className="text-blue-300">Total Patterns</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* What Gets Detected - Always visible */}
+              <div className="bg-gray-900 rounded-lg p-6 border-2 border-gray-700">
+                <h4 className="text-lg font-semibold text-white mb-4">
+                  What Gets Detected
+                </h4>
+
+                <div className="space-y-4">
+                  {/* Critical */}
+                  <div>
+                    <h5 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+                      <span>🔴</span>
+                      <span>Critical Risk (9 Patterns)</span>
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
+                      <div className="bg-gray-800 rounded p-2">
+                        • US Social Security Numbers (SSN)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Canadian Social Insurance (SIN)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Mexican CURP Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Mexican RFC (Tax ID)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • EU/UK National ID Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Credit Card Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Passwords & Credentials
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • API Keys & Access Tokens
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* High */}
+                  <div>
+                    <h5 className="text-sm font-semibold text-orange-400 mb-2 flex items-center gap-2">
+                      <span>🟠</span>
+                      <span>High Risk (13 Patterns)</span>
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
+                      <div className="bg-gray-800 rounded p-2">
+                        • IBAN Account Numbers (EU/UK)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • CLABE Codes (Mexico)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Canadian Health Card Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • EU VAT Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Passport Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Email Addresses
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Phone Numbers (International)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Bank Account Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • US Routing Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Canadian Transit Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • SWIFT/BIC Codes
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Medical Record Numbers
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Moderate */}
+                  <div>
+                    <h5 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-2">
+                      <span>🟡</span>
+                      <span>Moderate Risk (7 Patterns)</span>
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
+                      <div className="bg-gray-800 rounded p-2">
+                        • Driver's License Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Tax IDs / EINs
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Legal Case Numbers
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Street Addresses
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • ZIP/Postal Codes
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • IP Addresses (IPv4/IPv6)
+                      </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        • Full Names with Titles
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Notice */}
+              <div className="mt-6 bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+                  <span>ℹ️</span>
+                  <span>Important Privacy Information</span>
+                </h4>
+                <ul className="text-xs text-blue-200 space-y-1 list-disc list-inside">
+                  <li>
+                    All PII detection happens locally on your device - no data
+                    sent externally
+                  </li>
+                  <li>
+                    Scanner provides warnings but cannot prevent you from
+                    sending data
+                  </li>
+                  <li>
+                    You are ultimately responsible for protecting confidential
+                    information
+                  </li>
+                  <li>
+                    Each AI provider has different privacy policies - review
+                    them carefully
+                  </li>
+                  <li>
+                    Consider using example data or anonymizing details for
+                    sensitive queries
+                  </li>
+                  <li>
+                    Atticus never collects, stores, or has access to your
+                    conversation data
+                  </li>
+                </ul>
               </div>
             </div>
           )}
