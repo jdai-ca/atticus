@@ -52,7 +52,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
     }.json`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    a.remove();
     URL.revokeObjectURL(url);
   };
 
@@ -172,6 +172,8 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
             <button
               onClick={onClose}
               className="p-1.5 hover:bg-slate-700 rounded transition-colors text-slate-400 hover:text-white"
+              aria-label="Close audit log viewer"
+              title="Close audit log viewer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -266,9 +268,9 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                             Detailed Findings ({log.scanResult.findings.length})
                           </h4>
                           <div className="space-y-2">
-                            {log.scanResult.findings.map((finding, idx) => (
+                            {log.scanResult.findings.map((finding) => (
                               <div
-                                key={idx}
+                                key={`finding-${finding.type}-${finding.value}`}
                                 className="p-3 bg-slate-800/50 rounded border border-slate-700"
                               >
                                 <div className="flex items-start justify-between mb-1">
@@ -276,13 +278,19 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                                     {finding.description}
                                   </span>
                                   <span
-                                    className={`text-xs px-2 py-0.5 rounded ${
-                                      finding.riskLevel === RiskLevel.CRITICAL
-                                        ? "bg-red-500/20 text-red-300"
-                                        : finding.riskLevel === RiskLevel.HIGH
-                                        ? "bg-orange-500/20 text-orange-300"
-                                        : "bg-yellow-500/20 text-yellow-300"
-                                    }`}
+                                    className={`text-xs px-2 py-0.5 rounded ${(() => {
+                                      if (
+                                        finding.riskLevel === RiskLevel.CRITICAL
+                                      ) {
+                                        return "bg-red-500/20 text-red-300";
+                                      }
+                                      if (
+                                        finding.riskLevel === RiskLevel.HIGH
+                                      ) {
+                                        return "bg-orange-500/20 text-orange-300";
+                                      }
+                                      return "bg-yellow-500/20 text-yellow-300";
+                                    })()}`}
                                   >
                                     {finding.riskLevel}
                                   </span>
@@ -337,7 +345,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
             {logs.length > 0 ? (
               <>
                 <strong>{logs.length}</strong> scan
-                {logs.length !== 1 ? "s" : ""} recorded for legal protection.
+                {logs.length === 1 ? "" : "s"} recorded for legal protection.
                 This audit trail proves you were warned about sensitive data
                 sharing.
               </>

@@ -1,18 +1,14 @@
 import jsPDF from 'jspdf';
-import { Conversation } from '../types';
+import { Conversation, Message } from '../types';
 import { DateUtils } from './dateUtils';
 
-export async function exportConversationToPDF(conversation: Conversation): Promise<string> {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 20;
-  const maxWidth = pageWidth - (margin * 2);
+function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number): number {
   let yPosition = margin;
 
   // Header
@@ -43,7 +39,6 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
     pdf.text(`AI Models: ${models}`, margin, yPosition);
     yPosition += 6;
   } else if (conversation.provider) {
-    // Fallback for backward compatibility with older conversations
     const modelInfo = conversation.model ? ` (${conversation.model})` : '';
     pdf.text(`Provider: ${conversation.provider}${modelInfo}`, margin, yPosition);
     yPosition += 6;
@@ -56,64 +51,67 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
   }
 
   yPosition += 4;
+  return yPosition;
+}
 
-  // Divider
-  pdf.setDrawColor(200, 200, 200);
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 10;
+function addMessageAttachments(pdf: jsPDF, attachments: Array<{ name: string; size: number }>, margin: number, pageHeight: number, yPosition: number): number {
+  let y = yPosition + 3;
+  pdf.setFontSize(9);
+  pdf.setTextColor(100, 100, 100);
 
-  // Messages
-  for (const message of conversation.messages) {
-    // Check if we need a new page
-    if (yPosition > pageHeight - 30) {
+  for (const attachment of attachments) {
+    if (y > pageHeight - 20) {
       pdf.addPage();
-      yPosition = margin;
+      y = margin;
     }
-
-    // Message header
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'bold');
-    const role = message.role === 'user' ? 'You' : 'Assistant';
-    const timestamp = DateUtils.formatTime(message.timestamp);
-    pdf.text(`${role} (${timestamp})`, margin, yPosition);
-    yPosition += 7;
-
-    // Message content
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-
-    // Split text to fit width
-    const lines = pdf.splitTextToSize(message.content, maxWidth);
-
-    for (const line of lines) {
-      if (yPosition > pageHeight - 20) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-      pdf.text(line, margin, yPosition);
-      yPosition += 5;
-    }
-
-    // Attachments
-    if (message.attachments && message.attachments.length > 0) {
-      yPosition += 3;
-      pdf.setFontSize(9);
-      pdf.setTextColor(100, 100, 100);
-      for (const attachment of message.attachments) {
-        if (yPosition > pageHeight - 20) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-        pdf.text(`📎 ${attachment.name} (${formatFileSize(attachment.size)})`, margin + 5, yPosition);
-        yPosition += 5;
-      }
-      pdf.setTextColor(0, 0, 0);
-    }
-
-    yPosition += 8;
+    pdf.text(`📎 ${attachment.name} (${formatFileSize(attachment.size)})`, margin + 5, y);
+    y += 5;
   }
 
-  // Footer
+  pdf.setTextColor(0, 0, 0);
+  return y;
+}
+
+function addPDFMessage(pdf: jsPDF, message: Message, margin: number, maxWidth: number, pageHeight: number, yPosition: number): number {
+  let y = yPosition;
+
+  // Check if we need a new page
+  if (y > pageHeight - 30) {
+    pdf.addPage();
+    y = margin;
+  }
+
+  // Message header
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  const role = message.role === 'user' ? 'You' : 'Assistant';
+  const timestamp = DateUtils.formatTime(message.timestamp);
+  pdf.text(`${role} (${timestamp})`, margin, y);
+  y += 7;
+
+  // Message content
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const lines = pdf.splitTextToSize(message.content, maxWidth);
+
+  for (const line of lines) {
+    if (y > pageHeight - 20) {
+      pdf.addPage();
+      y = margin;
+    }
+    pdf.text(line, margin, y);
+    y += 5;
+  }
+
+  // Attachments
+  if (message.attachments && message.attachments.length > 0) {
+    y = addMessageAttachments(pdf, message.attachments, margin, pageHeight, y);
+  }
+
+  return y + 8;
+}
+
+function addPDFFooters(pdf: jsPDF, pageWidth: number, pageHeight: number): void {
   const totalPages = pdf.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     pdf.setPage(i);
@@ -132,29 +130,53 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
       { align: 'center' }
     );
   }
+}
+
+export async function exportConversationToPDF(conversation: Conversation): Promise<string> {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 20;
+  const maxWidth = pageWidth - (margin * 2);
+
+  // Add header
+  let yPosition = addPDFHeader(pdf, conversation, margin);
+
+  // Divider
+  pdf.setDrawColor(200, 200, 200);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 10;
+
+  // Add messages
+  for (const message of conversation.messages) {
+    yPosition = addPDFMessage(pdf, message, margin, maxWidth, pageHeight, yPosition);
+  }
+
+  // Add footers
+  addPDFFooters(pdf, pageWidth, pageHeight);
 
   // Return as base64
   return pdf.output('datauristring').split(',')[1];
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
 export async function downloadPDF(conversation: Conversation): Promise<void> {
   try {
     const pdfData = await exportConversationToPDF(conversation);
-    const filename = `atticus-${conversation.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${Date.now()}.pdf`;
+    // Sanitize filename by replacing all non-alphanumeric characters with hyphens
+    const filename = `atticus-${conversation.title.split('').map(char => /[a-z0-9]/i.test(char) ? char : '-').join('').toLowerCase()}-${Date.now()}.pdf`;
 
-    const result = await window.electronAPI.savePDF({
+    const result = await (globalThis as any).electronAPI.savePDF({
       filename,
       data: pdfData,
     });
 
     if (result.success && result.data) {
-      console.log('PDF saved:', (result.data as any).filepath);
+      console.log('PDF saved:', result.data.filepath);
     }
   } catch (error) {
     console.error('Error downloading PDF:', error);

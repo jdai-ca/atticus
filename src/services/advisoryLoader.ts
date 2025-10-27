@@ -63,9 +63,9 @@ class AdvisoryConfigLoader {
             let yamlText: string;
 
             // Check if running in Electron
-            if (window.electronAPI?.loadBundledConfig) {
+            if ((globalThis as any).electronAPI?.loadBundledConfig) {
                 console.log('[AdvisoryLoader] Loading bundled config via Electron IPC');
-                const result = await window.electronAPI.loadBundledConfig('advisory.yaml');
+                const result = await (globalThis as any).electronAPI.loadBundledConfig('advisory.yaml');
 
                 if (!result.success || !result.data) {
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
@@ -176,9 +176,9 @@ class AdvisoryConfigLoader {
 
         if (!valid && this.validate.errors) {
             console.error('[AdvisoryLoader] Validation errors:', this.validate.errors);
-            this.validate.errors.forEach(error => {
+            for (const error of this.validate.errors) {
                 console.error(`  - ${error.schemaPath} ${error.message}`, error.params);
-            });
+            }
         }
 
         return valid as boolean;
@@ -232,7 +232,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.4',
+            minAppVersion: '0.9.5',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

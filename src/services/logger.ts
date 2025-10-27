@@ -20,7 +20,7 @@ interface LoggerConfig {
 }
 
 class Logger {
-    private config: LoggerConfig = {
+    private readonly config: LoggerConfig = {
         level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
         enableColors: true,
         redactKeys: ['apiKey', 'api_key', 'token', 'password', 'secret'],

@@ -9,11 +9,11 @@ import { AlertTriangle, X, Shield, Info } from "lucide-react";
 import { PIIScanResult, RiskLevel } from "../services/piiScanner";
 
 interface PrivacyWarningDialogProps {
-  scanResult: PIIScanResult;
-  onProceed: () => void;
-  onCancel: () => void;
-  onAnonymize?: () => void;
-  showAnonymizeOption?: boolean;
+  readonly scanResult: PIIScanResult;
+  readonly onProceed: () => void;
+  readonly onCancel: () => void;
+  readonly onAnonymize?: () => void;
+  readonly showAnonymizeOption?: boolean;
 }
 
 export default function PrivacyWarningDialog({
@@ -118,8 +118,11 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="space-y-2">
-                  {critical.map((finding, idx) => (
-                    <div key={idx} className="bg-gray-900/50 rounded p-3">
+                  {critical.map((finding) => (
+                    <div
+                      key={`critical-${finding.type}-${finding.value}`}
+                      className="bg-gray-900/50 rounded p-3"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p className="font-semibold text-red-300 mb-1">
@@ -154,8 +157,11 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="space-y-2">
-                  {high.map((finding, idx) => (
-                    <div key={idx} className="bg-gray-900/50 rounded p-3">
+                  {high.map((finding) => (
+                    <div
+                      key={`high-${finding.type}-${finding.value}`}
+                      className="bg-gray-900/50 rounded p-3"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p className="font-semibold text-orange-300 mb-1">
@@ -184,9 +190,9 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {moderate.map((finding, idx) => (
+                  {moderate.map((finding) => (
                     <div
-                      key={idx}
+                      key={`moderate-${finding.type}-${finding.value}`}
                       className="bg-gray-900/50 rounded p-2 text-sm"
                     >
                       <p className="font-semibold text-yellow-300">
@@ -260,13 +266,15 @@ export default function PrivacyWarningDialog({
               )}
               <button
                 onClick={onProceed}
-                className={`flex-1 sm:flex-initial px-6 py-2 rounded-lg transition-colors font-medium border-2 ${
-                  scanResult.riskLevel === RiskLevel.CRITICAL
-                    ? "bg-red-600 hover:bg-red-700 text-white border-red-500"
-                    : scanResult.riskLevel === RiskLevel.HIGH
-                    ? "bg-orange-600 hover:bg-orange-700 text-white border-orange-500"
-                    : "bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500"
-                }`}
+                className={`flex-1 sm:flex-initial px-6 py-2 rounded-lg transition-colors font-medium border-2 ${(() => {
+                  if (scanResult.riskLevel === RiskLevel.CRITICAL) {
+                    return "bg-red-600 hover:bg-red-700 text-white border-red-500";
+                  }
+                  if (scanResult.riskLevel === RiskLevel.HIGH) {
+                    return "bg-orange-600 hover:bg-orange-700 text-white border-orange-500";
+                  }
+                  return "bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500";
+                })()}`}
               >
                 Send Anyway
               </button>

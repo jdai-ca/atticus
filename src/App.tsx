@@ -62,7 +62,7 @@ function App() {
                 {config.providers.length > 0 && (
                   <span>
                     {config.providers.length} Provider
-                    {config.providers.length !== 1 ? "s" : ""} Configured
+                    {config.providers.length === 1 ? "" : "s"} Configured
                   </span>
                 )}
               </div>

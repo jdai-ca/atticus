@@ -17,7 +17,8 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
     throw new Error('API service requires provider with API key - use secure IPC from renderer');
   }
 
-  const secureProvider = provider as SecureProviderConfig;
+  // Provider is guaranteed to have apiKey at this point
+  const secureProvider = provider;
 
   switch (secureProvider.provider) {
     case 'openai':

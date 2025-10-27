@@ -40,7 +40,7 @@ export class AdvisoryAreaManager {
      * Initialize advisory areas from loaded configuration
      */
     private initializeAreas(areas: LegalPracticeArea[]): void {
-        areas.forEach(area => {
+        for (const area of areas) {
             const config: AdvisoryAreaConfig = {
                 ...area,
                 enabled: true,
@@ -50,7 +50,7 @@ export class AdvisoryAreaManager {
                 maxTokens: 4000
             };
             this.customAreas.set(area.id, config);
-        });
+        }
     }
 
     /**
@@ -174,9 +174,9 @@ export class AdvisoryAreaManager {
      * Import custom configurations
      */
     importConfigs(configs: AdvisoryAreaConfig[]): void {
-        configs.forEach(config => {
+        for (const config of configs) {
             this.customAreas.set(config.id, config);
-        });
+        }
     }
 
     /**

@@ -185,12 +185,67 @@ const PII_PATTERNS: PIIPatternConfig[] = [
         jurisdictions: ['EU', 'UK'],
     },
 
-    // Credit Card Numbers (Luhn algorithm validated) - UNIVERSAL
+    // Credit Card Numbers - Visa (starts with 4)
     {
         type: PIIType.CREDIT_CARD,
-        pattern: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12}|(?:2131|1800|35\d{3})\d{11})\b/g,
+        pattern: /\b4\d{12}(?:\d{3})?\b/g,
         riskLevel: RiskLevel.CRITICAL,
-        description: 'Credit Card Number',
+        description: 'Credit Card Number (Visa)',
+        recommendation: 'Never share credit card numbers. This is a security risk.',
+        redactor: (match) => `****-****-****-${match.slice(-4)}`,
+        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+    },
+
+    // Credit Card Numbers - MasterCard (starts with 51-55)
+    {
+        type: PIIType.CREDIT_CARD,
+        pattern: /\b5[1-5]\d{14}\b/g,
+        riskLevel: RiskLevel.CRITICAL,
+        description: 'Credit Card Number (MasterCard)',
+        recommendation: 'Never share credit card numbers. This is a security risk.',
+        redactor: (match) => `****-****-****-${match.slice(-4)}`,
+        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+    },
+
+    // Credit Card Numbers - American Express (starts with 34 or 37)
+    {
+        type: PIIType.CREDIT_CARD,
+        pattern: /\b3[47]\d{13}\b/g,
+        riskLevel: RiskLevel.CRITICAL,
+        description: 'Credit Card Number (Amex)',
+        recommendation: 'Never share credit card numbers. This is a security risk.',
+        redactor: (match) => `****-****-****-${match.slice(-4)}`,
+        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+    },
+
+    // Credit Card Numbers - Diners Club (starts with 300-305, 36, or 38)
+    {
+        type: PIIType.CREDIT_CARD,
+        pattern: /\b3(?:0[0-5]|[68]\d)\d{11}\b/g,
+        riskLevel: RiskLevel.CRITICAL,
+        description: 'Credit Card Number (Diners)',
+        recommendation: 'Never share credit card numbers. This is a security risk.',
+        redactor: (match) => `****-****-****-${match.slice(-4)}`,
+        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+    },
+
+    // Credit Card Numbers - Discover (starts with 6011 or 65)
+    {
+        type: PIIType.CREDIT_CARD,
+        pattern: /\b6(?:011|5\d{2})\d{12}\b/g,
+        riskLevel: RiskLevel.CRITICAL,
+        description: 'Credit Card Number (Discover)',
+        recommendation: 'Never share credit card numbers. This is a security risk.',
+        redactor: (match) => `****-****-****-${match.slice(-4)}`,
+        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+    },
+
+    // Credit Card Numbers - JCB (starts with 2131, 1800, or 35)
+    {
+        type: PIIType.CREDIT_CARD,
+        pattern: /\b(?:2131|1800|35\d{3})\d{11}\b/g,
+        riskLevel: RiskLevel.CRITICAL,
+        description: 'Credit Card Number (JCB)',
         recommendation: 'Never share credit card numbers. This is a security risk.',
         redactor: (match) => `****-****-****-${match.slice(-4)}`,
         jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
@@ -210,7 +265,7 @@ const PII_PATTERNS: PIIPatternConfig[] = [
     // API Keys (common formats) - UNIVERSAL
     {
         type: PIIType.API_KEY,
-        pattern: /(?:api[_-]?key|apikey|access[_-]?token|secret[_-]?key)[\s:=]+["']?([a-zA-Z0-9_\-]{20,})["']?/gi,
+        pattern: /(?:api[_-]?key|apikey|access[_-]?token|secret[_-]?key)[\s:=]+["']?([\w-]{20,})["']?/gi,
         riskLevel: RiskLevel.CRITICAL,
         description: 'API Key or Access Token',
         recommendation: 'Never share API keys. Rotate this key immediately.',
@@ -267,7 +322,7 @@ const PII_PATTERNS: PIIPatternConfig[] = [
     // US/CA Passport Number
     {
         type: PIIType.PASSPORT,
-        pattern: /\b[A-Z]{1,2}[0-9]{6,9}\b/g,
+        pattern: /\b[A-Z]{1,2}\d{6,9}\b/g,
         riskLevel: RiskLevel.HIGH,
         description: 'Possible Passport Number',
         recommendation: 'Avoid sharing passport numbers. Use generic examples instead.',
@@ -289,15 +344,26 @@ const PII_PATTERNS: PIIPatternConfig[] = [
         jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
     },
 
-    // Phone Numbers (International formats) - UNIVERSAL
+    // Phone Numbers - North American format (US/CA)
     {
         type: PIIType.PHONE,
-        pattern: /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b|\+\d{1,3}[-.\s]?\d{1,14}\b/g,
+        pattern: /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
         riskLevel: RiskLevel.HIGH,
-        description: 'Phone Number',
+        description: 'Phone Number (North American)',
         recommendation: 'Consider using (555) 555-5555 or anonymizing the number.',
         redactor: (match) => `(XXX) XXX-${match.slice(-4)}`,
-        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+        jurisdictions: ['US', 'CA'],
+    },
+
+    // Phone Numbers - International format
+    {
+        type: PIIType.PHONE,
+        pattern: /\+\d{1,3}[-.\s]?\d{1,14}\b/g,
+        riskLevel: RiskLevel.HIGH,
+        description: 'Phone Number (International)',
+        recommendation: 'Consider using a generic international number format.',
+        redactor: (match) => `+XXX-XXXX-${match.slice(-4)}`,
+        jurisdictions: ['MX', 'EU', 'UK'],
     },
 
     // Bank Account Numbers (generic pattern)
@@ -390,15 +456,37 @@ const PII_PATTERNS: PIIPatternConfig[] = [
         jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
     },
 
-    // Street Addresses - UNIVERSAL
+    // Street Addresses - Common street types (English)
     {
         type: PIIType.STREET_ADDRESS,
-        pattern: /\b\d{1,5}\s+(?:[A-Za-z]+\s+){1,3}(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Circle|Cir|Way|Calle|Avenida)\b/gi,
+        pattern: /\b\d{1,5}\s+(?:[A-Z]+\s+){1,3}(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd)\b/gi,
         riskLevel: RiskLevel.MODERATE,
-        description: 'Street Address',
+        description: 'Street Address (Common)',
         recommendation: 'Consider using generic addresses like "123 Main St".',
         redactor: (match) => `[Address: ${match.split(' ')[0]} *** ***]`,
-        jurisdictions: ['US', 'CA', 'MX', 'EU', 'UK'],
+        jurisdictions: ['US', 'CA', 'EU', 'UK'],
+    },
+
+    // Street Addresses - Additional street types (English)
+    {
+        type: PIIType.STREET_ADDRESS,
+        pattern: /\b\d{1,5}\s+(?:[A-Z]+\s+){1,3}(?:Lane|Ln|Drive|Dr|Court|Ct|Circle|Cir|Way)\b/gi,
+        riskLevel: RiskLevel.MODERATE,
+        description: 'Street Address (Additional)',
+        recommendation: 'Consider using generic addresses like "123 Main St".',
+        redactor: (match) => `[Address: ${match.split(' ')[0]} *** ***]`,
+        jurisdictions: ['US', 'CA', 'EU', 'UK'],
+    },
+
+    // Street Addresses - Spanish street types
+    {
+        type: PIIType.STREET_ADDRESS,
+        pattern: /\b\d{1,5}\s+(?:[A-Z]+\s+){1,3}(?:Calle|Avenida)\b/gi,
+        riskLevel: RiskLevel.MODERATE,
+        description: 'Street Address (Spanish)',
+        recommendation: 'Consider using generic addresses.',
+        redactor: (match) => `[Address: ${match.split(' ')[0]} *** ***]`,
+        jurisdictions: ['MX'],
     },
 
     // Postal Codes - UNIVERSAL
@@ -591,58 +679,76 @@ export class PIIScanner {
      * @param text - Text to scan for PII
      * @param jurisdictions - Optional array of active jurisdictions to filter patterns
      */
+    /**
+     * Check if pattern applies to any active jurisdictions
+     */
+    private isPatternApplicable(patternConfig: typeof PII_PATTERNS[0], jurisdictions?: Jurisdiction[]): boolean {
+        if (!jurisdictions || jurisdictions.length === 0) {
+            return true;
+        }
+        return patternConfig.jurisdictions.some(j => jurisdictions.includes(j));
+    }
+
+    /**
+     * Find matched jurisdiction for a pattern
+     */
+    private findMatchedJurisdiction(patternConfig: typeof PII_PATTERNS[0], jurisdictions?: Jurisdiction[]): Jurisdiction | undefined {
+        if (!jurisdictions || jurisdictions.length === 0) {
+            return undefined;
+        }
+        return patternConfig.jurisdictions.find(j => jurisdictions.includes(j));
+    }
+
+    /**
+     * Process matches for a single pattern
+     */
+    private processPattern(text: string, patternConfig: typeof PII_PATTERNS[0], jurisdictions?: Jurisdiction[]): PIIDetection[] {
+        const findings: PIIDetection[] = [];
+        patternConfig.pattern.lastIndex = 0;
+
+        let match;
+        while ((match = patternConfig.pattern.exec(text)) !== null) {
+            if (!this.validateMatch(patternConfig.type, match[0])) {
+                continue;
+            }
+
+            const matchedJurisdiction = this.findMatchedJurisdiction(patternConfig, jurisdictions);
+
+            findings.push({
+                type: patternConfig.type,
+                value: patternConfig.redactor(match[0]),
+                startIndex: match.index,
+                endIndex: match.index + match[0].length,
+                riskLevel: patternConfig.riskLevel,
+                description: patternConfig.description,
+                recommendation: patternConfig.recommendation,
+                jurisdiction: matchedJurisdiction,
+            });
+        }
+
+        return findings;
+    }
+
     scan(text: string, jurisdictions?: Jurisdiction[]): PIIScanResult {
         const findings: PIIDetection[] = [];
         const detectedCategories = new Set<PIIType>();
 
         // Run all pattern matches
         for (const patternConfig of PII_PATTERNS) {
-            // Apply sensitivity filtering
+            // Apply sensitivity and jurisdiction filtering
             if (this.shouldSkipPattern(patternConfig.riskLevel)) {
                 continue;
             }
 
-            // Apply jurisdiction filtering if specified
-            if (jurisdictions && jurisdictions.length > 0) {
-                // Check if pattern applies to any of the active jurisdictions
-                const hasMatchingJurisdiction = patternConfig.jurisdictions.some(
-                    j => jurisdictions.includes(j)
-                );
-                if (!hasMatchingJurisdiction) {
-                    continue;
-                }
+            if (!this.isPatternApplicable(patternConfig, jurisdictions)) {
+                continue;
             }
 
-            // Reset regex lastIndex
-            patternConfig.pattern.lastIndex = 0;
+            // Process pattern and collect findings
+            const patternFindings = this.processPattern(text, patternConfig, jurisdictions);
+            findings.push(...patternFindings);
 
-            let match;
-            while ((match = patternConfig.pattern.exec(text)) !== null) {
-                // Additional validation for specific types
-                if (!this.validateMatch(patternConfig.type, match[0])) {
-                    continue;
-                }
-
-                // Determine which jurisdiction matched (if filtering is active)
-                let matchedJurisdiction: Jurisdiction | undefined;
-                if (jurisdictions && jurisdictions.length > 0) {
-                    // Find the first matching jurisdiction
-                    matchedJurisdiction = patternConfig.jurisdictions.find(
-                        j => jurisdictions.includes(j)
-                    );
-                }
-
-                findings.push({
-                    type: patternConfig.type,
-                    value: patternConfig.redactor(match[0]),
-                    startIndex: match.index,
-                    endIndex: match.index + match[0].length,
-                    riskLevel: patternConfig.riskLevel,
-                    description: patternConfig.description,
-                    recommendation: patternConfig.recommendation,
-                    jurisdiction: matchedJurisdiction,
-                });
-
+            if (patternFindings.length > 0) {
                 detectedCategories.add(patternConfig.type);
             }
         }
@@ -690,33 +796,43 @@ export class PIIScanner {
     }
 
     /**
+     * Remove all non-digit characters from a string
+     */
+    private extractDigits(value: string): string {
+        return value.split('').filter(char => /\d/.test(char)).join('');
+    }
+
+    /**
      * Additional validation for specific PII types
      */
     private validateMatch(type: PIIType, value: string): boolean {
         switch (type) {
             case PIIType.CREDIT_CARD:
-                return this.validateLuhn(value.replace(/\D/g, ''));
+                return this.validateLuhn(this.extractDigits(value));
 
-            case PIIType.SSN:
+            case PIIType.SSN: {
                 // Additional SSN validation
-                const digits = value.replace(/\D/g, '');
+                const digits = this.extractDigits(value);
                 return digits.length === 9 &&
                     digits !== '000000000' &&
                     digits !== '123456789';
+            }
 
-            case PIIType.EMAIL:
+            case PIIType.EMAIL: {
                 // Exclude common non-personal examples
                 const lowerEmail = value.toLowerCase();
                 return !lowerEmail.includes('example.com') &&
                     !lowerEmail.includes('test.com') &&
                     !lowerEmail.includes('domain.com');
+            }
 
-            case PIIType.FULL_NAME:
+            case PIIType.FULL_NAME: {
                 // Exclude common generic names
                 const lowerName = value.toLowerCase();
                 return !lowerName.includes('john doe') &&
                     !lowerName.includes('jane doe') &&
                     !lowerName.includes('john smith');
+            }
 
             default:
                 return true; // No additional validation
@@ -731,7 +847,7 @@ export class PIIScanner {
         let isEven = false;
 
         for (let i = cardNumber.length - 1; i >= 0; i--) {
-            let digit = parseInt(cardNumber.charAt(i), 10);
+            let digit = Number.parseInt(cardNumber.charAt(i), 10);
 
             if (isEven) {
                 digit *= 2;
@@ -796,25 +912,25 @@ export class PIIScanner {
 
         if (critical.length > 0) {
             message += `🔴 **CRITICAL** (${critical.length}):\n`;
-            critical.forEach(f => {
+            for (const f of critical) {
                 message += `  • ${f.description}: ${f.value}\n`;
-            });
+            }
             message += '\n';
         }
 
         if (high.length > 0) {
             message += `🟠 **HIGH RISK** (${high.length}):\n`;
-            high.forEach(f => {
+            for (const f of high) {
                 message += `  • ${f.description}\n`;
-            });
+            }
             message += '\n';
         }
 
         if (moderate.length > 0) {
             message += `🟡 **MODERATE** (${moderate.length}):\n`;
-            moderate.forEach(f => {
+            for (const f of moderate) {
                 message += `  • ${f.description}\n`;
-            });
+            }
             message += '\n';
         }
 
@@ -826,9 +942,9 @@ export class PIIScanner {
 
         // Add unique recommendations
         const uniqueRecs = new Set(result.findings.map(f => f.recommendation));
-        uniqueRecs.forEach(rec => {
+        for (const rec of uniqueRecs) {
             message += `• ${rec}\n`;
-        });
+        }
 
         return message;
     }

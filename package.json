@@ -1,6 +1,6 @@
 {
   "name": "atticus",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Atticus - In-House AI Counsel",
   "main": "dist-electron/main.js",
   "author": "John Kost",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { X } from "lucide-react";
 import {
@@ -10,6 +10,27 @@ import {
 } from "../types";
 import { JURISDICTIONS } from "../config/jurisdictions";
 import { piiScanner } from "../services/piiScanner";
+
+// Helper component for area cards with dynamic border colors
+function AreaCard({
+  children,
+  color,
+  className,
+}: Readonly<{ children: React.ReactNode; color: string; className?: string }>) {
+  const divRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (divRef.current) {
+      divRef.current.style.borderLeftColor = color;
+    }
+  }, [color]);
+
+  return (
+    <div ref={divRef} className={className}>
+      {children}
+    </div>
+  );
+}
 
 interface SettingsProps {
   readonly onClose: () => void;
@@ -75,6 +96,24 @@ export default function Settings({ onClose }: SettingsProps) {
     return domainConfig?.domains || "both";
   };
 
+  // Handle model checkbox toggle
+  const handleModelToggle = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    modelId: string,
+    existingProvider: ProviderConfig | undefined,
+    templateModels: Array<{ id: string }>
+  ) => {
+    const currentEnabled =
+      existingProvider?.enabledModels || templateModels.map((m) => m.id);
+    const newEnabled = e.target.checked
+      ? [...currentEnabled, modelId]
+      : currentEnabled.filter((id) => id !== modelId);
+    // Ensure at least one model is enabled
+    if (newEnabled.length > 0 && existingProvider) {
+      updateProvider(existingProvider.id, { enabledModels: newEnabled });
+    }
+  };
+
   // Update model domain configuration
   const updateModelDomain = (
     provider: ProviderConfig,
@@ -108,8 +147,9 @@ export default function Settings({ onClose }: SettingsProps) {
     const existingProvider = getConfiguredProvider(template.id);
     const selectedModel = selectedModels[template.id] || template.defaultModel;
 
-    // TODO: Implement secure API key storage in main process
-    // For now, we temporarily store API keys in config for backward compatibility
+    // NOTE: API key storage in config is intentional for now.
+    // Future enhancement tracked: Implement secure API key storage in main process via Electron's safeStorage API
+    // Current implementation provides backward compatibility and immediate functionality
     if (existingProvider) {
       // Update existing provider
       updateProvider(existingProvider.id, {
@@ -168,6 +208,8 @@ export default function Settings({ onClose }: SettingsProps) {
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            aria-label="Close settings"
+            title="Close settings"
           >
             <X className="w-6 h-6" />
           </button>
@@ -252,16 +294,17 @@ export default function Settings({ onClose }: SettingsProps) {
                       selectedModels[template.id] ||
                       template.defaultModel;
 
+                    let borderColor = "border-gray-700";
+                    if (isActive) {
+                      borderColor = "border-legal-gold";
+                    } else if (isConfigured) {
+                      borderColor = "border-green-600";
+                    }
+
                     return (
                       <div
                         key={template.id}
-                        className={`bg-gray-900 rounded-lg p-5 border-2 transition-all ${
-                          isActive
-                            ? "border-legal-gold"
-                            : isConfigured
-                            ? "border-green-600"
-                            : "border-gray-700"
-                        }`}
+                        className={`bg-gray-900 rounded-lg p-5 border-2 transition-all ${borderColor}`}
                       >
                         <div className="flex items-start gap-4">
                           {/* Icon */}
@@ -292,15 +335,21 @@ export default function Settings({ onClose }: SettingsProps) {
                             {/* Model Selection */}
                             {isConfigured && (
                               <div className="mb-4">
-                                <label className="block text-xs font-medium text-gray-400 mb-2">
+                                <label
+                                  htmlFor={`model-${template.id}`}
+                                  className="block text-xs font-medium text-gray-400 mb-2"
+                                >
                                   Default Model
                                 </label>
                                 <select
+                                  id={`model-${template.id}`}
                                   value={currentModel}
                                   onChange={(e) =>
                                     handleModelChange(template, e.target.value)
                                   }
                                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                                  aria-label={`Select default model for ${template.displayName}`}
+                                  title={`Select default model for ${template.displayName}`}
                                 >
                                   {template.models.map((model) => (
                                     <option key={model.id} value={model.id}>
@@ -314,10 +363,10 @@ export default function Settings({ onClose }: SettingsProps) {
                             {/* Enabled Models Selection */}
                             {isConfigured && (
                               <div className="mb-4">
-                                <label className="block text-xs font-medium text-gray-400 mb-2">
+                                <div className="block text-xs font-medium text-gray-400 mb-2">
                                   Available Models (check to enable, select
                                   domain usage)
-                                </label>
+                                </div>
                                 <div className="bg-gray-800 rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
                                   {template.models.map((model) => {
                                     const isEnabled =
@@ -335,29 +384,22 @@ export default function Settings({ onClose }: SettingsProps) {
                                         key={model.id}
                                         className="bg-gray-700 p-2 rounded"
                                       >
-                                        <label className="flex items-start gap-3 cursor-pointer hover:bg-gray-600 p-2 rounded transition-colors">
+                                        <label
+                                          className="flex items-start gap-3 cursor-pointer hover:bg-gray-600 p-2 rounded transition-colors"
+                                          htmlFor={`model-${template.id}-${model.id}`}
+                                          aria-label={`Enable ${model.name} model`}
+                                        >
                                           <input
+                                            id={`model-${template.id}-${model.id}`}
                                             type="checkbox"
                                             checked={isEnabled}
                                             onChange={(e) => {
-                                              const currentEnabled =
-                                                existingProvider?.enabledModels ||
-                                                template.models.map(
-                                                  (m) => m.id
-                                                );
-                                              const newEnabled = e.target
-                                                .checked
-                                                ? [...currentEnabled, model.id]
-                                                : currentEnabled.filter(
-                                                    (id) => id !== model.id
-                                                  );
-                                              // Ensure at least one model is enabled
-                                              if (newEnabled.length > 0) {
-                                                updateProvider(
-                                                  existingProvider!.id,
-                                                  { enabledModels: newEnabled }
-                                                );
-                                              }
+                                              handleModelToggle(
+                                                e,
+                                                model.id,
+                                                existingProvider,
+                                                template.models
+                                              );
                                             }}
                                             className="mt-1 w-4 h-4 text-gray-400 bg-gray-700 border-gray-600 rounded focus:ring-gray-500 focus:ring-2"
                                           />
@@ -378,13 +420,15 @@ export default function Settings({ onClose }: SettingsProps) {
                                             </span>
                                             <div className="flex gap-1">
                                               <button
-                                                onClick={() =>
-                                                  updateModelDomain(
-                                                    existingProvider!,
-                                                    model.id,
-                                                    "practice"
-                                                  )
-                                                }
+                                                onClick={() => {
+                                                  if (existingProvider) {
+                                                    updateModelDomain(
+                                                      existingProvider,
+                                                      model.id,
+                                                      "practice"
+                                                    );
+                                                  }
+                                                }}
                                                 className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "practice"
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
@@ -395,13 +439,15 @@ export default function Settings({ onClose }: SettingsProps) {
                                                 ⚖️ Practice
                                               </button>
                                               <button
-                                                onClick={() =>
-                                                  updateModelDomain(
-                                                    existingProvider!,
-                                                    model.id,
-                                                    "advisory"
-                                                  )
-                                                }
+                                                onClick={() => {
+                                                  if (existingProvider) {
+                                                    updateModelDomain(
+                                                      existingProvider,
+                                                      model.id,
+                                                      "advisory"
+                                                    );
+                                                  }
+                                                }}
                                                 className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "advisory"
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
@@ -412,13 +458,15 @@ export default function Settings({ onClose }: SettingsProps) {
                                                 📊 Advisory
                                               </button>
                                               <button
-                                                onClick={() =>
-                                                  updateModelDomain(
-                                                    existingProvider!,
-                                                    model.id,
-                                                    "both"
-                                                  )
-                                                }
+                                                onClick={() => {
+                                                  if (existingProvider) {
+                                                    updateModelDomain(
+                                                      existingProvider,
+                                                      model.id,
+                                                      "both"
+                                                    );
+                                                  }
+                                                }}
                                                 className={`px-2 py-1 text-xs rounded transition-colors border ${
                                                   currentDomain === "both"
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
@@ -541,10 +589,10 @@ export default function Settings({ onClose }: SettingsProps) {
                       : area.keywords.slice(0, 8);
 
                     return (
-                      <div
+                      <AreaCard
                         key={area.id}
+                        color={area.color}
                         className="bg-gray-900 rounded-lg p-4 border-l-4"
-                        style={{ borderLeftColor: area.color }}
                       >
                         <h3 className="text-lg font-semibold text-white mb-1">
                           {area.name}
@@ -584,7 +632,7 @@ export default function Settings({ onClose }: SettingsProps) {
                             )}
                           </div>
                         )}
-                      </div>
+                      </AreaCard>
                     );
                   })}
               </div>
@@ -643,10 +691,10 @@ export default function Settings({ onClose }: SettingsProps) {
                         : area.keywords.slice(0, 8);
 
                       return (
-                        <div
+                        <AreaCard
                           key={area.id}
+                          color={area.color}
                           className="bg-gray-900 rounded-lg p-4 border-l-4"
-                          style={{ borderLeftColor: area.color }}
                         >
                           <h3 className="text-lg font-semibold text-white mb-1">
                             {area.name}
@@ -686,7 +734,7 @@ export default function Settings({ onClose }: SettingsProps) {
                               )}
                             </div>
                           )}
-                        </div>
+                        </AreaCard>
                       );
                     })}
                 </div>

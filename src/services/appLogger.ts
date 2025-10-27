@@ -164,10 +164,19 @@ export class AuditLogger {
 
     private signingKey: CryptoKey | null = null;
     private verifyingKey: CryptoKey | null = null;
+    private initPromise: Promise<void> | null = null;
 
     constructor() {
         logger.info('AppLogger initialized');
-        void this.initializeSigningKeys();
+    }
+
+    private ensureInitialized(): Promise<void> {
+        this.initPromise ??= this.initializeSigningKeys();
+        return this.initPromise;
+    }
+
+    async initialize(): Promise<void> {
+        return this.ensureInitialized();
     }
 
     private async initializeSigningKeys(): Promise<void> {
@@ -229,6 +238,8 @@ export class AuditLogger {
         conversationId?: string,
         messageId?: string
     ): Promise<string> {
+        await this.ensureInitialized();
+
         try {
             const eventId = crypto.randomUUID();
             const timestamp = new Date().toISOString();
@@ -312,11 +323,16 @@ export class AuditLogger {
             warningDisplayedAt: userDecision ? new Date().toISOString() : undefined,
         };
 
-        const eventType = userDecision
-            ? (userDecision === 'proceed' ? AuditEventType.PII_USER_PROCEEDED :
-                userDecision === 'cancel' ? AuditEventType.PII_USER_CANCELLED :
-                    AuditEventType.PII_USER_ANONYMIZED)
-            : AuditEventType.PII_SCAN_PERFORMED;
+        let eventType: AuditEventType;
+        if (userDecision === 'proceed') {
+            eventType = AuditEventType.PII_USER_PROCEEDED;
+        } else if (userDecision === 'cancel') {
+            eventType = AuditEventType.PII_USER_CANCELLED;
+        } else if (userDecision === 'anonymize') {
+            eventType = AuditEventType.PII_USER_ANONYMIZED;
+        } else {
+            eventType = AuditEventType.PII_SCAN_PERFORMED;
+        }
 
         return this.logEvent(
             eventType,
@@ -347,14 +363,20 @@ export class AuditLogger {
 
     /**
      * Log API response with error attribution
+     */
     async logAPIResponse(
         conversationId: string,
         messageId: string,
         responseDetails: APIResponseAuditDetails
     ): Promise<string> {
-        const severity = responseDetails.error
-            ? (responseDetails.error.isProviderError ? AuditSeverity.ERROR : AuditSeverity.WARNING)
-            : AuditSeverity.INFO;
+        let severity: AuditSeverity;
+        if (responseDetails.error) {
+            severity = responseDetails.error.isProviderError
+                ? AuditSeverity.ERROR
+                : AuditSeverity.WARNING;
+        } else {
+            severity = AuditSeverity.INFO;
+        }
 
         return this.logEvent(
             responseDetails.error ? AuditEventType.API_ERROR_OCCURRED : AuditEventType.API_RESPONSE_RECEIVED,
@@ -464,22 +486,24 @@ export class AuditLogger {
         }
     }
 
-    private async verifyChainIntegrity(entries: AuditLogEntry[]): Promise<{
-        valid: boolean;
-        errors: string[];
-    }> {
+    /**
+     * Verify sequence numbers are consecutive
+     */
+    private verifySequenceNumbers(entries: AuditLogEntry[]): string[] {
         const errors: string[] = [];
-
-        if (entries.length === 0) {
-            return { valid: true, errors: [] };
-        }
-
         for (let i = 0; i < entries.length; i++) {
             if (entries[i].sequenceNumber !== undefined && entries[i].sequenceNumber !== i) {
                 errors.push(`Sequence gap detected: expected ${i}, got ${entries[i].sequenceNumber}`);
             }
         }
+        return errors;
+    }
 
+    /**
+     * Verify chain links (previous event IDs and hashes match)
+     */
+    private verifyChainLinks(entries: AuditLogEntry[]): string[] {
+        const errors: string[] = [];
         for (let i = 1; i < entries.length; i++) {
             if (entries[i].previousEventId !== entries[i - 1].id) {
                 errors.push(`Chain break at entry ${i}: previous ID mismatch`);
@@ -489,7 +513,14 @@ export class AuditLogger {
                 errors.push(`Hash chain break at entry ${i}: previous hash mismatch`);
             }
         }
+        return errors;
+    }
 
+    /**
+     * Verify content hashes match (no tampering)
+     */
+    private async verifyContentHashes(entries: AuditLogEntry[]): Promise<string[]> {
+        const errors: string[] = [];
         for (let i = 0; i < entries.length; i++) {
             const { hash, signature, ...entryWithoutHash } = entries[i];
             const recalculatedHash = await this.computeHash(entryWithoutHash);
@@ -498,7 +529,14 @@ export class AuditLogger {
                 errors.push(`Entry ${i} (${entries[i].id}): Hash mismatch - content tampered`);
             }
         }
+        return errors;
+    }
 
+    /**
+     * Verify cryptographic signatures
+     */
+    private async verifySignatures(entries: AuditLogEntry[]): Promise<string[]> {
+        const errors: string[] = [];
         for (let i = 0; i < entries.length; i++) {
             if (entries[i].signature && entries[i].hash) {
                 const isValid = await this.verifySignature(entries[i].hash!, entries[i].signature!);
@@ -507,10 +545,37 @@ export class AuditLogger {
                 }
             }
         }
+        return errors;
+    }
+
+    /**
+     * Verify the integrity of the audit log chain
+     */
+    private async verifyChainIntegrity(entries: AuditLogEntry[]): Promise<{
+        valid: boolean;
+        errors: string[];
+    }> {
+        if (entries.length === 0) {
+            return { valid: true, errors: [] };
+        }
+
+        // Run all verification checks
+        const sequenceErrors = this.verifySequenceNumbers(entries);
+        const chainErrors = this.verifyChainLinks(entries);
+        const hashErrors = await this.verifyContentHashes(entries);
+        const signatureErrors = await this.verifySignatures(entries);
+
+        // Combine all errors
+        const allErrors = [
+            ...sequenceErrors,
+            ...chainErrors,
+            ...hashErrors,
+            ...signatureErrors
+        ];
 
         return {
-            valid: errors.length === 0,
-            errors,
+            valid: allErrors.length === 0,
+            errors: allErrors,
         };
     }
 
@@ -531,6 +596,8 @@ export class AuditLogger {
             );
 
             const signatureArray = Array.from(new Uint8Array(signature));
+            // Using fromCharCode for base64 encoding of binary data (not Unicode text)
+            // eslint-disable-next-line unicorn/prefer-code-point
             return btoa(String.fromCharCode(...signatureArray));
         } catch (error) {
             logger.error('[AppLogger] Signature generation failed', { error });
@@ -547,7 +614,9 @@ export class AuditLogger {
         try {
             const signatureStr = atob(signatureB64);
             const signature = new Uint8Array(signatureStr.length);
+            // Using charCodeAt for decoding base64 binary data (not Unicode text)
             for (let i = 0; i < signatureStr.length; i++) {
+                // eslint-disable-next-line unicorn/prefer-code-point
                 signature[i] = signatureStr.charCodeAt(i);
             }
 
@@ -615,6 +684,7 @@ export class AuditLogger {
             const key = this.chainKeyPrefix + conversationId;
             return localStorage.getItem(key) || undefined;
         } catch (error) {
+            logger.error('[AppLogger] Failed to get last event ID', { error, conversationId });
             return undefined;
         }
     }
@@ -629,6 +699,7 @@ export class AuditLogger {
             const entry = entries.find(e => e.id === eventId);
             return entry?.hash;
         } catch (error) {
+            logger.error('[AppLogger] Failed to get event hash', { error, conversationId, eventId });
             return undefined;
         }
     }
@@ -637,8 +708,9 @@ export class AuditLogger {
         try {
             const key = this.sequenceKeyPrefix + conversationId;
             const current = localStorage.getItem(key);
-            return current ? parseInt(current, 10) : 0;
+            return current ? Number.parseInt(current, 10) : 0;
         } catch (error) {
+            logger.error('[AppLogger] Failed to get sequence number', { error, conversationId });
             return 0;
         }
     }
@@ -662,12 +734,13 @@ export class AuditLogger {
             }
             return sessionId;
         } catch (error) {
+            logger.error('[AppLogger] Failed to get/create session ID', { error });
             return 'SESSION_UNAVAILABLE';
         }
     }
 
     private getApplicationVersion(): string {
-        return (window as any).__ATTICUS_VERSION__ || '0.9.3';
+        return (globalThis as any).__ATTICUS_VERSION__ || '0.9.5';
     }
 
     private sanitizeDetails(details: Record<string, any>): Record<string, any> {

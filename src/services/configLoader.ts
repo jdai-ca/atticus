@@ -61,7 +61,7 @@ interface RawProviderTemplate {
 }
 
 export class ConfigLoader {
-    private validate: ReturnType<typeof ajv.compile>;
+    private readonly validate: ReturnType<typeof ajv.compile>;
 
     constructor() {
         this.validate = ajv.compile(providerSchema);
@@ -94,9 +94,9 @@ export class ConfigLoader {
             let yamlText: string;
 
             // Check if running in Electron
-            if (window.electronAPI?.loadBundledConfig) {
+            if ((globalThis as any).electronAPI?.loadBundledConfig) {
                 console.log('[ConfigLoader] Loading bundled config via Electron IPC');
-                const result = await window.electronAPI.loadBundledConfig('providers.yaml');
+                const result = await (globalThis as any).electronAPI.loadBundledConfig('providers.yaml');
 
                 if (!result.success || !result.data) {
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
@@ -234,7 +234,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.4';
+        return '0.9.5';
     }
 
     /**
@@ -286,7 +286,7 @@ export class ConfigLoader {
         console.log(`[ConfigLoader] ✨ Provider config updated to version ${newVersion}`);
 
         // Could emit event for UI notification
-        window.dispatchEvent(new CustomEvent('provider-config-updated', {
+        (globalThis as any).dispatchEvent(new CustomEvent('provider-config-updated', {
             detail: { version: newVersion }
         }));
     }

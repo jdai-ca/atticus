@@ -276,7 +276,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     // Persist the updated conversation to storage
     try {
-      await window.electronAPI.saveConversation(updatedConversation);
+      await (globalThis as any).electronAPI.saveConversation(updatedConversation);
     } catch (error) {
       logger.error('Failed to save conversation title', { error });
     }
@@ -354,7 +354,7 @@ export const useStore = create<AppState>((set, get) => ({
   loadConfig: async () => {
     try {
       set({ isLoading: true, error: null });
-      const result = await window.electronAPI.loadConfig();
+      const result = await (globalThis as any).electronAPI.loadConfig();
 
       if (result.success && result.data) {
         // Preserve practice areas and advisory areas when loading saved config
@@ -370,7 +370,7 @@ export const useStore = create<AppState>((set, get) => ({
         });
         console.log('[Store] Config loaded, preserved areas:', {
           practice: currentConfig.legalPracticeAreas.length,
-          advisory: currentConfig.advisoryAreas.length
+          advisory: currentConfig.advisoryAreas?.length ?? 0
         });
       }
     } catch (error) {
@@ -383,7 +383,7 @@ export const useStore = create<AppState>((set, get) => ({
   saveConfig: async () => {
     try {
       const config = get().config;
-      await window.electronAPI.saveConfig(config);
+      await (globalThis as any).electronAPI.saveConfig(config);
     } catch (error) {
       logger.error('Failed to save config', { error });
     }
@@ -392,20 +392,20 @@ export const useStore = create<AppState>((set, get) => ({
   loadConversations: async () => {
     try {
       set({ isLoading: true, error: null });
-      const result = await window.electronAPI.loadConversations();
+      const result = await (globalThis as any).electronAPI.loadConversations();
 
       if (result.success && result.data) {
         // Deduplicate conversations by ID (in case old timestamp files exist)
         const conversationMap = new Map<string, Conversation>();
-        result.data.forEach((conv: Conversation) => {
+        for (const conv of result.data) {
           // Migrate date fields to ISO strings if needed (for backward compatibility)
           const migratedConv: Conversation = {
             ...conv,
-            createdAt: DateUtils.ensureISOString(conv.createdAt as any),
-            updatedAt: DateUtils.ensureISOString(conv.updatedAt as any),
+            createdAt: DateUtils.ensureISOString(conv.createdAt),
+            updatedAt: DateUtils.ensureISOString(conv.updatedAt),
             messages: conv.messages.map((msg: Message): Message => ({
               ...msg,
-              timestamp: DateUtils.ensureISOString(msg.timestamp as any)
+              timestamp: DateUtils.ensureISOString(msg.timestamp)
             }))
           };
 
@@ -414,7 +414,7 @@ export const useStore = create<AppState>((set, get) => ({
           if (!existing || DateUtils.parse(migratedConv.updatedAt) > DateUtils.parse(existing.updatedAt)) {
             conversationMap.set(migratedConv.id, migratedConv);
           }
-        });
+        }
         const conversations = Array.from(conversationMap.values());
         set({ conversations });
       }
@@ -430,7 +430,7 @@ export const useStore = create<AppState>((set, get) => ({
       const current = get().currentConversation;
       if (!current) return;
 
-      await window.electronAPI.saveConversation(current);
+      await (globalThis as any).electronAPI.saveConversation(current);
     } catch (error) {
       logger.error('Failed to save conversation', { error });
     }

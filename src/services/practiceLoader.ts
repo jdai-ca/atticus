@@ -22,7 +22,7 @@ interface PracticeConfigFile {
 }
 
 class PracticeConfigLoader {
-    private validate: ValidateFunction;
+    private readonly validate: ValidateFunction;
     private readonly CACHE_KEY = 'practice-config';
     private readonly VERSION_KEY = 'practice-config-version';
 
@@ -61,9 +61,9 @@ class PracticeConfigLoader {
             let yamlText: string;
 
             // Check if running in Electron
-            if (window.electronAPI?.loadBundledConfig) {
+            if ((globalThis as any).electronAPI?.loadBundledConfig) {
                 console.log('[PracticeLoader] Loading bundled config via Electron IPC');
-                const result = await window.electronAPI.loadBundledConfig('practices.yaml');
+                const result = await (globalThis as any).electronAPI.loadBundledConfig('practices.yaml');
 
                 if (!result.success || !result.data) {
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
@@ -182,13 +182,16 @@ class PracticeConfigLoader {
         if (!valid) {
             console.error('[PracticeLoader] Validation errors:', this.validate.errors);
             // Log each error in detail
-            this.validate.errors?.forEach((error, index) => {
-                console.error(`  Error ${index + 1}:`, {
-                    path: error.dataPath || error.schemaPath,
-                    message: error.message,
-                    params: error.params
-                });
-            });
+            if (this.validate.errors) {
+                for (let index = 0; index < this.validate.errors.length; index++) {
+                    const error = this.validate.errors[index];
+                    console.error(`  Error ${index + 1}:`, {
+                        path: error.dataPath || error.schemaPath,
+                        message: error.message,
+                        params: error.params
+                    });
+                }
+            }
             return false;
         }
 
@@ -200,7 +203,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.4';
+        const appVersion = '0.9.5';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -248,7 +251,7 @@ class PracticeConfigLoader {
     private notifyConfigUpdate(newVersion: string): void {
         console.log(`[PracticeLoader] Practice area config updated to ${newVersion}`);
         // Dispatch event for UI notification
-        window.dispatchEvent(new CustomEvent('practice-config-updated', {
+        (globalThis as any).dispatchEvent(new CustomEvent('practice-config-updated', {
             detail: { version: newVersion }
         }));
     }
@@ -261,7 +264,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.4',
+            minAppVersion: '0.9.5',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

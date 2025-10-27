@@ -88,11 +88,11 @@ export function detectPracticeAreaWithConfidence(
             const matchedKeywords: string[] = [];
 
             // Count keyword matches
-            area.keywords.forEach(keyword => {
+            for (const keyword of area.keywords) {
                 if (lowerText.includes(keyword.toLowerCase())) {
                     matchedKeywords.push(keyword);
                 }
-            });
+            }
 
             const matchCount = matchedKeywords.length;
 

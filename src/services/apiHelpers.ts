@@ -161,7 +161,7 @@ export function validateGoogleResponse(data: any): void {
     }
 
     const candidate = data.candidates[0];
-    if (!candidate.content || !candidate.content.parts || !Array.isArray(candidate.content.parts)) {
+    if (!candidate.content?.parts || !Array.isArray(candidate.content.parts)) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing content parts',

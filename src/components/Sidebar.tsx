@@ -71,16 +71,6 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
     setEditingTitle("");
   };
 
-  const handleKeyDown = async (e: React.KeyboardEvent, convId: string) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      await handleSaveEdit(convId);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      handleCancelEdit();
-    }
-  };
-
   return (
     <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
       {/* Header */}
@@ -110,42 +100,53 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
         ) : (
           <div className="space-y-1">
             {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                className={`group relative p-3 rounded-lg transition-colors ${
-                  currentConversation?.id === conv.id
-                    ? "bg-gray-700"
-                    : "hover:bg-gray-700/50"
-                }`}
-                onMouseEnter={() => setHoveredId(conv.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
-                <div
-                  className="flex items-start gap-2 cursor-pointer"
-                  onClick={() => setCurrentConversation(conv)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setCurrentConversation(conv);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Select conversation: ${conv.title}`}
-                >
-                  <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0 text-gray-400" />
-                  <div className="flex-1 min-w-0">
-                    {editingId === conv.id ? (
-                      <div className="flex items-center gap-1 mb-1">
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(e, conv.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-1 bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-600 focus:outline-none focus:border-legal-blue"
-                          autoFocus
-                        />
+              <div key={conv.id} className="relative">
+                {editingId === conv.id ? (
+                  <fieldset
+                    className={`w-full p-3 rounded-lg transition-colors border-0 ${
+                      currentConversation?.id === conv.id
+                        ? "bg-gray-700"
+                        : "hover:bg-gray-700/50"
+                    }`}
+                    onMouseEnter={() => setHoveredId(conv.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <legend className="sr-only">Edit conversation</legend>
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 mb-1">
+                          <input
+                            type="text"
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSaveEdit(conv.id);
+                              } else if (e.key === "Escape") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleCancelEdit();
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-600 focus:outline-none focus:border-legal-blue"
+                            autoFocus
+                            aria-label="Edit conversation title"
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {conv.messages.length} messages
+                        </div>
+                        {conv.practiceArea && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            {conv.practiceArea}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1 ml-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -167,21 +168,38 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                           <X className="w-3 h-3 text-gray-300" />
                         </button>
                       </div>
-                    ) : (
-                      <div className="text-sm font-medium text-white truncate">
-                        {conv.title}
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500 mt-1">
-                      {conv.messages.length} messages
                     </div>
-                    {conv.practiceArea && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        {conv.practiceArea}
+                  </fieldset>
+                ) : (
+                  <button
+                    className={`w-full p-3 rounded-lg transition-colors text-left ${
+                      currentConversation?.id === conv.id
+                        ? "bg-gray-700"
+                        : "hover:bg-gray-700/50"
+                    }`}
+                    onMouseEnter={() => setHoveredId(conv.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => setCurrentConversation(conv)}
+                    aria-label={`Select conversation: ${conv.title}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0 text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
+                          {conv.title}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {conv.messages.length} messages
+                        </div>
+                        {conv.practiceArea && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            {conv.practiceArea}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </button>
+                )}
 
                 {hoveredId === conv.id && editingId !== conv.id && (
                   <div className="absolute bottom-2 right-2 flex gap-1 bg-gray-800/90 rounded-lg p-1 border border-gray-600">
@@ -276,14 +294,14 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                   );
                 })
                 .map((conv) => (
-                  <div
+                  <button
                     key={conv.id}
                     onClick={() => {
                       setCurrentConversation(conv);
                       setShowSearchDialog(false);
                       setSearchQuery("");
                     }}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg transition-colors ${
                       currentConversation?.id === conv.id
                         ? "bg-gray-700"
                         : "hover:bg-gray-700/50"
@@ -305,7 +323,7 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               {conversations.filter((conv) => {
                 if (!searchQuery.trim()) return true;

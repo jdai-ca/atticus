@@ -40,7 +40,7 @@ export class PracticeAreaManager {
      * Initialize practice areas from loaded configuration
      */
     private initializeAreas(areas: LegalPracticeArea[]): void {
-        areas.forEach(area => {
+        for (const area of areas) {
             const config: PracticeAreaConfig = {
                 ...area,
                 enabled: true,
@@ -50,7 +50,7 @@ export class PracticeAreaManager {
                 maxTokens: 4000
             };
             this.customAreas.set(area.id, config);
-        });
+        }
     }
 
     /**
@@ -177,9 +177,9 @@ export class PracticeAreaManager {
      * Import custom configurations
      */
     importConfigs(configs: PracticeAreaConfig[]): void {
-        configs.forEach(config => {
+        for (const config of configs) {
             this.customAreas.set(config.id, config);
-        });
+        }
     }
 
     /**

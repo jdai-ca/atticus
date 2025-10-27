@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "../store";
 import { Send, Paperclip, Loader2, Settings, Shield } from "lucide-react";
-import { Message, Jurisdiction, ModelDomain } from "../types";
+import { Message, Jurisdiction, ModelDomain, SelectedModel } from "../types";
 // Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
 import { detectAdvisoryArea } from "../modules/advisoryArea";
@@ -86,74 +86,92 @@ export default function ChatWindow() {
 
     // Determine which domain to filter by
     // If advisory area is detected (not general), prioritize advisory
-    if (advisoryArea.id !== "general-advisory") {
-      setCurrentDomain("advisory");
-    } else if (practiceArea.id !== "general") {
-      setCurrentDomain("practice");
+    if (advisoryArea.id === "general-advisory") {
+      if (practiceArea.id === "general") {
+        setCurrentDomain(undefined); // Both general, show all models
+      } else {
+        setCurrentDomain("practice");
+      }
     } else {
-      setCurrentDomain(undefined); // Both general, show all models
+      setCurrentDomain("advisory");
     }
   }, [input]);
 
   // Initialize selected models from conversation or default to active provider
+  // Helper: Check if a model is enabled for a provider
+  const isModelEnabled = (providerId: string, modelId: string): boolean => {
+    const provider = config.providers.find((p) => p.id === providerId);
+    if (!provider) return false;
+
+    const enabledModelIds = provider.enabledModels || [];
+    // If enabledModels is not set, all models are enabled
+    return enabledModelIds.length === 0 || enabledModelIds.includes(modelId);
+  };
+
+  // Helper: Get valid selected models (filter out disabled ones)
+  const getValidSelectedModels = (selectedModels: SelectedModel[]) => {
+    return selectedModels.filter((sm) =>
+      isModelEnabled(sm.providerId, sm.modelId)
+    );
+  };
+
+  // Helper: Get default model for a provider
+  const getDefaultModelForProvider = (providerId: string): string | null => {
+    const provider = config.providers.find((p) => p.id === providerId);
+    if (!provider) return null;
+
+    const enabledModelIds = provider.enabledModels || [];
+    // If model is enabled, use it; otherwise use first enabled model
+    if (
+      enabledModelIds.length === 0 ||
+      enabledModelIds.includes(provider.model)
+    ) {
+      return provider.model;
+    }
+    return enabledModelIds[0] || provider.model;
+  };
+
+  // Helper: Initialize model selection with defaults
+  const initializeDefaultModelSelection = () => {
+    if (!currentConversation) return;
+
+    const provider = config.providers.find(
+      (p) => p.id === currentConversation.provider
+    );
+    if (provider) {
+      const modelId = getDefaultModelForProvider(provider.id);
+      if (modelId) {
+        setSelectedModelKeys(new Set([`${provider.id}:${modelId}`]));
+      }
+    }
+  };
+
+  // Initialize selected models from conversation
   useEffect(() => {
-    if (currentConversation) {
-      if (
-        currentConversation.selectedModels &&
-        currentConversation.selectedModels.length > 0
-      ) {
-        // Filter out any previously selected models that are now disabled
-        const validModels = currentConversation.selectedModels.filter((sm) => {
-          const provider = config.providers.find((p) => p.id === sm.providerId);
-          if (!provider) return false;
+    if (!currentConversation) return;
 
-          const enabledModelIds = provider.enabledModels || [];
-          // If enabledModels is not set, all models are enabled
-          return (
-            enabledModelIds.length === 0 || enabledModelIds.includes(sm.modelId)
-          );
-        });
+    const savedModels = currentConversation.selectedModels;
 
-        if (validModels.length > 0) {
-          const keys = validModels.map(
-            (sm) => `${sm.providerId}:${sm.modelId}`
-          );
-          setSelectedModelKeys(new Set(keys));
+    // Case 1: Conversation has saved model selections
+    if (savedModels && savedModels.length > 0) {
+      const validModels = getValidSelectedModels(savedModels);
 
-          // Update conversation if some models were filtered out
-          if (
-            validModels.length !== currentConversation.selectedModels.length
-          ) {
-            setConversationSelectedModels(currentConversation.id, validModels);
-          }
-        } else {
-          // All previously selected models are now disabled, select default
-          const provider = config.providers.find(
-            (p) => p.id === currentConversation.provider
-          );
-          if (provider) {
-            const enabledModelIds = provider.enabledModels || [];
-            const modelId = enabledModelIds.includes(provider.model)
-              ? provider.model
-              : enabledModelIds[0] || provider.model;
-            setSelectedModelKeys(new Set([`${provider.id}:${modelId}`]));
-          }
+      if (validModels.length > 0) {
+        // Use valid saved models
+        const keys = validModels.map((sm) => `${sm.providerId}:${sm.modelId}`);
+        setSelectedModelKeys(new Set(keys));
+
+        // Update conversation if some models were filtered out
+        if (validModels.length !== savedModels.length) {
+          setConversationSelectedModels(currentConversation.id, validModels);
         }
       } else {
-        // Default to current provider/model for backward compatibility
-        const provider = config.providers.find(
-          (p) => p.id === currentConversation.provider
-        );
-        if (provider) {
-          const enabledModelIds = provider.enabledModels || [];
-          const modelId =
-            enabledModelIds.length === 0 ||
-            enabledModelIds.includes(provider.model)
-              ? provider.model
-              : enabledModelIds[0] || provider.model;
-          setSelectedModelKeys(new Set([`${provider.id}:${modelId}`]));
-        }
+        // All saved models are now disabled, use defaults
+        initializeDefaultModelSelection();
       }
+    } else {
+      // Case 2: No saved models, use defaults for backward compatibility
+      initializeDefaultModelSelection();
     }
   }, [currentConversation?.id, config.providers]);
 
@@ -174,6 +192,65 @@ export default function ChatWindow() {
   }, [currentConversation?.id]);
 
   // Get all available provider/model combinations
+  // Helper: Get domain configuration for a model
+  const getModelDomain = (
+    provider: (typeof config.providers)[0],
+    modelId: string
+  ): ModelDomain => {
+    const modelDomainConfig = provider.modelDomains?.find(
+      (d: any) => d.modelId === modelId
+    );
+    return modelDomainConfig?.domains || "both";
+  };
+
+  // Helper: Check if model matches domain filter
+  const modelMatchesDomain = (
+    modelDomain: ModelDomain,
+    filterDomain?: "practice" | "advisory"
+  ): boolean => {
+    if (!filterDomain) return true;
+    return modelDomain === filterDomain || modelDomain === "both";
+  };
+
+  // Helper: Process models for a provider
+  const getModelsForProvider = (
+    provider: (typeof config.providers)[0],
+    template: (typeof providerTemplates)[0],
+    filterDomain?: "practice" | "advisory"
+  ) => {
+    const models: Array<{
+      providerId: string;
+      providerName: string;
+      providerIcon: string;
+      modelId: string;
+      modelName: string;
+      modelDescription: string;
+      domains: ModelDomain;
+    }> = [];
+
+    const enabledModelIds =
+      provider.enabledModels || template.models.map((m: any) => m.id);
+
+    for (const model of template.models) {
+      if (!enabledModelIds.includes(model.id)) continue;
+
+      const modelDomain = getModelDomain(provider, model.id);
+      if (!modelMatchesDomain(modelDomain, filterDomain)) continue;
+
+      models.push({
+        providerId: provider.id,
+        providerName: template.displayName,
+        providerIcon: template.icon,
+        modelId: model.id,
+        modelName: model.name,
+        modelDescription: model.description,
+        domains: modelDomain,
+      });
+    }
+
+    return models;
+  };
+
   const getAllAvailableModels = (filterDomain?: "practice" | "advisory") => {
     const allModels: Array<{
       providerId: string;
@@ -185,50 +262,19 @@ export default function ChatWindow() {
       domains: ModelDomain;
     }> = [];
 
-    config.providers.forEach((provider) => {
+    for (const provider of config.providers) {
       const template = providerTemplates.find(
         (t) => t.id === provider.provider
       );
       if (template) {
-        // Filter models based on enabledModels setting
-        const enabledModelIds =
-          provider.enabledModels || template.models.map((m) => m.id);
-
-        template.models.forEach((model) => {
-          // Only include models that are enabled for this provider
-          if (enabledModelIds.includes(model.id)) {
-            // Check domain configuration if filter is specified
-            if (filterDomain) {
-              const modelDomainConfig = provider.modelDomains?.find(
-                (d) => d.modelId === model.id
-              );
-              const modelDomain = modelDomainConfig?.domains || "both";
-
-              // Skip if model doesn't match the required domain
-              if (modelDomain !== filterDomain && modelDomain !== "both") {
-                return;
-              }
-            }
-
-            // Get domain configuration for this model
-            const modelDomainConfig = provider.modelDomains?.find(
-              (d) => d.modelId === model.id
-            );
-            const modelDomain = modelDomainConfig?.domains || "both";
-
-            allModels.push({
-              providerId: provider.id,
-              providerName: template.displayName,
-              providerIcon: template.icon,
-              modelId: model.id,
-              modelName: model.name,
-              modelDescription: model.description,
-              domains: modelDomain,
-            });
-          }
-        });
+        const providerModels = getModelsForProvider(
+          provider,
+          template,
+          filterDomain
+        );
+        allModels.push(...providerModels);
       }
-    });
+    }
 
     return allModels;
   };
@@ -315,9 +361,9 @@ export default function ChatWindow() {
     // PII Scan - MANDATORY security check for sensitive information
     // This scanner is always active and cannot be disabled for legal protection
     // Get active jurisdictions from conversation
-    const activeJurisdictions = Array.from(
+    const activeJurisdictions: Jurisdiction[] = Array.from(
       selectedJurisdictions
-    ) as Jurisdiction[];
+    );
 
     const scanResult = piiScanner.scan(
       input,
@@ -371,18 +417,13 @@ export default function ChatWindow() {
     await sendMessage(input);
   };
 
-  const sendMessage = async (messageText: string) => {
-    // Detect practice area and advisory area
-    const practiceArea = detectPracticeArea(messageText);
-    const advisoryArea = detectAdvisoryArea(messageText);
-
-    // Build system prompt with jurisdiction appendix
-    // Combine both practice and advisory prompts if advisory area is detected
-    const jurisdictions = currentConversation!.selectedJurisdictions || [];
-    const jurisdictionPrompt =
-      getJurisdictionSystemPromptAppendix(jurisdictions);
-
-    let fullSystemPrompt = practiceArea.systemPrompt;
+  // Helper function to build the full system prompt
+  const buildSystemPrompt = (
+    practiceAreaPrompt: string,
+    advisoryArea: { id: string; systemPrompt: string },
+    jurisdictions: Jurisdiction[]
+  ): string => {
+    let fullSystemPrompt = practiceAreaPrompt;
 
     // If advisory area is detected (not general-advisory), append its guidance
     if (advisoryArea.id !== "general-advisory") {
@@ -390,22 +431,234 @@ export default function ChatWindow() {
         "\n\n--- BUSINESS ADVISORY CONTEXT ---\n\n" + advisoryArea.systemPrompt;
     }
 
+    const jurisdictionPrompt =
+      getJurisdictionSystemPromptAppendix(jurisdictions);
     fullSystemPrompt += jurisdictionPrompt;
 
-    // Get selected models
-    const selectedModels = currentConversation!.selectedModels || [];
+    return fullSystemPrompt;
+  };
 
-    // Create user message
-    const userMessage: Message = {
+  // Helper function to create user message
+  const createUserMessage = (
+    messageText: string,
+    practiceAreaName: string,
+    advisoryArea: { id: string; name: string }
+  ): Message => {
+    return {
       id: `msg-${Date.now()}`,
       role: "user",
       content: messageText,
       timestamp: DateUtils.now(),
       attachments: attachments.length > 0 ? attachments : undefined,
-      practiceArea: practiceArea.name,
+      practiceArea: practiceAreaName,
       advisoryArea:
-        advisoryArea.id !== "general-advisory" ? advisoryArea.name : undefined,
+        advisoryArea.id === "general-advisory" ? undefined : advisoryArea.name,
     };
+  };
+
+  // Helper function to send request to a single provider
+  const sendToProvider = async (
+    selectedModel: SelectedModel,
+    userMessage: Message,
+    fullSystemPrompt: string
+  ) => {
+    const provider = config.providers.find(
+      (p) => p.id === selectedModel.providerId
+    );
+    if (!provider) return null;
+
+    const template = providerTemplates.find((t) => t.id === provider.provider);
+    const model = template?.models.find((m) => m.id === selectedModel.modelId);
+
+    // Create a temporary provider config with the selected model
+    const providerConfig = {
+      ...provider,
+      model: selectedModel.modelId,
+    };
+
+    // AUDIT: API request initiated
+    const requestStartTime = Date.now();
+    await auditLogger.logAPIRequest(currentConversation!.id, userMessage.id, {
+      provider: provider.provider,
+      providerDisplayName: template?.displayName || provider.name,
+      model: selectedModel.modelId,
+      endpoint: provider.endpoint || "default",
+      messageCount: currentConversation!.messages.length + 1,
+      systemPromptPresent: !!fullSystemPrompt,
+      temperature: 0.7,
+      maxTokens: 4000,
+      initiatedAt: new Date().toISOString(),
+    });
+
+    try {
+      const result = await globalThis.window.electronAPI.secureChatRequest({
+        messages: [...currentConversation!.messages, userMessage],
+        provider: providerConfig,
+        systemPrompt: fullSystemPrompt,
+        temperature: 0.7,
+        maxTokens: 4000,
+      });
+
+      const requestEndTime = Date.now();
+      const durationMs = requestEndTime - requestStartTime;
+
+      if (!result.success) {
+        // AUDIT: API error occurred
+        await auditLogger.logAPIResponse(
+          currentConversation!.id,
+          userMessage.id,
+          {
+            provider: provider.provider,
+            model: selectedModel.modelId,
+            responseReceived: false,
+            error: {
+              code: result.error?.code || "UNKNOWN_ERROR",
+              message: result.error?.message || "Unknown error",
+              httpStatus: (result.error as any)?.status,
+              providerErrorCode: (result.error as any)?.providerCode,
+              providerErrorMessage: (result.error as any)?.providerMessage,
+              isProviderError: true,
+              isUserError:
+                result.error?.code === "INVALID_API_KEY" ||
+                result.error?.code === "INVALID_CONFIG",
+              isNetworkError:
+                result.error?.code === "NETWORK_ERROR" ||
+                result.error?.code === "TIMEOUT",
+            },
+            providerResponseMetadata: {
+              durationMs,
+              timestamp: new Date().toISOString(),
+            },
+          }
+        );
+
+        throw new Error(result.error?.message || "Chat request failed");
+      }
+
+      const response = result.data!;
+
+      // AUDIT: API response successful
+      await auditLogger.logAPIResponse(
+        currentConversation!.id,
+        userMessage.id,
+        {
+          provider: provider.provider,
+          model: selectedModel.modelId,
+          responseReceived: true,
+          contentLength: response.content?.length,
+          usage: response.usage,
+          finishReason: (response as any).finishReason,
+          providerResponseMetadata: {
+            durationMs,
+            timestamp: new Date().toISOString(),
+            modelUsed: selectedModel.modelId,
+          },
+        }
+      );
+
+      return {
+        content: response.content,
+        modelInfo: {
+          providerId: provider.id,
+          providerName: template?.displayName || provider.name,
+          modelId: selectedModel.modelId,
+          modelName: model?.name || selectedModel.modelId,
+        },
+      };
+    } catch (error) {
+      // AUDIT: Catch-all for unexpected errors
+      await auditLogger.logAPIResponse(
+        currentConversation!.id,
+        userMessage.id,
+        {
+          provider: provider.provider,
+          model: selectedModel.modelId,
+          responseReceived: false,
+          error: {
+            code: "UNEXPECTED_ERROR",
+            message: (error as Error).message,
+            isProviderError: false,
+            isUserError: false,
+            isNetworkError: false,
+          },
+        }
+      );
+
+      logger.error("Provider request failed", {
+        provider: provider.name,
+        error,
+      });
+      return {
+        content: `**Error from ${template?.displayName || provider.name} (${
+          model?.name || selectedModel.modelId
+        }):**\n\n${
+          (error as Error).message
+        }. Please check your API configuration.`,
+        modelInfo: {
+          providerId: provider.id,
+          providerName: template?.displayName || provider.name,
+          modelId: selectedModel.modelId,
+          modelName: model?.name || selectedModel.modelId,
+        },
+      };
+    }
+  };
+
+  // Helper function to create assistant messages from responses
+  const createAssistantMessages = (
+    responses: Array<{ content: string; modelInfo: any } | null>,
+    practiceAreaName: string,
+    advisoryArea: { id: string; name: string }
+  ): Message[] => {
+    const messages: Message[] = [];
+
+    for (let index = 0; index < responses.length; index++) {
+      const response = responses[index];
+      if (!response) continue;
+
+      const assistantMessage: Message = {
+        id: `msg-${Date.now()}-resp-${index}`,
+        role: "assistant",
+        content: response.content,
+        timestamp: DateUtils.now(),
+        practiceArea: practiceAreaName,
+        advisoryArea:
+          advisoryArea.id === "general-advisory"
+            ? undefined
+            : advisoryArea.name,
+        modelInfo: response.modelInfo,
+      };
+
+      messages.push(assistantMessage);
+    }
+
+    return messages;
+  };
+
+  const sendMessage = async (messageText: string) => {
+    if (!currentConversation) return;
+
+    // Detect practice area and advisory area
+    const practiceArea = detectPracticeArea(messageText);
+    const advisoryArea = detectAdvisoryArea(messageText);
+
+    // Build system prompt with jurisdiction appendix
+    const jurisdictions = currentConversation.selectedJurisdictions || [];
+    const fullSystemPrompt = buildSystemPrompt(
+      practiceArea.systemPrompt,
+      advisoryArea,
+      jurisdictions
+    );
+
+    // Get selected models
+    const selectedModels = currentConversation.selectedModels || [];
+
+    // Create user message
+    const userMessage = createUserMessage(
+      messageText,
+      practiceArea.name,
+      advisoryArea
+    );
 
     addMessage(userMessage);
     setInput("");
@@ -414,179 +667,23 @@ export default function ChatWindow() {
 
     try {
       // Send to all selected models in parallel
-      const requests = selectedModels.map(async (selectedModel) => {
-        const provider = config.providers.find(
-          (p) => p.id === selectedModel.providerId
-        );
-        if (!provider) return null;
-
-        const template = providerTemplates.find(
-          (t) => t.id === provider.provider
-        );
-        const model = template?.models.find(
-          (m) => m.id === selectedModel.modelId
-        );
-
-        // Create a temporary provider config with the selected model
-        const providerConfig = {
-          ...provider,
-          model: selectedModel.modelId,
-        };
-
-        // AUDIT: API request initiated
-        const requestStartTime = Date.now();
-        await auditLogger.logAPIRequest(
-          currentConversation!.id,
-          userMessage.id,
-          {
-            provider: provider.provider,
-            providerDisplayName: template?.displayName || provider.name,
-            model: selectedModel.modelId,
-            endpoint: provider.endpoint || "default",
-            messageCount: currentConversation!.messages.length + 1,
-            systemPromptPresent: !!fullSystemPrompt,
-            temperature: 0.7,
-            maxTokens: 4000,
-            initiatedAt: new Date().toISOString(),
-          }
-        );
-
-        try {
-          const result = await globalThis.window.electronAPI.secureChatRequest({
-            messages: [...currentConversation.messages, userMessage],
-            provider: providerConfig,
-            systemPrompt: fullSystemPrompt,
-            temperature: 0.7,
-            maxTokens: 4000,
-          });
-
-          const requestEndTime = Date.now();
-          const durationMs = requestEndTime - requestStartTime;
-
-          if (!result.success) {
-            // AUDIT: API error occurred
-            await auditLogger.logAPIResponse(
-              currentConversation!.id,
-              userMessage.id,
-              {
-                provider: provider.provider,
-                model: selectedModel.modelId,
-                responseReceived: false,
-                error: {
-                  code: result.error?.code || "UNKNOWN_ERROR",
-                  message: result.error?.message || "Unknown error",
-                  httpStatus: (result.error as any)?.status,
-                  providerErrorCode: (result.error as any)?.providerCode,
-                  providerErrorMessage: (result.error as any)?.providerMessage,
-                  isProviderError: true, // Assuming provider error if request failed
-                  isUserError:
-                    result.error?.code === "INVALID_API_KEY" ||
-                    result.error?.code === "INVALID_CONFIG",
-                  isNetworkError:
-                    result.error?.code === "NETWORK_ERROR" ||
-                    result.error?.code === "TIMEOUT",
-                },
-                providerResponseMetadata: {
-                  durationMs,
-                  timestamp: new Date().toISOString(),
-                },
-              }
-            );
-
-            throw new Error(result.error?.message || "Chat request failed");
-          }
-
-          const response = result.data!;
-
-          // AUDIT: API response successful
-          await auditLogger.logAPIResponse(
-            currentConversation!.id,
-            userMessage.id,
-            {
-              provider: provider.provider,
-              model: selectedModel.modelId,
-              responseReceived: true,
-              contentLength: response.content?.length,
-              usage: response.usage,
-              finishReason: (response as any).finishReason,
-              providerResponseMetadata: {
-                durationMs,
-                timestamp: new Date().toISOString(),
-                modelUsed: selectedModel.modelId,
-              },
-            }
-          );
-
-          return {
-            content: response.content,
-            modelInfo: {
-              providerId: provider.id,
-              providerName: template?.displayName || provider.name,
-              modelId: selectedModel.modelId,
-              modelName: model?.name || selectedModel.modelId,
-            },
-          };
-        } catch (error) {
-          // AUDIT: Catch-all for unexpected errors
-          await auditLogger.logAPIResponse(
-            currentConversation!.id,
-            userMessage.id,
-            {
-              provider: provider.provider,
-              model: selectedModel.modelId,
-              responseReceived: false,
-              error: {
-                code: "UNEXPECTED_ERROR",
-                message: (error as Error).message,
-                isProviderError: false,
-                isUserError: false,
-                isNetworkError: false,
-              },
-            }
-          );
-
-          logger.error("Provider request failed", {
-            provider: provider.name,
-            error,
-          });
-          return {
-            content: `**Error from ${template?.displayName || provider.name} (${
-              model?.name || selectedModel.modelId
-            }):**\n\n${
-              (error as Error).message
-            }. Please check your API configuration.`,
-            modelInfo: {
-              providerId: provider.id,
-              providerName: template?.displayName || provider.name,
-              modelId: selectedModel.modelId,
-              modelName: model?.name || selectedModel.modelId,
-            },
-          };
-        }
-      });
+      const requests = selectedModels.map((selectedModel) =>
+        sendToProvider(selectedModel, userMessage, fullSystemPrompt)
+      );
 
       // Wait for all responses
       const responses = await Promise.all(requests);
 
-      // Create assistant messages for each response
-      responses.forEach((response, index) => {
-        if (!response) return;
+      // Create and add assistant messages for each response
+      const assistantMessages = createAssistantMessages(
+        responses,
+        practiceArea.name,
+        advisoryArea
+      );
 
-        const assistantMessage: Message = {
-          id: `msg-${Date.now()}-resp-${index}`,
-          role: "assistant",
-          content: response.content,
-          timestamp: DateUtils.now(),
-          practiceArea: practiceArea.name,
-          advisoryArea:
-            advisoryArea.id !== "general-advisory"
-              ? advisoryArea.name
-              : undefined,
-          modelInfo: response.modelInfo,
-        };
-
-        addMessage(assistantMessage);
-      });
+      for (const message of assistantMessages) {
+        addMessage(message);
+      }
 
       await saveCurrentConversation();
     } catch (error) {
@@ -609,9 +706,9 @@ export default function ChatWindow() {
   const handlePrivacyProceed = async () => {
     if (!currentConversation || !piiScanResult) return;
 
-    const activeJurisdictions = Array.from(
+    const activeJurisdictions: Jurisdiction[] = Array.from(
       selectedJurisdictions
-    ) as Jurisdiction[];
+    );
 
     const messageId = `msg_${Date.now()}`;
 
@@ -653,9 +750,9 @@ export default function ChatWindow() {
   const handlePrivacyCancel = async () => {
     if (!currentConversation || !piiScanResult) return;
 
-    const activeJurisdictions = Array.from(
+    const activeJurisdictions: Jurisdiction[] = Array.from(
       selectedJurisdictions
-    ) as Jurisdiction[];
+    );
 
     const messageId = `msg_${Date.now()}_cancelled`;
 
@@ -697,9 +794,9 @@ export default function ChatWindow() {
   const handlePrivacyAnonymize = async () => {
     if (!currentConversation || !piiScanResult) return;
 
-    const activeJurisdictions = Array.from(
+    const activeJurisdictions: Jurisdiction[] = Array.from(
       selectedJurisdictions
-    ) as Jurisdiction[];
+    );
 
     const messageId = `msg_${Date.now()}_anonymized`;
 
