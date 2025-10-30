@@ -28,7 +28,6 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
     config,
   } = useStore();
 
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string>("");
   const [showSearchDialog, setShowSearchDialog] = useState<boolean>(false);
@@ -108,8 +107,6 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                         ? "bg-gray-700"
                         : "hover:bg-gray-700/50"
                     }`}
-                    onMouseEnter={() => setHoveredId(conv.id)}
-                    onMouseLeave={() => setHoveredId(null)}
                   >
                     <legend className="sr-only">Edit conversation</legend>
                     <div className="flex items-start gap-2">
@@ -172,13 +169,11 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                   </fieldset>
                 ) : (
                   <button
-                    className={`w-full p-3 rounded-lg transition-colors text-left ${
+                    className={`w-full p-3 pb-10 rounded-lg transition-colors text-left ${
                       currentConversation?.id === conv.id
                         ? "bg-gray-700"
                         : "hover:bg-gray-700/50"
                     }`}
-                    onMouseEnter={() => setHoveredId(conv.id)}
-                    onMouseLeave={() => setHoveredId(null)}
                     onClick={() => setCurrentConversation(conv)}
                     aria-label={`Select conversation: ${conv.title}`}
                   >
@@ -201,7 +196,7 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                   </button>
                 )}
 
-                {hoveredId === conv.id && editingId !== conv.id && (
+                {editingId !== conv.id && (
                   <div className="absolute bottom-2 right-2 flex gap-1 bg-gray-800/90 rounded-lg p-1 border border-gray-600">
                     <button
                       onClick={(e) => {
@@ -224,10 +219,20 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                       <FileText className="w-4 h-4 text-gray-300 hover:text-white" />
                     </button>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if (confirm("Delete this conversation?")) {
-                          deleteConversation(conv.id);
+                        console.log(
+                          "Delete button clicked for conversation:",
+                          conv.id
+                        );
+                        if (globalThis.confirm("Delete this conversation?")) {
+                          console.log(
+                            "Deletion confirmed, calling deleteConversation..."
+                          );
+                          await deleteConversation(conv.id);
+                          console.log("deleteConversation completed");
+                        } else {
+                          console.log("Deletion cancelled");
                         }
                       }}
                       className="p-1.5 hover:bg-gray-600 rounded transition-colors"

@@ -124,6 +124,26 @@ export interface LegalPracticeArea {
 }
 
 // Chat types
+export interface APITrace {
+  requestId: string;
+  timestamp: string;
+  provider: string;
+  model: string;
+  endpoint?: string;
+  durationMs: number;
+  status: 'success' | 'error';
+  error?: {
+    code: string;
+    message: string;
+    httpStatus?: number;
+  };
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -138,6 +158,7 @@ export interface Message {
     modelId: string;
     modelName: string;
   };
+  apiTrace?: APITrace; // API call trace for debugging
 }
 
 export interface Attachment {

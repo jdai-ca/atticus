@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "../store";
 import { Send, Paperclip, Loader2, Settings, Shield } from "lucide-react";
-import { Message, Jurisdiction, ModelDomain, SelectedModel } from "../types";
+import {
+  Message,
+  Jurisdiction,
+  ModelDomain,
+  SelectedModel,
+  APITrace,
+} from "../types";
 // Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
 import { detectAdvisoryArea } from "../modules/advisoryArea";
@@ -15,6 +21,7 @@ import ReactMarkdown from "react-markdown";
 import { piiScanner, PIIScanResult } from "../services/piiScanner";
 import PrivacyWarningDialog from "./PrivacyWarningDialog";
 import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
+import APIErrorInspector from "./APIErrorInspector";
 import {
   auditLogger,
   AuditEventType,
@@ -57,6 +64,11 @@ export default function ChatWindow() {
   );
   const [pendingMessage, setPendingMessage] = useState<string>("");
   const [showAuditLog, setShowAuditLog] = useState(false);
+
+  // API Error Inspector state
+  const [inspectedApiTrace, setInspectedApiTrace] = useState<APITrace | null>(
+    null
+  );
 
   // Load provider templates on mount
   useEffect(() => {
@@ -471,13 +483,19 @@ export default function ChatWindow() {
     const model = template?.models.find((m) => m.id === selectedModel.modelId);
 
     // Create a temporary provider config with the selected model
+    // Ensure endpoint from template is used if not set in provider config
     const providerConfig = {
       ...provider,
       model: selectedModel.modelId,
+      endpoint: provider.endpoint || template?.endpoint || "",
     };
 
-    // AUDIT: API request initiated
+    const requestId = `req-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     const requestStartTime = Date.now();
+
+    // AUDIT: API request initiated
     await auditLogger.logAPIRequest(currentConversation!.id, userMessage.id, {
       provider: provider.provider,
       providerDisplayName: template?.displayName || provider.name,
@@ -532,7 +550,25 @@ export default function ChatWindow() {
           }
         );
 
-        throw new Error(result.error?.message || "Chat request failed");
+        // For error case, we throw but the catch block will create the response with trace
+        const error: any = new Error(
+          result.error?.message || "Chat request failed"
+        );
+        error.apiTrace = {
+          requestId,
+          timestamp: new Date().toISOString(),
+          provider: provider.provider,
+          model: selectedModel.modelId,
+          endpoint: provider.endpoint || "default",
+          durationMs,
+          status: "error" as const,
+          error: {
+            code: result.error?.code || "UNKNOWN_ERROR",
+            message: result.error?.message || "Unknown error",
+            httpStatus: (result.error as any)?.status,
+          },
+        };
+        throw error;
       }
 
       const response = result.data!;
@@ -556,6 +592,18 @@ export default function ChatWindow() {
         }
       );
 
+      // Create API trace for success
+      const apiTrace = {
+        requestId,
+        timestamp: new Date().toISOString(),
+        provider: provider.provider,
+        model: selectedModel.modelId,
+        endpoint: provider.endpoint || "default",
+        durationMs,
+        status: "success" as const,
+        usage: response.usage,
+      };
+
       return {
         content: response.content,
         modelInfo: {
@@ -564,8 +612,12 @@ export default function ChatWindow() {
           modelId: selectedModel.modelId,
           modelName: model?.name || selectedModel.modelId,
         },
+        apiTrace,
       };
     } catch (error) {
+      const requestEndTime = Date.now();
+      const durationMs = requestEndTime - requestStartTime;
+
       // AUDIT: Catch-all for unexpected errors
       await auditLogger.logAPIResponse(
         currentConversation!.id,
@@ -588,6 +640,22 @@ export default function ChatWindow() {
         provider: provider.name,
         error,
       });
+
+      // Create or use API trace for unexpected error
+      const apiTrace = (error as any).apiTrace || {
+        requestId,
+        timestamp: new Date().toISOString(),
+        provider: provider.provider,
+        model: selectedModel.modelId,
+        endpoint: provider.endpoint || "default",
+        durationMs,
+        status: "error" as const,
+        error: {
+          code: "UNEXPECTED_ERROR",
+          message: (error as Error).message,
+        },
+      };
+
       return {
         content: `**Error from ${template?.displayName || provider.name} (${
           model?.name || selectedModel.modelId
@@ -600,13 +668,18 @@ export default function ChatWindow() {
           modelId: selectedModel.modelId,
           modelName: model?.name || selectedModel.modelId,
         },
+        apiTrace,
       };
     }
   };
 
   // Helper function to create assistant messages from responses
   const createAssistantMessages = (
-    responses: Array<{ content: string; modelInfo: any } | null>,
+    responses: Array<{
+      content: string;
+      modelInfo: any;
+      apiTrace?: any;
+    } | null>,
     practiceAreaName: string,
     advisoryArea: { id: string; name: string }
   ): Message[] => {
@@ -627,6 +700,7 @@ export default function ChatWindow() {
             ? undefined
             : advisoryArea.name,
         modelInfo: response.modelInfo,
+        apiTrace: response.apiTrace,
       };
 
       messages.push(assistantMessage);
@@ -699,6 +773,19 @@ export default function ChatWindow() {
       addMessage(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler to resend a failed message
+  const handleResendMessage = async (messageIndex: number) => {
+    if (!currentConversation || isLoading) return;
+
+    // Find the user message that preceded this error
+    const userMessage = currentConversation.messages[messageIndex];
+
+    if (userMessage?.role === "user") {
+      // Resend the message content
+      await sendMessage(userMessage.content);
     }
   };
 
@@ -1033,7 +1120,7 @@ export default function ChatWindow() {
                     Select one or more models to get diverse opinions and reduce
                     hallucinations:
                   </div>
-                  <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+                  <div className="space-y-2 overflow-y-auto pr-2">
                     {getAllAvailableModels(currentDomain).map((model) => {
                       const key = `${model.providerId}:${model.modelId}`;
                       const isSelected = selectedModelKeys.has(key);
@@ -1209,7 +1296,7 @@ export default function ChatWindow() {
             </p>
           </div>
         ) : (
-          currentConversation.messages.map((message) => (
+          currentConversation.messages.map((message, index) => (
             <div
               key={message.id}
               className={`flex ${
@@ -1264,6 +1351,54 @@ export default function ChatWindow() {
                 <div className="markdown-content">
                   <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
+
+                {/* API Error Actions (Inspect & Resend) */}
+                {message.role === "assistant" &&
+                  message.apiTrace?.status === "error" && (
+                    <div className="mt-3 pt-3 border-t border-red-500/30 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setInspectedApiTrace(message.apiTrace!)}
+                        className="flex items-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors border border-red-500/50 text-xs font-medium"
+                        title="Inspect API error details"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        <span>Inspect Error</span>
+                      </button>
+                      <button
+                        onClick={() => handleResendMessage(index - 1)}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 rounded-lg transition-colors border border-blue-500/50 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Resend the previous message"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        <span>Resend Message</span>
+                      </button>
+                    </div>
+                  )}
 
                 {message.attachments && message.attachments.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-600">
@@ -1370,6 +1505,14 @@ export default function ChatWindow() {
           conversationId={currentConversation.id}
           onClose={() => setShowAuditLog(false)}
           piiScanner={piiScanner}
+        />
+      )}
+
+      {/* API Error Inspector */}
+      {inspectedApiTrace && (
+        <APIErrorInspector
+          apiTrace={inspectedApiTrace}
+          onClose={() => setInspectedApiTrace(null)}
         />
       )}
     </div>

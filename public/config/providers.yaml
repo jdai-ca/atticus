@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.5"
+minAppVersion: "0.9.6"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -130,29 +130,24 @@ providers:
   - id: google
     name: Google
     displayName: Google Gemini
-    description: Gemini 1.5 Pro, Flash, and legacy models
-    endpoint: https://generativelanguage.googleapis.com/v1beta/models
-    defaultModel: gemini-1.5-pro
+    description: Gemini 2.5 Pro, Flash, and other Gemini models
+    endpoint: https://generativelanguage.googleapis.com/v1beta/openai/
+    defaultModel: gemini-2.5-pro
 
     models:
-      - id: gemini-1.5-pro
-        name: Gemini 1.5 Pro
-        description: Most capable model, 2M token context, multimodal
+      - id: gemini-2.5-pro
+        name: Gemini 2.5 Pro
+        description: Most capable model, 1M token context, multimodal
         enabled: true
 
-      - id: gemini-1.5-flash
-        name: Gemini 1.5 Flash
+      - id: gemini-2.5-flash
+        name: Gemini 2.5 Flash
         description: Fast and efficient, 1M token context, multimodal
         enabled: true
 
-      - id: gemini-pro
-        name: Gemini Pro (Legacy)
-        description: Previous generation, 32K context
-        enabled: true
-
-      - id: gemini-pro-vision
-        name: Gemini Pro Vision (Legacy)
-        description: Previous generation multimodal
+      - id: gemini-2.5-flash-lite
+        name: Gemini 2.5 Flash Lite
+        description: Lightweight and cost-effective, 1M token context
         enabled: true
 
     capabilities:
@@ -160,7 +155,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
-      maxContextWindow: 2000000
+      maxContextWindow: 1000000
 
     authentication:
       apiKeyFormat: AI...
@@ -175,29 +170,24 @@ providers:
   - id: azure-openai
     name: Azure OpenAI
     displayName: Azure OpenAI
-    description: GPT-4o, GPT-4 Turbo, and GPT-3.5 via Microsoft Azure
-    endpoint: "" # User must provide their endpoint
+    description: GPT-4o, GPT-4o-mini, and GPT-4 via Microsoft Azure
+    endpoint: "" # User provides their Azure resource name (e.g., "my-openai-resource"). Full URL is constructed automatically.
     defaultModel: gpt-4o
 
     models:
       - id: gpt-4o
         name: GPT-4o
-        description: GPT-4o via Azure (if deployed)
+        description: GPT-4o via Azure
         enabled: true
 
-      - id: gpt-4-turbo
-        name: GPT-4 Turbo
-        description: GPT-4 Turbo with 128K context via Azure
+      - id: gpt-4o-mini
+        name: GPT-4o mini
+        description: GPT-4o mini with 128K context via Azure
         enabled: true
 
       - id: gpt-4
         name: GPT-4
         description: GPT-4 8K via Azure
-        enabled: true
-
-      - id: gpt-35-turbo
-        name: GPT-3.5 Turbo
-        description: GPT-3.5 via Azure
         enabled: true
 
     capabilities:

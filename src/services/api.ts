@@ -3,7 +3,6 @@ import {
   fetchWithTimeout,
   validateOpenAIResponse,
   validateAnthropicResponse,
-  validateGoogleResponse,
   validateEndpoint,
   extractUsage,
   createApiError,
@@ -150,35 +149,35 @@ async function sendGoogleMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint ||
-    `https://generativelanguage.googleapis.com/v1beta/models/${provider.model}:generateContent`;
+  // Use OpenAI-compatible endpoint for Google Gemini
+  const baseEndpoint = provider.endpoint || 'https://generativelanguage.googleapis.com/v1beta/openai/';
+  const endpoint = baseEndpoint.endsWith('/')
+    ? `${baseEndpoint}chat/completions`
+    : `${baseEndpoint}/chat/completions`;
 
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
-  }));
-
+  // Format messages in OpenAI format
+  const formattedMessages = [...messages];
   if (systemPrompt) {
-    contents.unshift({
-      role: 'user',
-      parts: [{ text: systemPrompt }],
+    formattedMessages.unshift({
+      role: 'system',
+      content: systemPrompt,
     });
   }
 
   // Validate endpoint security
   validateEndpoint(endpoint, endpoint.includes('localhost'));
 
-  const response = await fetchWithTimeout(`${endpoint}?key=${provider.apiKey}`, {
+  const response = await fetchWithTimeout(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${provider.apiKey}`,
     },
     body: JSON.stringify({
-      contents,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: maxTokens,
-      },
+      model: provider.model,
+      messages: formattedMessages,
+      temperature,
+      max_tokens: maxTokens,
     }),
     timeout: 60000, // 60 second timeout
   });
@@ -193,15 +192,11 @@ async function sendGoogleMessage(
   }
 
   const data = await response.json();
-  validateGoogleResponse(data);
+  validateOpenAIResponse(data); // Use OpenAI validation since it's OpenAI-compatible
 
   return {
-    content: data.candidates[0].content.parts[0].text,
-    usage: {
-      promptTokens: data.usageMetadata?.promptTokenCount || 0,
-      completionTokens: data.usageMetadata?.candidatesTokenCount || 0,
-      totalTokens: data.usageMetadata?.totalTokenCount || 0,
-    },
+    content: data.choices[0].message.content,
+    usage: extractUsage(data, 'openai'),
   };
 }
 
@@ -213,18 +208,25 @@ async function sendAzureOpenAIMessage(
   maxTokens?: number
 ): Promise<ChatResponse> {
   if (!provider.endpoint) {
-    throw createApiError('MISSING_ENDPOINT', 'Azure OpenAI endpoint is required');
+    throw createApiError('MISSING_ENDPOINT', 'Azure OpenAI resource name is required');
   }
 
+  // Construct full Azure endpoint URL from resource name and model (deployment name)
+  // Azure deployment names typically match the model IDs (e.g., "gpt-4o", "gpt-4")
+  const resourceName = provider.endpoint;
+  const deploymentName = provider.model;
+  const apiVersion = '2024-08-01-preview';
+  const fullEndpoint = `https://${resourceName}.openai.azure.com/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+
   // Validate endpoint security
-  validateEndpoint(provider.endpoint, provider.endpoint.includes('localhost'));
+  validateEndpoint(fullEndpoint, fullEndpoint.includes('localhost'));
 
   const apiMessages = [...messages];
   if (systemPrompt) {
     apiMessages.unshift({ role: 'system', content: systemPrompt });
   }
 
-  const response = await fetchWithTimeout(provider.endpoint, {
+  const response = await fetchWithTimeout(fullEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

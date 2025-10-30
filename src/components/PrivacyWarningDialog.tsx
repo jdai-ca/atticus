@@ -247,7 +247,7 @@ export default function PrivacyWarningDialog({
         <div className="border-t border-gray-700 px-6 py-4 bg-gray-850">
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
             <div className="text-xs text-gray-400 text-center sm:text-left">
-              You can disable PII scanning in Settings if desired.
+              You cannot disable PII scanning.
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
               <button

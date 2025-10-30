@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "../store";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import {
   ProviderConfig,
   AIProvider,
@@ -42,6 +42,7 @@ export default function Settings({ onClose }: SettingsProps) {
     providerTemplates,
     addProvider,
     updateProvider,
+    removeProvider,
     setActiveProvider,
     loadProviderTemplates,
   } = useStore();
@@ -51,6 +52,9 @@ export default function Settings({ onClose }: SettingsProps) {
   const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>(
     {}
   );
+  const [editingEndpoints, setEditingEndpoints] = useState<
+    Record<string, string>
+  >({});
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(
     {}
   );
@@ -146,6 +150,16 @@ export default function Settings({ onClose }: SettingsProps) {
 
     const existingProvider = getConfiguredProvider(template.id);
     const selectedModel = selectedModels[template.id] || template.defaultModel;
+    const customEndpoint = editingEndpoints[template.id]?.trim();
+
+    // For Azure OpenAI, validate that endpoint is provided
+    if (template.id === "azure-openai") {
+      const finalEndpoint = customEndpoint || existingProvider?.endpoint;
+      if (!finalEndpoint || finalEndpoint.trim().length === 0) {
+        alert("Please enter your Azure resource name");
+        return;
+      }
+    }
 
     // NOTE: API key storage in config is intentional for now.
     // Future enhancement tracked: Implement secure API key storage in main process via Electron's safeStorage API
@@ -155,6 +169,8 @@ export default function Settings({ onClose }: SettingsProps) {
       updateProvider(existingProvider.id, {
         model: selectedModel,
         hasApiKey: Boolean(apiKey.trim()),
+        // Store custom endpoint if provided (for Azure)
+        ...(customEndpoint && { endpoint: customEndpoint }),
         // Temporarily store API key for main process access
         ...(apiKey.trim() && { _tempApiKey: apiKey.trim() }),
       });
@@ -164,7 +180,7 @@ export default function Settings({ onClose }: SettingsProps) {
         id: `${template.id}-${Date.now()}`,
         name: template.displayName,
         provider: template.id,
-        endpoint: template.endpoint,
+        endpoint: customEndpoint || template.endpoint,
         model: selectedModel,
         enabled: true,
         supportsMultimodal: template.supportsMultimodal,
@@ -183,6 +199,46 @@ export default function Settings({ onClose }: SettingsProps) {
 
     // Clear the editing state
     setEditingApiKeys((prev) => {
+      const newState = { ...prev };
+      delete newState[template.id];
+      return newState;
+    });
+    setEditingEndpoints((prev) => {
+      const newState = { ...prev };
+      delete newState[template.id];
+      return newState;
+    });
+  };
+
+  // Handle clearing API key
+  const handleClearApiKey = async (template: ProviderTemplate) => {
+    const existingProvider = getConfiguredProvider(template.id);
+    if (!existingProvider) return;
+
+    const confirmed = globalThis.confirm(
+      `Remove API key for ${template.displayName}? This will delete the provider configuration.`
+    );
+    if (!confirmed) return;
+
+    // Clear API key from secure storage via IPC
+    try {
+      await (globalThis as any).electronAPI.deleteApiKey(template.id);
+    } catch (error) {
+      console.error("Failed to delete API key from secure storage:", error);
+    }
+
+    // Remove provider from config
+    removeProvider(existingProvider.id);
+
+    // Clear selected model state
+    setSelectedModels((prev) => {
+      const newState = { ...prev };
+      delete newState[template.id];
+      return newState;
+    });
+
+    // Clear endpoint state
+    setEditingEndpoints((prev) => {
       const newState = { ...prev };
       delete newState[template.id];
       return newState;
@@ -367,7 +423,7 @@ export default function Settings({ onClose }: SettingsProps) {
                                   Available Models (check to enable, select
                                   domain usage)
                                 </div>
-                                <div className="bg-gray-800 rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                                <div className="bg-gray-800 rounded-lg p-3 space-y-2">
                                   {template.models.map((model) => {
                                     const isEnabled =
                                       !existingProvider?.enabledModels ||
@@ -492,6 +548,39 @@ export default function Settings({ onClose }: SettingsProps) {
                               </div>
                             )}
 
+                            {/* Azure OpenAI Endpoint Input */}
+                            {template.id === "azure-openai" && (
+                              <div className="mb-3">
+                                <label
+                                  htmlFor={`endpoint-${template.id}`}
+                                  className="block text-xs font-medium text-gray-400 mb-2"
+                                >
+                                  Azure Resource Name
+                                </label>
+                                <input
+                                  id={`endpoint-${template.id}`}
+                                  type="text"
+                                  placeholder="your-resource-name"
+                                  value={
+                                    editingEndpoints[template.id] ||
+                                    existingProvider?.endpoint ||
+                                    ""
+                                  }
+                                  onChange={(e) =>
+                                    setEditingEndpoints((prev) => ({
+                                      ...prev,
+                                      [template.id]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full bg-gray-800 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Just the resource name from your Azure OpenAI
+                                  URL (e.g., "my-openai-resource")
+                                </p>
+                              </div>
+                            )}
+
                             {/* API Key Input */}
                             <div className="flex gap-2">
                               <div className="flex-1 min-w-0">
@@ -515,6 +604,15 @@ export default function Settings({ onClose }: SettingsProps) {
                               >
                                 {isConfigured ? "Update" : "Activate"}
                               </button>
+                              {isConfigured && (
+                                <button
+                                  onClick={() => handleClearApiKey(template)}
+                                  className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0 border border-red-500"
+                                  title="Remove API key and provider configuration"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
 
                             {/* Get API Key Link */}

@@ -187,7 +187,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
               <Shield className="w-16 h-16 mb-4 opacity-50" />
               <p className="text-lg font-medium">No scans recorded yet</p>
               <p className="text-sm mt-2 text-center max-w-md">
-                When PII scanning is enabled, all scan results and your
+                PII scanning is always enabled, all scan results and your
                 decisions will be logged here for legal protection.
               </p>
             </div>
@@ -350,7 +350,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                 sharing.
               </>
             ) : (
-              "Enable PII scanning in Settings to start building your audit trail."
+              "Privacy by Design"
             )}
           </p>
         </div>

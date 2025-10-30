@@ -39,7 +39,7 @@ interface AppState {
   setCurrentConversation: (conversation: Conversation | null) => void;
   addMessage: (message: Message) => void;
   updateMessage: (messageId: string, updates: Partial<Message>) => void;
-  deleteConversation: (id: string) => void;
+  deleteConversation: (id: string) => Promise<void>;
   updateConversationTitle: (conversationId: string, title: string) => Promise<void>;
   setConversationModel: (conversationId: string, model: string) => void;
   setConversationSelectedModels: (conversationId: string, models: SelectedModel[]) => void;
@@ -235,7 +235,15 @@ export const useStore = create<AppState>((set, get) => ({
     });
   },
 
-  deleteConversation: (id) => {
+  deleteConversation: async (id) => {
+    // Delete from file system via IPC
+    try {
+      await (globalThis as any).electronAPI.deleteConversation(id);
+    } catch (error) {
+      console.error('Failed to delete conversation file:', error);
+    }
+
+    // Update in-memory state
     const conversations = get().conversations.filter(c => c.id !== id);
     const current = get().currentConversation;
 
