@@ -740,7 +740,7 @@ export class AuditLogger {
     }
 
     private getApplicationVersion(): string {
-        return (globalThis as any).__ATTICUS_VERSION__ || '0.9.6';
+        return (globalThis as any).__ATTICUS_VERSION__ || '0.9.7';
     }
 
     private sanitizeDetails(details: Record<string, any>): Record<string, any> {

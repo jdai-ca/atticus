@@ -96,6 +96,10 @@ export interface ProviderTemplate {
     id: string;
     name: string;
     description: string;
+    maxContextWindow?: number; // Maximum context window in tokens
+    defaultMaxTokens?: number; // Default maximum tokens for responses
+    maxMaxTokens?: number; // Maximum allowed tokens for responses
+    enabled?: boolean;
   }>;
   supportsMultimodal: boolean;
   supportsRAG: boolean;
@@ -180,6 +184,7 @@ export interface Conversation {
   model?: string; // Deprecated: kept for backward compatibility
   selectedModels?: SelectedModel[]; // Array of models to query for each message
   selectedJurisdictions?: Jurisdiction[]; // Array of jurisdictions to focus legal analysis on
+  maxTokensOverride?: number; // User-selected maxTokens for this conversation (overrides model default)
 }
 
 export interface SelectedModel {

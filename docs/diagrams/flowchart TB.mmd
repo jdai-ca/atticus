@@ -1,0 +1,88 @@
+flowchart TB
+    subgraph UserInput["User Input Layer"]
+        A["User Types Message"]
+        B["Select Models<br/>(1 or more)"]
+        C["Configure Jurisdictions<br/>(Optional)"]
+    end
+
+    subgraph ContextBuild["Context Building Layer"]
+        D{"Detect<br/>Practice Area"}
+        E{"Detect<br/>Advisory Area"}
+        F["Build System Prompt"]
+        G["Retrieve<br/>Conversation History"]
+        H["Scan for PII"]
+    end
+
+    subgraph Storage["Persistent Storage"]
+        I[("Zustand Store<br/>(In-Memory)")]
+        J[("JSON File<br/>userData/conversations/")]
+        K[("Secure Storage<br/>API Keys")]
+    end
+
+    subgraph Request["API Request Construction"]
+        L["Construct Full Context:<br/>━━━━━━━━━━━━━━━<br/>1. System Prompt<br/>   - Practice Area Guidance<br/>   - Advisory Area Rules<br/>   - Jurisdiction Context<br/>2. Message History<br/>   - All previous messages<br/>   - User metadata<br/>3. Current User Message"]
+        M["Create Parallel Requests<br/>for Each Model"]
+    end
+
+    subgraph Execution["Execution Layer"]
+        N["Model 1<br/>OpenAI GPT-4"]
+        O["Model 2<br/>Anthropic Claude"]
+        P["Model 3<br/>Google Gemini"]
+        Q["...more models"]
+    end
+
+    subgraph Response["Response Processing"]
+        R["Collect All Responses"]
+        S["Tag Each with<br/>Model Info"]
+        T["Add Practice/<br/>Advisory Context"]
+        U["Store API Trace<br/>for Debugging"]
+    end
+
+    A --> D
+    A --> E
+    A --> H
+    B --> M
+    C --> F
+    
+    D --> F
+    E --> F
+    F --> L
+    
+    I --> G
+    G --> L
+    
+    H -->|No PII| L
+    H -->|PII Found| V["Show Warning<br/>Dialog"]
+    V -->|User Confirms| L
+    V -->|User Cancels| W["Stop"]
+    
+    K --> L
+    
+    L --> M
+    
+    M --> N
+    M --> O
+    M --> P
+    M --> Q
+    
+    N --> R
+    O --> R
+    P --> R
+    Q --> R
+    
+    R --> S
+    S --> T
+    T --> U
+    
+    U --> I
+    I --> J
+    
+    J -.->|Load on Startup| I
+
+    style D fill:#e1f5ff
+    style E fill:#e1f5ff
+    style F fill:#fff5e1
+    style L fill:#ffe1e1
+    style I fill:#e1ffe1
+    style J fill:#e1ffe1
+    style K fill:#ffe1f5

@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.6"
+minAppVersion: "0.9.7"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -24,41 +24,65 @@ providers:
       - id: gpt-4o
         name: GPT-4o
         description: Most advanced multimodal model, faster and cheaper than GPT-4 Turbo
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: gpt-4o-mini
         name: GPT-4o mini
         description: Affordable small model for fast, lightweight tasks
+        maxContextWindow: 128000
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
       - id: o1-preview
         name: O1 Preview
         description: Advanced reasoning model, excels at complex problem-solving
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 32768
         enabled: true
 
       - id: o1-mini
         name: O1 Mini
         description: Faster reasoning model, great for code and STEM
+        maxContextWindow: 128000
+        defaultMaxTokens: 2048
+        maxMaxTokens: 16384
         enabled: true
 
       - id: gpt-4-turbo
         name: GPT-4 Turbo
         description: GPT-4 with 128K context, vision capabilities
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: gpt-4-turbo-preview
         name: GPT-4 Turbo Preview
         description: Preview version of GPT-4 Turbo
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: gpt-4
         name: GPT-4
         description: High quality, comprehensive responses (8K context)
+        maxContextWindow: 8192
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
       - id: gpt-3.5-turbo
         name: GPT-3.5 Turbo
         description: Fast and cost-effective for simple queries
+        maxContextWindow: 16385
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -88,26 +112,41 @@ providers:
       - id: claude-3-5-sonnet-20241022
         name: Claude 3.5 Sonnet (Latest)
         description: Most intelligent model, best for complex analysis and coding
+        maxContextWindow: 200000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 8192
         enabled: true
 
       - id: claude-3-5-sonnet-20240620
         name: Claude 3.5 Sonnet (June)
         description: Previous version of 3.5 Sonnet
+        maxContextWindow: 200000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 8192
         enabled: true
 
       - id: claude-3-opus-20240229
         name: Claude 3 Opus
         description: Powerful model for highly complex tasks
+        maxContextWindow: 200000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 4096
         enabled: true
 
       - id: claude-3-sonnet-20240229
         name: Claude 3 Sonnet
         description: Balanced performance and speed
+        maxContextWindow: 200000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 4096
         enabled: true
 
       - id: claude-3-haiku-20240307
         name: Claude 3 Haiku
         description: Fastest and most compact model
+        maxContextWindow: 200000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -115,7 +154,6 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
-      maxContextWindow: 200000
 
     authentication:
       apiKeyFormat: sk-ant-...
@@ -138,16 +176,25 @@ providers:
       - id: gemini-2.5-pro
         name: Gemini 2.5 Pro
         description: Most capable model, 1M token context, multimodal
+        maxContextWindow: 1000000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 8192
         enabled: true
 
       - id: gemini-2.5-flash
         name: Gemini 2.5 Flash
         description: Fast and efficient, 1M token context, multimodal
+        maxContextWindow: 1000000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 8192
         enabled: true
 
       - id: gemini-2.5-flash-lite
         name: Gemini 2.5 Flash Lite
         description: Lightweight and cost-effective, 1M token context
+        maxContextWindow: 1000000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 8192
         enabled: true
 
     capabilities:
@@ -155,7 +202,6 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
-      maxContextWindow: 1000000
 
     authentication:
       apiKeyFormat: AI...
@@ -178,16 +224,25 @@ providers:
       - id: gpt-4o
         name: GPT-4o
         description: GPT-4o via Azure
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: gpt-4o-mini
         name: GPT-4o mini
         description: GPT-4o mini with 128K context via Azure
+        maxContextWindow: 128000
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
       - id: gpt-4
         name: GPT-4
         description: GPT-4 8K via Azure
+        maxContextWindow: 8192
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -217,11 +272,17 @@ providers:
       - id: grok-beta
         name: Grok Beta
         description: Latest Grok model with real-time knowledge
+        maxContextWindow: 131072
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: grok-vision-beta
         name: Grok Vision Beta
         description: Grok with image understanding capabilities
+        maxContextWindow: 8192
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -251,26 +312,41 @@ providers:
       - id: mistral-large-latest
         name: Mistral Large 2
         description: Most capable model (123B), best for complex reasoning
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: mistral-medium-latest
         name: Mistral Medium
         description: Balanced performance and cost
+        maxContextWindow: 32000
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
       - id: mistral-small-latest
         name: Mistral Small
         description: Fast and cost-effective
+        maxContextWindow: 32000
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
       - id: open-mixtral-8x22b
         name: Mixtral 8x22B
         description: Powerful mixture-of-experts model
+        maxContextWindow: 64000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 8192
         enabled: true
 
       - id: open-mixtral-8x7b
         name: Mixtral 8x7B
         description: Efficient mixture-of-experts model
+        maxContextWindow: 32768
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -299,21 +375,33 @@ providers:
       - id: command-r-plus
         name: Command R+
         description: Most capable, 128k context, best for complex legal analysis
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 16384
         enabled: true
 
       - id: command-r
         name: Command R
         description: Balanced performance and cost, 128k context
+        maxContextWindow: 128000
+        defaultMaxTokens: 4096
+        maxMaxTokens: 8192
         enabled: true
 
       - id: command
         name: Command
         description: Fast and cost-effective for simpler tasks
+        maxContextWindow: 4096
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
       - id: command-light
         name: Command Light
         description: Fastest, most economical option
+        maxContextWindow: 4096
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:
@@ -342,26 +430,41 @@ providers:
       - id: llama-3.3-70b-versatile
         name: Llama 3.3 70B
         description: Latest and most capable Llama model, excellent reasoning
+        maxContextWindow: 131072
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
         enabled: true
 
       - id: llama-3.1-70b-versatile
         name: Llama 3.1 70B
         description: Previous generation, excellent reasoning and analysis
+        maxContextWindow: 131072
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
         enabled: true
 
       - id: llama-3.1-8b-instant
         name: Llama 3.1 8B
         description: Fast and efficient for quick responses
+        maxContextWindow: 131072
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
       - id: mixtral-8x7b-32768
         name: Mixtral 8x7B
         description: Mixture-of-experts, great for diverse tasks
+        maxContextWindow: 32768
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
       - id: gemma2-9b-it
         name: Gemma 2 9B
         description: Efficient and capable Google model
+        maxContextWindow: 8192
+        defaultMaxTokens: 2048
+        maxMaxTokens: 8192
         enabled: true
 
     capabilities:
@@ -390,21 +493,33 @@ providers:
       - id: llama-3.1-sonar-large-128k-online
         name: Sonar Large (Online)
         description: Most capable with real-time web search and citations
+        maxContextWindow: 127072
+        defaultMaxTokens: 4096
+        maxMaxTokens: 8192
         enabled: true
 
       - id: llama-3.1-sonar-small-128k-online
         name: Sonar Small (Online)
         description: Fast web search with citations, cost-effective
+        maxContextWindow: 127072
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
       - id: llama-3.1-sonar-large-128k-chat
         name: Sonar Large (Chat)
         description: Offline reasoning, no web search
+        maxContextWindow: 127072
+        defaultMaxTokens: 4096
+        maxMaxTokens: 8192
         enabled: true
 
       - id: llama-3.1-sonar-small-128k-chat
         name: Sonar Small (Chat)
         description: Fast offline chat model
+        maxContextWindow: 127072
+        defaultMaxTokens: 2048
+        maxMaxTokens: 4096
         enabled: true
 
     capabilities:

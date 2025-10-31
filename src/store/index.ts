@@ -44,6 +44,7 @@ interface AppState {
   setConversationModel: (conversationId: string, model: string) => void;
   setConversationSelectedModels: (conversationId: string, models: SelectedModel[]) => void;
   setConversationJurisdictions: (conversationId: string, jurisdictions: Jurisdiction[]) => void;
+  setConversationMaxTokens: (conversationId: string, maxTokens: number | undefined) => void;
 
   loadConfig: () => Promise<void>;
   saveConfig: () => Promise<void>;
@@ -354,6 +355,29 @@ export const useStore = create<AppState>((set, get) => ({
       set({
         conversations: get().conversations.map(c =>
           c.id === conversationId ? { ...c, selectedJurisdictions, updatedAt: DateUtils.now() } : c
+        ),
+      });
+    }
+  },
+
+  setConversationMaxTokens: (conversationId, maxTokensOverride) => {
+    const current = get().currentConversation;
+    if (current?.id === conversationId) {
+      const updatedConversation = {
+        ...current,
+        maxTokensOverride,
+        updatedAt: DateUtils.now(),
+      };
+      set({
+        currentConversation: updatedConversation,
+        conversations: get().conversations.map(c =>
+          c.id === conversationId ? updatedConversation : c
+        ),
+      });
+    } else {
+      set({
+        conversations: get().conversations.map(c =>
+          c.id === conversationId ? { ...c, maxTokensOverride, updatedAt: DateUtils.now() } : c
         ),
       });
     }

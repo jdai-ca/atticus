@@ -14,6 +14,15 @@ import { detectAdvisoryArea } from "../modules/advisoryArea";
 import { createLogger } from "../services/logger";
 import { DateUtils } from "../utils/dateUtils";
 import {
+  truncateToContextWindow,
+  getTotalTokenCount,
+} from "../utils/contextWindowManager";
+import {
+  RESPONSE_SIZE_PRESETS,
+  getPresetByTokens,
+  formatTokenCount,
+} from "../utils/responseSizePresets";
+import {
   JURISDICTIONS,
   getJurisdictionSystemPromptAppendix,
 } from "../config/jurisdictions";
@@ -27,6 +36,7 @@ import {
   AuditEventType,
   AuditSeverity,
 } from "../services/appLogger";
+import { downloadMessagePDF } from "../utils/pdfExport";
 
 const logger = createLogger("ChatWindow");
 
@@ -40,6 +50,7 @@ export default function ChatWindow() {
     saveCurrentConversation,
     setConversationSelectedModels,
     setConversationJurisdictions,
+    setConversationMaxTokens,
   } = useStore();
 
   const [input, setInput] = useState("");
@@ -54,6 +65,9 @@ export default function ChatWindow() {
   >(new Set());
   const [currentDomain, setCurrentDomain] = useState<
     "practice" | "advisory" | undefined
+  >(undefined);
+  const [maxTokensOverride, setMaxTokensOverride] = useState<
+    number | undefined
   >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -200,6 +214,9 @@ export default function ChatWindow() {
       } else {
         setSelectedJurisdictions(new Set()); // Empty = no jurisdiction focus
       }
+
+      // Initialize maxTokensOverride from conversation
+      setMaxTokensOverride(currentConversation.maxTokensOverride);
     }
   }, [currentConversation?.id]);
 
@@ -482,6 +499,48 @@ export default function ChatWindow() {
     const template = providerTemplates.find((t) => t.id === provider.provider);
     const model = template?.models.find((m) => m.id === selectedModel.modelId);
 
+    // Get model's max context window (default to 8K if not specified)
+    const maxContextWindow = model?.maxContextWindow || 8192;
+
+    // Calculate maxTokens for response
+    // Priority: user override > model default > fallback (2048)
+    const modelDefaultMaxTokens = model?.defaultMaxTokens || 2048;
+    const modelMaxMaxTokens = model?.maxMaxTokens || 4096;
+    const requestedMaxTokens = maxTokensOverride || modelDefaultMaxTokens;
+
+    // Constrain to model's maximum allowed
+    const maxTokens = Math.min(requestedMaxTokens, modelMaxMaxTokens);
+
+    logger.debug("MaxTokens calculation", {
+      model: selectedModel.modelId,
+      userOverride: maxTokensOverride,
+      modelDefault: modelDefaultMaxTokens,
+      modelMax: modelMaxMaxTokens,
+      finalMaxTokens: maxTokens,
+    });
+
+    // Prepare full message history including new user message
+    const fullMessages = [...currentConversation!.messages, userMessage];
+
+    // Apply context window management - truncate if needed
+    const { truncatedMessages, tokenCount, truncated, removedCount } =
+      truncateToContextWindow(
+        fullMessages,
+        fullSystemPrompt,
+        maxContextWindow,
+        0.85 // Use 85% of max window
+      );
+
+    // Log context window info
+    if (truncated) {
+      logger.info("Context window truncated", {
+        model: selectedModel.modelId,
+        maxWindow: maxContextWindow,
+        removedMessages: removedCount,
+        finalTokenCount: tokenCount,
+      });
+    }
+
     // Create a temporary provider config with the selected model
     // Ensure endpoint from template is used if not set in provider config
     const providerConfig = {
@@ -501,20 +560,20 @@ export default function ChatWindow() {
       providerDisplayName: template?.displayName || provider.name,
       model: selectedModel.modelId,
       endpoint: provider.endpoint || "default",
-      messageCount: currentConversation!.messages.length + 1,
+      messageCount: truncatedMessages.length,
       systemPromptPresent: !!fullSystemPrompt,
       temperature: 0.7,
-      maxTokens: 4000,
+      maxTokens: maxTokens,
       initiatedAt: new Date().toISOString(),
     });
 
     try {
       const result = await globalThis.window.electronAPI.secureChatRequest({
-        messages: [...currentConversation!.messages, userMessage],
+        messages: truncatedMessages, // Use truncated messages instead of full history
         provider: providerConfig,
         systemPrompt: fullSystemPrompt,
         temperature: 0.7,
-        maxTokens: 4000,
+        maxTokens: maxTokens,
       });
 
       const requestEndTime = Date.now();
@@ -786,6 +845,18 @@ export default function ChatWindow() {
     if (userMessage?.role === "user") {
       // Resend the message content
       await sendMessage(userMessage.content);
+    }
+  };
+
+  // Handler to export a single message to PDF
+  const handleExportMessage = async (message: Message) => {
+    if (!currentConversation) return;
+
+    try {
+      await downloadMessagePDF(message, currentConversation.title);
+      logger.info("Message exported to PDF", { messageId: message.id });
+    } catch (error) {
+      logger.error("Failed to export message to PDF", { error });
     }
   };
 
@@ -1267,6 +1338,115 @@ export default function ChatWindow() {
                   </div>
                 </div>
               </div>
+
+              {/* Response Size Section - Full Width */}
+              <div className="mt-6 pt-6 border-t border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-white">
+                    Response Size
+                  </h3>
+                  <span className="text-sm text-gray-400">
+                    {maxTokensOverride
+                      ? `Custom: ${maxTokensOverride} tokens`
+                      : "Using model defaults"}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-400 mb-4">
+                  Choose response length based on your needs. Longer responses
+                  work better for contract drafting and comprehensive analysis:
+                </div>
+
+                {/* Preset Buttons */}
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {RESPONSE_SIZE_PRESETS.map((preset) => {
+                    const isSelected =
+                      maxTokensOverride === preset.tokens ||
+                      (!maxTokensOverride &&
+                        preset.id ===
+                          getPresetByTokens(
+                            selectedModelKeys.size > 0
+                              ? Array.from(selectedModelKeys).map((key) => {
+                                  const [providerId, modelId] = (
+                                    key as string
+                                  ).split(":");
+                                  const provider = config.providers.find(
+                                    (p: any) => p.id === providerId
+                                  );
+                                  const template = providerTemplates.find(
+                                    (t: any) => t.id === provider?.provider
+                                  );
+                                  const model = template?.models.find(
+                                    (m: any) => m.id === modelId
+                                  );
+                                  return model?.defaultMaxTokens || 2048;
+                                })[0]
+                              : 2048
+                          ).id);
+
+                    return (
+                      <button
+                        key={preset.id}
+                        onClick={() => {
+                          const newValue =
+                            maxTokensOverride === preset.tokens
+                              ? undefined
+                              : preset.tokens;
+                          setMaxTokensOverride(newValue);
+                          if (currentConversation) {
+                            setConversationMaxTokens(
+                              currentConversation.id,
+                              newValue
+                            );
+                          }
+                        }}
+                        className={`px-4 py-3 rounded-lg transition-colors border-2 ${
+                          isSelected
+                            ? "border-legal-gold bg-gray-700"
+                            : "border-transparent bg-gray-750 hover:bg-gray-700"
+                        }`}
+                      >
+                        <div className="text-center">
+                          <div className="text-2xl mb-1">{preset.icon}</div>
+                          <div className="font-medium text-white text-sm">
+                            {preset.name}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {formatTokenCount(preset.tokens)}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Info Box with Use Cases */}
+                {maxTokensOverride !== undefined && (
+                  <div className="p-3 bg-gray-750 rounded-lg border border-gray-600">
+                    <div className="text-xs text-gray-300">
+                      <p className="font-medium mb-2">
+                        {
+                          RESPONSE_SIZE_PRESETS.find(
+                            (p) => p.tokens === maxTokensOverride
+                          )?.icon
+                        }{" "}
+                        {
+                          RESPONSE_SIZE_PRESETS.find(
+                            (p) => p.tokens === maxTokensOverride
+                          )?.name
+                        }{" "}
+                        - Best for:
+                      </p>
+                      <ul className="space-y-1 text-gray-400">
+                        {RESPONSE_SIZE_PRESETS.find(
+                          (p) => p.tokens === maxTokensOverride
+                        )?.useCases.map((useCase, idx) => (
+                          <li key={idx}>• {useCase}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Dialog Footer */}
@@ -1414,8 +1594,30 @@ export default function ChatWindow() {
                   </div>
                 )}
 
-                <div className="text-xs text-gray-400 mt-2">
-                  {DateUtils.formatTime(message.timestamp)}
+                <div className="flex items-center justify-between mt-2">
+                  <div className="text-xs text-gray-400">
+                    {DateUtils.formatTime(message.timestamp)}
+                  </div>
+                  <button
+                    onClick={() => handleExportMessage(message)}
+                    className="text-xs text-gray-400 hover:text-legal-gold transition-colors flex items-center gap-1"
+                    title="Export this message to PDF"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span>Export PDF</span>
+                  </button>
                 </div>
               </div>
             </div>
