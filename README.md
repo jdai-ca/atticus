@@ -1,8 +1,24 @@
 # Atticus - In-House AI Counsel
 
-A powerful desktop application that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with interprovincial/interstate complexity awareness, and comprehensive business consulting capabilities. The time & cost savings are a force multiplier ..
+A powerful desktop application that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with interprovincial/interstate complexity awareness, and comprehensive business consulting capabilities. The time & cost savings are a force multiplier.
 
-![Atticus Application Interface](docs/images/Screenshot-01.png)
+> **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
+
+![Atticus Application Interface](docs/images/Screenshot-02.png)
+
+## ⚠️ Important Documentation
+
+Before using Atticus, please review these critical documents:
+
+| Document                              | Purpose                      | Key Information                                                                 |
+| ------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 44 practice areas, jurisdictional analysis                   |
+| 🔒 **[PRIVACY.md](PRIVACY.md)**       | Privacy & data protection    | Local-first architecture, third-party data flows, privacy rating: 7.5/10        |
+| ⚠️ **[RISK.md](RISK.md)**             | Risk assessment & mitigation | Legal risks, accuracy concerns, security vulnerabilities, required user actions |
+| 🤖 **[ETHICAL-AI.md](ETHICAL-AI.md)** | Ethical AI principles        | EU AI ethics compliance, bias mitigation, transparency commitments              |
+| 📜 **[LICENSE.md](LICENSE.md)**       | Dual licensing terms         | Apache 2.0 (open source) or Commercial license                                  |
+
+> **🚨 CRITICAL DISCLAIMER**: This application provides **information, not legal advice**. AI outputs may contain errors, hallucinations, or outdated information. Always verify with licensed professionals. See [RISK.md](RISK.md) for complete risk disclosure.
 
 ## 🚀 Quick Start
 
@@ -22,7 +38,26 @@ A powerful desktop application that provides entrepreneurs with AI-powered legal
 
 3. **Configure providers** - Get API keys and set up in Settings
 
-📖 **[Full Documentation](docs/README.md)** | 🎯 **[Quick Start Guide](docs/QUICKSTART.md)**
+📖 **[Full Documentation](docs/README.md)** | 🎯 **[Quick Start Guide](docs/QUICKSTART.md)** | 🔒 **[Privacy Policy](PRIVACY.md)** | ⚠️ **[Risk Assessment](RISK.md)** | 🤖 **[Ethical AI Analysis](ETHICAL-AI.md)**
+
+---
+
+## 📑 Table of Contents
+
+- [Key Features](#-key-features)
+  - [Multi-Provider AI Support](#-multi-provider-ai-support)
+  - [Multi-Model Selection](#-multi-model-selection)
+  - [Multi-Jurisdictional Analysis](#-multi-jurisdictional-analysis)
+  - [Legal Practice Area Detection](#️-legal-practice-area-detection)
+  - [Business Advisory Detection](#-business-advisory-detection)
+  - [Privacy & Security Features](#-privacy--security-features)
+- [Architecture & Design](#-architecture--design)
+- [Configuration](#-configuration)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Privacy, Ethics & Risk](#-privacy-ethics--risk-assessment)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -188,6 +223,9 @@ The system is **fully optimized for CUSMA/USMCA** (Canada-United States-Mexico A
 - Multiple jurisdictions → Structured comparative analysis **with cross-border complexity**
 - CA + US + MX → CUSMA-specific guidance **with internal trade barrier considerations**
 - No selection → Global legal perspective
+
+![Thread Configuration Dialog](docs/images/Screenshot-06.png)
+_Comprehensive per-conversation configuration: select multiple AI models simultaneously, choose specific jurisdictions for legal analysis (Canada, US, Mexico, EU), and control response size with preset options or custom token limits for optimal results_
 
 ### ⚖️ Legal Practice Area Detection
 
@@ -402,6 +440,9 @@ Each area includes:
 - 📁 **Auto-save** - All conversations persist locally
 - ⌨️ **Keyboard shortcuts** - Enter to save, Escape to cancel
 
+![Multiple Conversation Threads](docs/images/Screenshot-05.png)
+_All conversations are stored locally on your device with full search capabilities, editable titles, and organized sidebar for easy access to your legal and business advisory history_
+
 ### 🔒 Privacy & Security
 
 - ✅ **Local storage** - API keys stored on your machine only
@@ -419,6 +460,9 @@ Atticus uses **direct API access** to AI providers rather than consumer web apps
 - **✅ API Endpoints**: Zero data retention by default - providers don't store or train on your API data per enterprise agreements
 
 **Real Impact**: Sensitive legal documents, financial data, trade secrets, and client information stay private. No risk of your proprietary strategies appearing in future model training.
+
+![PII Detection & Data Protection](docs/images/Screenshot-04.png)
+_Atticus automatically detects PII and sensitive information, providing real-time warnings and anonymization options to protect confidential data before sending to AI providers_
 
 #### **Enterprise Compliance**
 
@@ -606,6 +650,9 @@ Atticus uses a **template-based provider system** with 9 pre-configured provider
 
 - 🟢 **Configured** - Provider has an API key and is ready to use
 - 🟡 **Active** - Currently set as the default provider for new conversations
+
+![Provider Configuration Example - Gemini Models](docs/images/Screenshot-03.png)
+_Example: Configuring Google Gemini models with domain specialization and selective model enabling_
 
 ### API Key Information
 
@@ -830,6 +877,69 @@ atticus/
 ## Contributing
 
 This is a sophisticated legal AI tool. For issues or improvements, please contact the development team.
+
+---
+
+## 🔒 Privacy, Ethics & Risk Assessment
+
+Atticus is built with a **privacy-first architecture** and transparent risk disclosure:
+
+### 🔐 Privacy & Data Protection
+
+**Local-First Architecture**: Your data stays on your device. No telemetry, no cloud storage, no tracking.
+
+**Key Privacy Features**:
+
+- ✅ All conversations stored locally on your device
+- ✅ API keys encrypted using OS-level keychain
+- ✅ No data collection or telemetry by Atticus
+- ✅ Zero tracking or analytics
+- ✅ Complete user control over data deletion
+- ⚠️ Data sent to third-party AI providers (user-selected)
+
+**Privacy Rating**: 7.5/10 (Strong with Third-Party Dependencies)
+
+📄 **[Full Privacy Policy & Data Protection Assessment](PRIVACY.md)**
+
+### ⚖️ Ethical AI Principles
+
+Atticus is designed with responsible AI principles at its core:
+
+**EU AI Ethics Guidelines Compliance**:
+
+- ✅ **Human Agency & Oversight** - Users maintain full control, persistent disclaimers
+- ✅ **Privacy & Data Governance** - Local-first storage, user data ownership
+- ✅ **Transparency** - Clear model attribution, explicit AI limitations
+- ⚠️ **Technical Robustness** - Dependent on third-party AI providers
+- ⚠️ **Diversity & Fairness** - Bias mitigation through multi-model querying
+
+**Core Ethical Commitment**: Transparency, user autonomy, and explicit acknowledgment of limitations take precedence over feature expansion.
+
+🤖 **[Full Ethical AI Analysis & Assessment](ETHICAL-AI.md)**
+
+### ⚠️ Risk Disclosure
+
+**CRITICAL**: Atticus provides **information, not advice**. Understanding the risks is essential:
+
+**Major Risk Categories**:
+
+1. **Unauthorized Practice of Law** - AI outputs are not legal advice (Residual Risk: HIGH)
+2. **Accuracy & Reliability** - AI hallucinations and outdated information (Residual Risk: MEDIUM-HIGH)
+3. **Data Privacy** - Third-party AI provider exposure (Residual Risk: MEDIUM)
+4. **Professional Liability** - No insurance coverage for AI-generated outputs (Residual Risk: HIGH)
+5. **Security Vulnerabilities** - API key theft, supply chain risks (Residual Risk: MEDIUM)
+
+**Required Actions**:
+
+- ⚠️ **Always verify** AI outputs with licensed professionals
+- ⚠️ **Never rely solely** on Atticus for high-stakes decisions
+- ⚠️ **Understand jurisdiction** - Laws vary significantly by location
+- ⚠️ **Review third-party AI providers** - Each has different privacy policies
+- ⚠️ **Maintain confidentiality** - Don't share sensitive client information
+
+⚠️ **[Full Risk Assessment & Mitigation Framework](RISK.md)**
+
+---
 
 ## License
 
