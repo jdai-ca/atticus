@@ -87,7 +87,11 @@ export function truncateToContextWindow(
     const availableForMessages = targetTokenLimit - systemTokens - responseReserve;
 
     if (availableForMessages <= 0) {
-        throw new Error(`Context window too small. Max: ${maxContextWindow}, System prompt uses: ${systemTokens}`);
+        throw new Error(
+            `Context window too small. Max: ${maxContextWindow}, System prompt uses: ${systemTokens}. ` +
+            `Please check your API configuration. ` +
+            `Suggestion: Use models with larger context windows (128K+) or reduce selected jurisdictions/complexity.`
+        );
     }
 
     // If no messages, return empty

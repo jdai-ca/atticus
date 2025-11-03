@@ -1038,7 +1038,7 @@ export default function Settings({ onClose }: SettingsProps) {
                       <span className="text-gray-400 mt-0.5">✓</span>
                       <span>
                         Full control over your data and conversations (including
-                        API expenses
+                        API expenses)
                       </span>
                     </li>
                   </ul>
@@ -1071,24 +1071,36 @@ export default function Settings({ onClose }: SettingsProps) {
                         <li>
                           Total Practice Areas:{" "}
                           <span className="text-gray-300 font-semibold">
-                            26
+                            {config.legalPracticeAreas?.length || 0}
                           </span>
                         </li>
                         <li>
                           Total Advisory Areas:{" "}
                           <span className="text-gray-300 font-semibold">
-                            11
+                            {config.advisoryAreas?.length || 0}
                           </span>
                         </li>
                         <li>
                           Total Keywords:{" "}
                           <span className="text-gray-300 font-semibold">
-                            ~2,000+
+                            {(
+                              (config.legalPracticeAreas?.reduce(
+                                (sum, area) =>
+                                  sum + (area.keywords?.length || 0),
+                                0
+                              ) || 0) +
+                              (config.advisoryAreas?.reduce(
+                                (sum, area) =>
+                                  sum + (area.keywords?.length || 0),
+                                0
+                              ) || 0)
+                            ).toLocaleString()}
                           </span>
                         </li>
                         <li>
                           Supported Providers:{" "}
                           <span className="text-gray-300 font-semibold">
+                            {providerTemplates.length} available,{" "}
                             {config.providers.length} configured
                           </span>
                         </li>
@@ -1200,13 +1212,20 @@ export default function Settings({ onClose }: SettingsProps) {
                 <h4 className="text-lg font-semibold text-white mb-4">
                   What Gets Detected
                 </h4>
+                <p className="text-gray-400 text-sm mb-4">
+                  Examples of sensitive data patterns that are automatically
+                  scanned:
+                </p>
 
                 <div className="space-y-4">
                   {/* Critical */}
                   <div>
                     <h5 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
                       <span>🔴</span>
-                      <span>Critical Risk (9 Patterns)</span>
+                      <span>
+                        Critical Risk (
+                        {piiScanner.getStatistics().criticalPatterns} Patterns)
+                      </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
@@ -1225,7 +1244,7 @@ export default function Settings({ onClose }: SettingsProps) {
                         • EU/UK National ID Numbers
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Credit Card Numbers
+                        • Credit Card Numbers (All Types)
                       </div>
                       <div className="bg-gray-800 rounded p-2">
                         • Passwords & Credentials
@@ -1240,7 +1259,10 @@ export default function Settings({ onClose }: SettingsProps) {
                   <div>
                     <h5 className="text-sm font-semibold text-orange-400 mb-2 flex items-center gap-2">
                       <span>🟠</span>
-                      <span>High Risk (13 Patterns)</span>
+                      <span>
+                        High Risk ({piiScanner.getStatistics().highPatterns}{" "}
+                        Patterns)
+                      </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
@@ -1286,7 +1308,10 @@ export default function Settings({ onClose }: SettingsProps) {
                   <div>
                     <h5 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-2">
                       <span>🟡</span>
-                      <span>Moderate Risk (7 Patterns)</span>
+                      <span>
+                        Moderate Risk (
+                        {piiScanner.getStatistics().moderatePatterns} Patterns)
+                      </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
@@ -1312,6 +1337,12 @@ export default function Settings({ onClose }: SettingsProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-4 text-xs text-gray-400 italic">
+                  Note: The above are representative examples. The scanner uses{" "}
+                  {piiScanner.getStatistics().totalPatterns} total patterns
+                  covering variations and additional formats.
                 </div>
               </div>
 

@@ -42,6 +42,9 @@ interface RawProviderTemplate {
         enabled: boolean;
         deprecated?: boolean;
         betaFlag?: boolean;
+        maxContextWindow?: number;
+        defaultMaxTokens?: number;
+        maxMaxTokens?: number;
     }>;
     capabilities: {
         supportsMultimodal: boolean;
@@ -234,7 +237,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.7';
+        return '0.9.8';
     }
 
     /**
@@ -307,7 +310,10 @@ export class ConfigLoader {
                 .map(m => ({
                     id: m.id,
                     name: m.name,
-                    description: m.description
+                    description: m.description,
+                    maxContextWindow: m.maxContextWindow,
+                    defaultMaxTokens: m.defaultMaxTokens,
+                    maxMaxTokens: m.maxMaxTokens
                 })),
             supportsMultimodal: provider.capabilities.supportsMultimodal,
             supportsRAG: provider.capabilities.supportsRAG,

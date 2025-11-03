@@ -255,6 +255,7 @@ export default function ChatWindow() {
       modelName: string;
       modelDescription: string;
       domains: ModelDomain;
+      maxContextWindow: number;
     }> = [];
 
     const enabledModelIds =
@@ -274,6 +275,7 @@ export default function ChatWindow() {
         modelName: model.name,
         modelDescription: model.description,
         domains: modelDomain,
+        maxContextWindow: model.maxContextWindow || 8192,
       });
     }
 
@@ -289,6 +291,7 @@ export default function ChatWindow() {
       modelName: string;
       modelDescription: string;
       domains: ModelDomain;
+      maxContextWindow: number;
     }> = [];
 
     for (const provider of config.providers) {
@@ -501,6 +504,15 @@ export default function ChatWindow() {
 
     // Get model's max context window (default to 8K if not specified)
     const maxContextWindow = model?.maxContextWindow || 8192;
+
+    logger.debug("Model context window check", {
+      providerId: selectedModel.providerId,
+      modelId: selectedModel.modelId,
+      templateId: template?.id,
+      modelFound: !!model,
+      maxContextWindow: maxContextWindow,
+      modelData: model,
+    });
 
     // Calculate maxTokens for response
     // Priority: user override > model default > fallback (2048)
@@ -800,11 +812,60 @@ export default function ChatWindow() {
 
     try {
       // Send to all selected models in parallel
-      const requests = selectedModels.map((selectedModel) =>
-        sendToProvider(selectedModel, userMessage, fullSystemPrompt)
-      );
+      // Wrap each request to catch individual model failures
+      const requests = selectedModels.map(async (selectedModel) => {
+        try {
+          return await sendToProvider(
+            selectedModel,
+            userMessage,
+            fullSystemPrompt
+          );
+        } catch (error) {
+          // Log the error but don't fail the entire batch
+          logger.error("Model failed to respond", {
+            model: selectedModel.modelId,
+            provider: selectedModel.providerId,
+            error: (error as Error).message,
+          });
 
-      // Wait for all responses
+          // Return error response instead of throwing
+          const provider = config.providers.find(
+            (p) => p.id === selectedModel.providerId
+          );
+          const template = providerTemplates.find(
+            (t) => t.id === provider?.provider
+          );
+          const model = template?.models.find(
+            (m) => m.id === selectedModel.modelId
+          );
+
+          return {
+            content: `Error: ${(error as Error).message}`,
+            modelInfo: {
+              providerId: selectedModel.providerId,
+              providerName:
+                template?.displayName || provider?.name || "Unknown",
+              modelId: selectedModel.modelId,
+              modelName: model?.name || selectedModel.modelId,
+            },
+            apiTrace: {
+              requestId: `error-${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              provider: provider?.provider || "unknown",
+              model: selectedModel.modelId,
+              endpoint: provider?.endpoint || "",
+              durationMs: 0,
+              status: "error" as const,
+              error: {
+                code: "CONTEXT_WINDOW_ERROR",
+                message: (error as Error).message,
+              },
+            },
+          };
+        }
+      });
+
+      // Wait for all responses (including errors)
       const responses = await Promise.all(requests);
 
       // Create and add assistant messages for each response
@@ -1252,6 +1313,15 @@ export default function ChatWindow() {
                                 </span>
                               </>
                             )}
+                            {model.maxContextWindow <= 16384 && (
+                              <span
+                                className="bg-amber-900/30 text-amber-300 px-2 py-1 rounded text-xs font-medium border border-amber-700"
+                                title="Small context window - may not fit complex system prompts with multiple jurisdictions"
+                              >
+                                ⚠️ {(model.maxContextWindow / 1024).toFixed(0)}K
+                                context
+                              </span>
+                            )}
                           </div>
                         </button>
                       );
@@ -1345,106 +1415,221 @@ export default function ChatWindow() {
                   <h3 className="text-lg font-medium text-white">
                     Response Size
                   </h3>
-                  <span className="text-sm text-gray-400">
-                    {maxTokensOverride
-                      ? `Custom: ${maxTokensOverride} tokens`
-                      : "Using model defaults"}
+                  <span className="text-sm font-medium text-legal-gold">
+                    {(() => {
+                      const currentTokens =
+                        maxTokensOverride ||
+                        (selectedModelKeys.size > 0
+                          ? Array.from(selectedModelKeys).map((key) => {
+                              const [providerId, modelId] = key.split(":");
+                              const provider = config.providers.find(
+                                (p: any) => p.id === providerId
+                              );
+                              const template = providerTemplates.find(
+                                (t: any) => t.id === provider?.provider
+                              );
+                              const model = template?.models.find(
+                                (m: any) => m.id === modelId
+                              );
+                              return model?.defaultMaxTokens || 2048;
+                            })[0]
+                          : 2048);
+                      const preset = getPresetByTokens(currentTokens);
+                      return `${preset.icon} ${preset.name} (${formatTokenCount(
+                        currentTokens
+                      )} tokens)`;
+                    })()}
                   </span>
                 </div>
-                <div className="text-xs text-gray-400 mb-4">
+                <div className="text-xs text-gray-400 mb-2">
                   Choose response length based on your needs. Longer responses
-                  work better for contract drafting and comprehensive analysis:
+                  work better for contract drafting and comprehensive analysis.
+                  {selectedModelKeys.size > 0 &&
+                    (() => {
+                      const maxModelLimit = Array.from(
+                        selectedModelKeys
+                      ).reduce((max, key) => {
+                        const [providerId, modelId] = key.split(":");
+                        const provider = config.providers.find(
+                          (p: any) => p.id === providerId
+                        );
+                        const template = providerTemplates.find(
+                          (t: any) => t.id === provider?.provider
+                        );
+                        const model = template?.models.find(
+                          (m: any) => m.id === modelId
+                        );
+                        return Math.max(max, model?.maxMaxTokens || 0);
+                      }, 0);
+                      if (maxModelLimit > 0) {
+                        return ` Maximum output: ${formatTokenCount(
+                          maxModelLimit
+                        )} tokens.`;
+                      }
+                      return "";
+                    })()}
+                </div>
+                <div className="text-xs bg-amber-900/20 border border-amber-700 rounded p-2 mb-6 text-amber-200">
+                  ⚠️ Note: Output tokens may cost more than input tokens
+                  depending on your model provider's pricing.
                 </div>
 
-                {/* Preset Buttons */}
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  {RESPONSE_SIZE_PRESETS.map((preset) => {
-                    const isSelected =
-                      maxTokensOverride === preset.tokens ||
-                      (!maxTokensOverride &&
-                        preset.id ===
-                          getPresetByTokens(
-                            selectedModelKeys.size > 0
-                              ? Array.from(selectedModelKeys).map((key) => {
-                                  const [providerId, modelId] = (
-                                    key as string
-                                  ).split(":");
-                                  const provider = config.providers.find(
-                                    (p: any) => p.id === providerId
-                                  );
-                                  const template = providerTemplates.find(
-                                    (t: any) => t.id === provider?.provider
-                                  );
-                                  const model = template?.models.find(
-                                    (m: any) => m.id === modelId
-                                  );
-                                  return model?.defaultMaxTokens || 2048;
-                                })[0]
-                              : 2048
-                          ).id);
+                {/* Slider Control */}
+                {(() => {
+                  const maxModelLimit =
+                    selectedModelKeys.size > 0
+                      ? Array.from(selectedModelKeys).reduce((max, key) => {
+                          const [providerId, modelId] = key.split(":");
+                          const provider = config.providers.find(
+                            (p: any) => p.id === providerId
+                          );
+                          const template = providerTemplates.find(
+                            (t: any) => t.id === provider?.provider
+                          );
+                          const model = template?.models.find(
+                            (m: any) => m.id === modelId
+                          );
+                          return Math.max(max, model?.maxMaxTokens || 0);
+                        }, 0)
+                      : 32768;
 
-                    return (
-                      <button
-                        key={preset.id}
-                        onClick={() => {
-                          const newValue =
-                            maxTokensOverride === preset.tokens
-                              ? undefined
-                              : preset.tokens;
-                          setMaxTokensOverride(newValue);
-                          if (currentConversation) {
-                            setConversationMaxTokens(
-                              currentConversation.id,
-                              newValue
+                  const currentValue =
+                    maxTokensOverride ||
+                    (selectedModelKeys.size > 0
+                      ? Array.from(selectedModelKeys).map((key) => {
+                          const [providerId, modelId] = key.split(":");
+                          const provider = config.providers.find(
+                            (p: any) => p.id === providerId
+                          );
+                          const template = providerTemplates.find(
+                            (t: any) => t.id === provider?.provider
+                          );
+                          const model = template?.models.find(
+                            (m: any) => m.id === modelId
+                          );
+                          return model?.defaultMaxTokens || 2048;
+                        })[0]
+                      : 2048);
+
+                  // Get available presets for markers
+                  const availablePresets = RESPONSE_SIZE_PRESETS.filter(
+                    (preset) => preset.tokens <= maxModelLimit
+                  );
+
+                  return (
+                    <div className="mb-6">
+                      {/* Slider */}
+                      <div className="relative px-2 mb-8">
+                        {/* Track background with gradient */}
+                        <div
+                          className="absolute inset-0 h-2 bg-gray-700 rounded-lg pointer-events-none mx-2"
+                          style={{
+                            background: `linear-gradient(to right, #D4AF37 0%, #D4AF37 ${
+                              ((currentValue - 512) / (maxModelLimit - 512)) *
+                              100
+                            }%, #374151 ${
+                              ((currentValue - 512) / (maxModelLimit - 512)) *
+                              100
+                            }%, #374151 100%)`,
+                          }}
+                        />
+                        <input
+                          type="range"
+                          min="512"
+                          max={maxModelLimit}
+                          step="512"
+                          value={currentValue}
+                          onChange={(e) => {
+                            const newValue = Number.parseInt(e.target.value);
+                            setMaxTokensOverride(newValue);
+                            if (currentConversation) {
+                              setConversationMaxTokens(
+                                currentConversation.id,
+                                newValue
+                              );
+                            }
+                          }}
+                          aria-label="Response size in tokens"
+                          className="relative w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer slider-thumb"
+                        />
+
+                        {/* Preset Markers */}
+                        <div className="relative w-full h-6 mt-2">
+                          {availablePresets.map((preset) => {
+                            const position =
+                              ((preset.tokens - 512) / (maxModelLimit - 512)) *
+                              100;
+                            const isActive =
+                              Math.abs(currentValue - preset.tokens) < 256;
+
+                            return (
+                              <div
+                                key={preset.id}
+                                className="absolute transform -translate-x-1/2"
+                                style={{ left: `${position}%` }}
+                              >
+                                <div
+                                  className={`w-0.5 h-3 mb-1 transition-all ${
+                                    isActive
+                                      ? "bg-legal-gold h-4"
+                                      : "bg-gray-500"
+                                  }`}
+                                />
+                                <div
+                                  className={`text-xs whitespace-nowrap transition-all ${
+                                    isActive
+                                      ? "text-legal-gold font-semibold"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {preset.icon}
+                                </div>
+                              </div>
                             );
-                          }
-                        }}
-                        className={`px-4 py-3 rounded-lg transition-colors border-2 ${
-                          isSelected
-                            ? "border-legal-gold bg-gray-700"
-                            : "border-transparent bg-gray-750 hover:bg-gray-700"
-                        }`}
-                      >
-                        <div className="text-center">
-                          <div className="text-2xl mb-1">{preset.icon}</div>
-                          <div className="font-medium text-white text-sm">
-                            {preset.name}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {formatTokenCount(preset.tokens)}
-                          </div>
+                          })}
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
 
-                {/* Info Box with Use Cases */}
-                {maxTokensOverride !== undefined && (
-                  <div className="p-3 bg-gray-750 rounded-lg border border-gray-600">
-                    <div className="text-xs text-gray-300">
-                      <p className="font-medium mb-2">
-                        {
-                          RESPONSE_SIZE_PRESETS.find(
-                            (p) => p.tokens === maxTokensOverride
-                          )?.icon
-                        }{" "}
-                        {
-                          RESPONSE_SIZE_PRESETS.find(
-                            (p) => p.tokens === maxTokensOverride
-                          )?.name
-                        }{" "}
-                        - Best for:
-                      </p>
-                      <ul className="space-y-1 text-gray-400">
-                        {RESPONSE_SIZE_PRESETS.find(
-                          (p) => p.tokens === maxTokensOverride
-                        )?.useCases.map((useCase, idx) => (
-                          <li key={idx}>• {useCase}</li>
-                        ))}
-                      </ul>
+                      {/* Info Box with Use Cases */}
+                      {(() => {
+                        const preset = getPresetByTokens(currentValue);
+                        return (
+                          <div className="p-4 bg-gray-750 rounded-lg border border-gray-600">
+                            <div className="text-xs text-gray-300">
+                              <p className="font-medium mb-2 text-white">
+                                {preset.icon} {preset.name} - Best for:
+                              </p>
+                              <ul className="space-y-1 text-gray-400">
+                                {preset.useCases.map((useCase, idx) => (
+                                  <li key={`${preset.id}-${idx}`}>
+                                    • {useCase}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
-                  </div>
+                  );
+                })()}
+
+                {/* Reset to Default Button */}
+                {maxTokensOverride !== undefined && (
+                  <button
+                    onClick={() => {
+                      setMaxTokensOverride(undefined);
+                      if (currentConversation) {
+                        setConversationMaxTokens(
+                          currentConversation.id,
+                          undefined
+                        );
+                      }
+                    }}
+                    className="text-xs text-gray-400 hover:text-legal-gold transition-colors"
+                  >
+                    Reset to model defaults
+                  </button>
                 )}
               </div>
             </div>
@@ -1673,7 +1858,7 @@ export default function ChatWindow() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a legal question..."
+            placeholder="Ask a legal or business question..."
             disabled={isLoading}
             className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
             rows={3}

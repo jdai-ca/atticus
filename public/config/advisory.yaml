@@ -1,5 +1,5 @@
 version: 1.0.0
-minAppVersion: 0.9.7
+minAppVersion: 0.9.8
 lastUpdated: "2025-10-11T12:00:00.000Z"
 updateUrl: https://jdai.ca/atticus/advisory.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."

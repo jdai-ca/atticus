@@ -60,14 +60,40 @@ export const RESPONSE_SIZE_PRESETS: ResponseSizePreset[] = [
     {
         id: 'maximum',
         name: 'Maximum',
-        description: 'Longest possible response for complex work',
-        tokens: 8192, // Will be capped by model's maxMaxTokens
+        description: 'Very long responses for complex work',
+        tokens: 8192,
         icon: '📚',
         useCases: [
             'Contract drafting',
             'Legal memoranda',
             'Comprehensive briefs',
             'Complex document generation'
+        ]
+    },
+    {
+        id: 'ultra',
+        name: 'Ultra',
+        description: 'Ultra-long responses for extensive documents',
+        tokens: 16384,
+        icon: '�',
+        useCases: [
+            'Full contract generation',
+            'Detailed legal research papers',
+            'Multi-section documents',
+            'Extensive case analysis'
+        ]
+    },
+    {
+        id: 'extreme',
+        name: 'Extreme',
+        description: 'Longest possible output for massive documents',
+        tokens: 32768,
+        icon: '📕',
+        useCases: [
+            'Complete legal documents',
+            'Comprehensive agreements',
+            'Full research reports',
+            'Large-scale document drafting'
         ]
     }
 ];
@@ -120,14 +146,24 @@ export function constrainMaxTokens(
 export function getRecommendedPreset(
     modelMaxMaxTokens: number
 ): ResponseSizePreset {
-    // If model supports extended or maximum, default to standard
-    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[2].tokens) {
-        return RESPONSE_SIZE_PRESETS[1]; // Standard
+    // If model supports ultra or extreme, default to extended for safety
+    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[5].tokens) { // >= 16384
+        return RESPONSE_SIZE_PRESETS[2]; // Extended (4096)
+    }
+
+    // If model supports maximum or extended, default to standard
+    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[3].tokens) { // >= 8192
+        return RESPONSE_SIZE_PRESETS[1]; // Standard (2048)
+    }
+
+    // If model supports extended, default to standard
+    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[2].tokens) { // >= 4096
+        return RESPONSE_SIZE_PRESETS[1]; // Standard (2048)
     }
 
     // If model only supports brief to standard, default to brief
-    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[1].tokens) {
-        return RESPONSE_SIZE_PRESETS[0]; // Brief
+    if (modelMaxMaxTokens >= RESPONSE_SIZE_PRESETS[1].tokens) { // >= 2048
+        return RESPONSE_SIZE_PRESETS[0]; // Brief (512)
     }
 
     // Fallback to brief
