@@ -47,6 +47,7 @@ Before using Atticus, please review these critical documents:
 - [Key Features](#-key-features)
   - [Multi-Provider AI Support](#-multi-provider-ai-support)
   - [Multi-Model Selection](#-multi-model-selection)
+  - [Real-Time Cost Transparency](#-real-time-cost-transparency)
   - [Multi-Jurisdictional Analysis](#-multi-jurisdictional-analysis)
   - [Legal Practice Area Detection](#️-legal-practice-area-detection)
   - [Business Advisory Detection](#-business-advisory-detection)
@@ -165,6 +166,42 @@ Access **9 leading AI providers** with **60+ models** through one unified interf
 - Model attribution badges on each response
 - Compare answers across different AI systems
 - Cross-validate legal analysis
+
+### 💰 Real-Time Cost Transparency
+
+**See exactly what you're spending on each query** with automatic token usage and cost reporting:
+
+![Token Cost Report](docs/images/Screenshot-07.png)
+_Real-time cost breakdown showing input/output token usage and pricing per query - complete transparency on API expenses_
+
+**Why Direct Provider APIs Save Money**:
+
+Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instead of using intermediary services provides **significant cost savings**:
+
+- ✅ **No markup fees** - Pay only provider's base rate (e.g., GPT-4o: $2.50/1M input, $10/1M output)
+- ✅ **No subscription required** - Pay per use only, no monthly minimums
+- ✅ **Volume discounts** - Benefit from provider's tiered pricing as you scale
+- ✅ **Full control** - Monitor and optimize costs in real-time
+- ❌ **Avoid 2-10x markups** - Many AI chatbot services charge $20-50/month for what costs $2-5 in API usage
+
+**Cost Report Features**:
+
+- 📊 **Collapsible display** - Compact summary (cost, tokens, time) expands to full breakdown
+- 💵 **Exact pricing** - Input tokens × rate + Output tokens × rate = Total cost
+- 🎨 **Color-coded tiers** - Green (<$0.01), Amber ($0.01-$0.10), Red (>$0.10)
+- ⚡ **Performance metrics** - Response time and tokens per second
+- 🔍 **Model attribution** - See which model and provider generated each response
+
+**Example Cost Comparison**:
+
+| Service Type                  | Typical Query          | Monthly (50 queries) | Annual          |
+| ----------------------------- | ---------------------- | -------------------- | --------------- |
+| **Atticus (Direct API)**      | $0.01 - $0.05          | $0.50 - $2.50        | $6 - $30        |
+| **ChatGPT Plus Subscription** | Included in $20/mo fee | $20/mo               | $240/year       |
+| **Enterprise Chatbot**        | Included in $50/mo fee | $50/mo               | $600/year       |
+| **Legal AI Service**          | $5 - $15 per query     | $250 - $750          | $3,000 - $9,000 |
+
+💡 **Pro Tip**: Most legal queries cost **$0.001 to $0.05** with direct API access. Even with multiple models selected, costs remain minimal compared to subscription services or specialized legal AI platforms.
 
 ### 🌍 Multi-Jurisdictional Analysis
 

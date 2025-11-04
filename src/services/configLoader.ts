@@ -45,6 +45,8 @@ interface RawProviderTemplate {
         maxContextWindow?: number;
         defaultMaxTokens?: number;
         maxMaxTokens?: number;
+        inputTokenPrice?: number;
+        outputTokenPrice?: number;
     }>;
     capabilities: {
         supportsMultimodal: boolean;
@@ -237,7 +239,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.8';
+        return '0.9.9';
     }
 
     /**
@@ -313,7 +315,9 @@ export class ConfigLoader {
                     description: m.description,
                     maxContextWindow: m.maxContextWindow,
                     defaultMaxTokens: m.defaultMaxTokens,
-                    maxMaxTokens: m.maxMaxTokens
+                    maxMaxTokens: m.maxMaxTokens,
+                    inputTokenPrice: m.inputTokenPrice,
+                    outputTokenPrice: m.outputTokenPrice
                 })),
             supportsMultimodal: provider.capabilities.supportsMultimodal,
             supportsRAG: provider.capabilities.supportsRAG,

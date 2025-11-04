@@ -37,6 +37,8 @@ import {
   AuditSeverity,
 } from "../services/appLogger";
 import { downloadMessagePDF } from "../utils/pdfExport";
+import { calculateCost } from "../utils/costCalculator";
+import CostReport from "./CostReport";
 
 const logger = createLogger("ChatWindow");
 
@@ -673,6 +675,13 @@ export default function ChatWindow() {
         durationMs,
         status: "success" as const,
         usage: response.usage,
+        cost:
+          response.usage && model?.inputTokenPrice && model?.outputTokenPrice
+            ? calculateCost(response.usage, {
+                inputTokenPrice: model.inputTokenPrice,
+                outputTokenPrice: model.outputTokenPrice,
+              })
+            : undefined,
       };
 
       return {
@@ -1716,6 +1725,11 @@ export default function ChatWindow() {
                 <div className="markdown-content">
                   <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
+
+                {/* Cost Report - show token usage and cost for assistant messages */}
+                {message.role === "assistant" && message.apiTrace && (
+                  <CostReport apiTrace={message.apiTrace} />
+                )}
 
                 {/* API Error Actions (Inspect & Resend) */}
                 {message.role === "assistant" &&

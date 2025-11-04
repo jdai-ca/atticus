@@ -99,6 +99,8 @@ export interface ProviderTemplate {
     maxContextWindow?: number; // Maximum context window in tokens
     defaultMaxTokens?: number; // Default maximum tokens for responses
     maxMaxTokens?: number; // Maximum allowed tokens for responses
+    inputTokenPrice?: number; // Price per 1M input tokens in USD
+    outputTokenPrice?: number; // Price per 1M output tokens in USD
     enabled?: boolean;
   }>;
   supportsMultimodal: boolean;
@@ -145,6 +147,13 @@ export interface APITrace {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+  };
+  cost?: {
+    inputCost: number; // Cost in USD for input tokens
+    outputCost: number; // Cost in USD for output tokens
+    totalCost: number; // Total cost in USD
+    inputTokenPrice?: number; // Price per 1M input tokens
+    outputTokenPrice?: number; // Price per 1M output tokens
   };
 }
 

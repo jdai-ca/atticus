@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.8"
+minAppVersion: "0.9.9"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -27,6 +27,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 2.50
+        outputTokenPrice: 10.00
         enabled: true
 
       - id: gpt-4o-mini
@@ -35,6 +37,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 0.15
+        outputTokenPrice: 0.60
         enabled: true
 
       - id: o1-preview
@@ -43,6 +47,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 32768
+        inputTokenPrice: 15.00
+        outputTokenPrice: 60.00
         enabled: true
 
       - id: o1-mini
@@ -51,6 +57,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 2048
         maxMaxTokens: 16384
+        inputTokenPrice: 3.00
+        outputTokenPrice: 12.00
         enabled: true
 
       - id: gpt-4-turbo
@@ -59,6 +67,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 10.00
+        outputTokenPrice: 30.00
         enabled: true
 
       - id: gpt-4-turbo-preview
@@ -67,6 +77,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 10.00
+        outputTokenPrice: 30.00
         enabled: true
 
       - id: gpt-4
@@ -75,6 +87,8 @@ providers:
         maxContextWindow: 8192
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 30.00
+        outputTokenPrice: 60.00
         enabled: true
 
       - id: gpt-3.5-turbo
@@ -83,6 +97,8 @@ providers:
         maxContextWindow: 16385
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.50
+        outputTokenPrice: 1.50
         enabled: true
 
     capabilities:
@@ -115,6 +131,8 @@ providers:
         maxContextWindow: 200000
         defaultMaxTokens: 8192
         maxMaxTokens: 8192
+        inputTokenPrice: 3.00
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: claude-3-5-sonnet-20240620
@@ -123,6 +141,8 @@ providers:
         maxContextWindow: 200000
         defaultMaxTokens: 8192
         maxMaxTokens: 8192
+        inputTokenPrice: 3.00
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: claude-3-opus-20240229
@@ -131,6 +151,8 @@ providers:
         maxContextWindow: 200000
         defaultMaxTokens: 4096
         maxMaxTokens: 4096
+        inputTokenPrice: 15.00
+        outputTokenPrice: 75.00
         enabled: true
 
       - id: claude-3-sonnet-20240229
@@ -139,6 +161,8 @@ providers:
         maxContextWindow: 200000
         defaultMaxTokens: 4096
         maxMaxTokens: 4096
+        inputTokenPrice: 3.00
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: claude-3-haiku-20240307
@@ -147,6 +171,8 @@ providers:
         maxContextWindow: 200000
         defaultMaxTokens: 4096
         maxMaxTokens: 4096
+        inputTokenPrice: 0.25
+        outputTokenPrice: 1.25
         enabled: true
 
     capabilities:
@@ -179,6 +205,8 @@ providers:
         maxContextWindow: 1000000
         defaultMaxTokens: 8192
         maxMaxTokens: 8192
+        inputTokenPrice: 2.50
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: gemini-2.5-flash
@@ -187,6 +215,8 @@ providers:
         maxContextWindow: 1000000
         defaultMaxTokens: 8192
         maxMaxTokens: 8192
+        inputTokenPrice: 0.30
+        outputTokenPrice: 2.50
         enabled: true
 
       - id: gemini-2.5-flash-lite
@@ -195,6 +225,8 @@ providers:
         maxContextWindow: 1000000
         defaultMaxTokens: 8192
         maxMaxTokens: 8192
+        inputTokenPrice: 0.10
+        outputTokenPrice: 0.40
         enabled: true
 
     capabilities:
@@ -227,6 +259,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 2.50
+        outputTokenPrice: 10.00
         enabled: true
 
       - id: gpt-4o-mini
@@ -235,6 +269,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 0.15
+        outputTokenPrice: 0.60
         enabled: true
 
       - id: gpt-4
@@ -243,6 +279,8 @@ providers:
         maxContextWindow: 8192
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 30.00
+        outputTokenPrice: 60.00
         enabled: true
 
     capabilities:
@@ -275,6 +313,8 @@ providers:
         maxContextWindow: 131072
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 5.00
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: grok-vision-beta
@@ -283,6 +323,8 @@ providers:
         maxContextWindow: 8192
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 5.00
+        outputTokenPrice: 15.00
         enabled: true
 
     capabilities:
@@ -315,6 +357,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 2.00
+        outputTokenPrice: 6.00
         enabled: true
 
       - id: mistral-medium-latest
@@ -323,6 +367,8 @@ providers:
         maxContextWindow: 32000
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 2.70
+        outputTokenPrice: 8.10
         enabled: true
 
       - id: mistral-small-latest
@@ -331,6 +377,8 @@ providers:
         maxContextWindow: 32000
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.60
         enabled: true
 
       - id: open-mixtral-8x22b
@@ -339,6 +387,8 @@ providers:
         maxContextWindow: 64000
         defaultMaxTokens: 4096
         maxMaxTokens: 8192
+        inputTokenPrice: 2.00
+        outputTokenPrice: 6.00
         enabled: true
 
       - id: open-mixtral-8x7b
@@ -347,6 +397,8 @@ providers:
         maxContextWindow: 32768
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.70
+        outputTokenPrice: 0.70
         enabled: true
 
     capabilities:
@@ -378,6 +430,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 16384
+        inputTokenPrice: 3.00
+        outputTokenPrice: 15.00
         enabled: true
 
       - id: command-r
@@ -386,6 +440,8 @@ providers:
         maxContextWindow: 128000
         defaultMaxTokens: 4096
         maxMaxTokens: 8192
+        inputTokenPrice: 0.50
+        outputTokenPrice: 1.50
         enabled: true
 
       - id: command
@@ -394,6 +450,8 @@ providers:
         maxContextWindow: 4096
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 1.00
+        outputTokenPrice: 2.00
         enabled: true
 
       - id: command-light
@@ -402,6 +460,8 @@ providers:
         maxContextWindow: 4096
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.30
+        outputTokenPrice: 0.60
         enabled: true
 
     capabilities:
@@ -433,6 +493,8 @@ providers:
         maxContextWindow: 131072
         defaultMaxTokens: 8192
         maxMaxTokens: 32768
+        inputTokenPrice: 0.59
+        outputTokenPrice: 0.79
         enabled: true
 
       - id: llama-3.1-70b-versatile
@@ -441,6 +503,8 @@ providers:
         maxContextWindow: 131072
         defaultMaxTokens: 8192
         maxMaxTokens: 32768
+        inputTokenPrice: 0.59
+        outputTokenPrice: 0.79
         enabled: true
 
       - id: llama-3.1-8b-instant
@@ -449,6 +513,8 @@ providers:
         maxContextWindow: 131072
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 0.05
+        outputTokenPrice: 0.08
         enabled: true
 
       - id: mixtral-8x7b-32768
@@ -457,6 +523,8 @@ providers:
         maxContextWindow: 32768
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 0.24
+        outputTokenPrice: 0.24
         enabled: true
 
       - id: gemma2-9b-it
@@ -465,6 +533,8 @@ providers:
         maxContextWindow: 8192
         defaultMaxTokens: 2048
         maxMaxTokens: 8192
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.20
         enabled: true
 
     capabilities:
@@ -496,6 +566,8 @@ providers:
         maxContextWindow: 127072
         defaultMaxTokens: 4096
         maxMaxTokens: 8192
+        inputTokenPrice: 1.00
+        outputTokenPrice: 1.00
         enabled: true
 
       - id: llama-3.1-sonar-small-128k-online
@@ -504,6 +576,8 @@ providers:
         maxContextWindow: 127072
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.20
         enabled: true
 
       - id: llama-3.1-sonar-large-128k-chat
@@ -512,6 +586,8 @@ providers:
         maxContextWindow: 127072
         defaultMaxTokens: 4096
         maxMaxTokens: 8192
+        inputTokenPrice: 1.00
+        outputTokenPrice: 1.00
         enabled: true
 
       - id: llama-3.1-sonar-small-128k-chat
@@ -520,6 +596,8 @@ providers:
         maxContextWindow: 127072
         defaultMaxTokens: 2048
         maxMaxTokens: 4096
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.20
         enabled: true
 
     capabilities:
