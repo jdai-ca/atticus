@@ -13,10 +13,7 @@ import { detectPracticeArea } from "../modules/practiceArea";
 import { detectAdvisoryArea } from "../modules/advisoryArea";
 import { createLogger } from "../services/logger";
 import { DateUtils } from "../utils/dateUtils";
-import {
-  truncateToContextWindow,
-  getTotalTokenCount,
-} from "../utils/contextWindowManager";
+import { truncateToContextWindow } from "../utils/contextWindowManager";
 import {
   RESPONSE_SIZE_PRESETS,
   getPresetByTokens,

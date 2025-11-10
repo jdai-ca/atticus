@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.9"
+minAppVersion: "0.9.10"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -304,27 +304,37 @@ providers:
     displayName: xAI Grok
     description: Grok models by xAI (Elon Musk's AI company)
     endpoint: https://api.x.ai/v1/chat/completions
-    defaultModel: grok-beta
+    defaultModel: grok-4
 
     models:
-      - id: grok-beta
-        name: Grok Beta
+      - id: grok-4
+        name: Grok 4
         description: Latest Grok model with real-time knowledge
-        maxContextWindow: 131072
-        defaultMaxTokens: 4096
-        maxMaxTokens: 16384
-        inputTokenPrice: 5.00
-        outputTokenPrice: 15.00
+        maxContextWindow: 256000
+        defaultMaxTokens: 128000
+        maxMaxTokens: 256000
+        inputTokenPrice: 6.00
+        outputTokenPrice: 30.00
         enabled: true
 
-      - id: grok-vision-beta
-        name: Grok Vision Beta
-        description: Grok with image understanding capabilities
-        maxContextWindow: 8192
-        defaultMaxTokens: 2048
-        maxMaxTokens: 4096
-        inputTokenPrice: 5.00
-        outputTokenPrice: 15.00
+      - id: grok-4-fast-reasoning
+        name: Grok 4 Fast Reasoning
+        description: Grok with fast reasoning capabilities
+        maxContextWindow: 2000000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 256000
+        inputTokenPrice: 0.40
+        outputTokenPrice: 1.00
+        enabled: true
+
+      - id: grok-4-fast-non-reasoning
+        name: Grok 4 Fast Non-Reasoning
+        description: Grok with fast non-reasoning capabilities
+        maxContextWindow: 2000000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 256000
+        inputTokenPrice: 0.40
+        outputTokenPrice: 1.00
         enabled: true
 
     capabilities:

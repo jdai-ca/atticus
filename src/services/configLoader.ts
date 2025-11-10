@@ -17,6 +17,7 @@ import yaml from 'js-yaml';
 import Ajv from 'ajv';
 import { ProviderTemplate, AIProvider } from '../types';
 import providerSchema from '../schemas/provider-config.schema.json';
+import { isDevelopmentMode } from '../utils/devMode';
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -79,14 +80,16 @@ export class ConfigLoader {
         // 1. Load bundled config (always available)
         const bundled = await this.loadBundledConfig();
 
-        // 2. Try to load from cache
-        const cached = this.loadCachedConfig();
+        // 2. Try to load from cache (skip in development for hot-reload)
+        const cached = isDevelopmentMode() ? null : this.loadCachedConfig();
         let current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
-        this.updateFromRemote(current.version).catch(err => {
-            console.warn('[ConfigLoader] Remote update failed:', err.message);
-        });
+        if (!isDevelopmentMode()) {
+            this.updateFromRemote(current.version).catch(err => {
+                console.warn('[ConfigLoader] Remote update failed:', err.message);
+            });
+        }
 
         return this.transformToProviderTemplates(current);
     }
@@ -100,7 +103,6 @@ export class ConfigLoader {
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                console.log('[ConfigLoader] Loading bundled config via Electron IPC');
                 const result = await (globalThis as any).electronAPI.loadBundledConfig('providers.yaml');
 
                 if (!result.success || !result.data) {
@@ -111,7 +113,6 @@ export class ConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                console.log('[ConfigLoader] Loading bundled config via fetch');
                 const response = await fetch('/config/providers.yaml');
                 if (!response.ok) {
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
@@ -125,7 +126,6 @@ export class ConfigLoader {
                 throw new Error('Bundled config validation failed');
             }
 
-            console.log('[ConfigLoader] Loaded bundled config version', config.version);
             return config;
         } catch (error) {
             console.error('[ConfigLoader] CRITICAL: Bundled config failed to load', error);
@@ -151,7 +151,6 @@ export class ConfigLoader {
                 return null;
             }
 
-            console.log('[ConfigLoader] Loaded cached config version', config.version);
             return config;
         } catch (error) {
             console.warn('[ConfigLoader] Failed to load cached config:', error);
@@ -167,11 +166,9 @@ export class ConfigLoader {
             // Load bundled config to get update URL
             const bundled = await this.loadBundledConfig();
             if (!bundled.updateUrl) {
-                console.log('[ConfigLoader] No update URL configured');
                 return;
             }
 
-            console.log('[ConfigLoader] Checking for remote updates...');
             const response = await fetch(bundled.updateUrl, {
                 cache: 'no-cache',
                 headers: {
@@ -196,13 +193,9 @@ export class ConfigLoader {
             }
 
             if (this.compareVersions(config.version, currentVersion) > 0) {
-                console.log(`[ConfigLoader] New config available: ${config.version} (current: ${currentVersion})`);
+                console.log(`[ConfigLoader] Updated to config version ${config.version}`);
                 this.cacheConfig(config);
-
-                // Notify user about update (optional)
                 this.notifyConfigUpdate(config.version);
-            } else {
-                console.log('[ConfigLoader] Config is up to date');
             }
         } catch (error) {
             console.warn('[ConfigLoader] Remote update failed:', error);
@@ -239,7 +232,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.9';
+        return '0.9.10';
     }
 
     /**
@@ -278,7 +271,6 @@ export class ConfigLoader {
             localStorage.setItem('provider-config', JSON.stringify(config));
             localStorage.setItem('provider-config-version', config.version);
             localStorage.setItem('provider-config-updated', new Date().toISOString());
-            console.log('[ConfigLoader] Cached config version', config.version);
         } catch (error) {
             console.warn('[ConfigLoader] Failed to cache config:', error);
         }
@@ -288,9 +280,7 @@ export class ConfigLoader {
      * Notify about config update (can be extended with UI notification)
      */
     private notifyConfigUpdate(newVersion: string): void {
-        console.log(`[ConfigLoader] ✨ Provider config updated to version ${newVersion}`);
-
-        // Could emit event for UI notification
+        // Emit event for UI notification
         (globalThis as any).dispatchEvent(new CustomEvent('provider-config-updated', {
             detail: { version: newVersion }
         }));
@@ -342,7 +332,6 @@ export class ConfigLoader {
         localStorage.removeItem('provider-config');
         localStorage.removeItem('provider-config-version');
         localStorage.removeItem('provider-config-updated');
-        console.log('[ConfigLoader] Cache cleared');
     }
 }
 

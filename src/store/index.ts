@@ -7,6 +7,7 @@ import { practiceAreaManager } from '../modules/practiceArea';
 import { advisoryAreaManager } from '../modules/advisoryArea';
 import { createLogger } from '../services/logger';
 import { DateUtils } from '../utils/dateUtils';
+import { migrateAllProviders } from '../utils/configMigration';
 
 const logger = createLogger('Store');
 
@@ -389,6 +390,12 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await (globalThis as any).electronAPI.loadConfig();
 
       if (result.success && result.data) {
+        // Migrate any providers missing endpoint field
+        const templates = get().providerTemplates;
+        if (result.data.providers && templates.length > 0) {
+          result.data.providers = migrateAllProviders(result.data.providers, templates);
+        }
+
         // Preserve practice areas and advisory areas when loading saved config
         const currentConfig = get().config;
         set({

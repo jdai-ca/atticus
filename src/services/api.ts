@@ -7,6 +7,12 @@ import {
   extractUsage,
   createApiError,
 } from './apiHelpers';
+import {
+  sendAPIRequest,
+  buildOpenAIRequestBody,
+  openAIParser,
+  getEndpointOrDefault,
+} from './apiRequest';
 
 export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
@@ -46,50 +52,22 @@ async function sendOpenAIMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint || 'https://api.openai.com/v1/chat/completions';
+  const endpoint = getEndpointOrDefault(
+    provider,
+    'https://api.openai.com/v1/chat/completions'
+  );
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
-  const apiMessages = [...messages];
-  if (systemPrompt) {
-    apiMessages.unshift({ role: 'system', content: systemPrompt });
-  }
-
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
+  return sendAPIRequest({
+    endpoint,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${provider.apiKey}`,
     },
-    body: JSON.stringify({
-      model: provider.model,
-      messages: apiMessages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-      temperature,
-      max_tokens: maxTokens,
-    }),
-    timeout: 60000, // 60 second timeout
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw createApiError(
-      'API_ERROR',
-      errorData.error?.message || `OpenAI API request failed with status ${response.status}`,
-      { status: response.status, provider: 'openai' }
-    );
-  }
-
-  const data = await response.json();
-  validateOpenAIResponse(data);
-
-  return {
-    content: data.choices[0].message.content,
-    usage: extractUsage(data, 'openai'),
-  };
+    body,
+    provider: 'openai',
+  }, openAIParser);
 }
 
 async function sendAnthropicMessage(
@@ -347,50 +325,20 @@ async function sendXAIMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint || 'https://api.x.ai/v1/chat/completions';
+  const endpoint = getEndpointOrDefault(provider, '', true);
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
-  const apiMessages = [...messages];
-  if (systemPrompt) {
-    apiMessages.unshift({ role: 'system', content: systemPrompt });
-  }
-
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
+  return sendAPIRequest({
+    endpoint,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${provider.apiKey}`,
     },
-    body: JSON.stringify({
-      model: provider.model,
-      messages: apiMessages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-      temperature,
-      max_tokens: maxTokens,
-    }),
-    timeout: 60000, // 60 second timeout
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw createApiError(
-      'API_ERROR',
-      `xAI API error: ${errorText}`,
-      { status: response.status, provider: 'xai' }
-    );
-  }
-
-  const data = await response.json();
-  validateOpenAIResponse(data);
-
-  return {
-    content: data.choices[0].message.content,
-    usage: extractUsage(data, 'xai'),
-  };
+    body,
+    provider: 'xai',
+    timeout: 3600000, // xAI recommends 3600 seconds (60 minutes) for reasoning models
+  }, openAIParser);
 }
 
 async function sendMistralMessage(
@@ -400,49 +348,21 @@ async function sendMistralMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint || 'https://api.mistral.ai/v1/chat/completions';
+  const endpoint = getEndpointOrDefault(
+    provider,
+    'https://api.mistral.ai/v1/chat/completions'
+  );
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
-  const apiMessages = [...messages];
-  if (systemPrompt) {
-    apiMessages.unshift({ role: 'system', content: systemPrompt });
-  }
-
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
+  return sendAPIRequest({
+    endpoint,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${provider.apiKey}`,
     },
-    body: JSON.stringify({
-      model: provider.model,
-      messages: apiMessages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-      temperature,
-      max_tokens: maxTokens,
-    }),
-    timeout: 60000, // 60 second timeout
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw createApiError(
-      'API_ERROR',
-      `Mistral API error: ${errorText}`,
-      { status: response.status, provider: 'mistral' }
-    );
-  }
-
-  const data = await response.json();
-  validateOpenAIResponse(data);
-
-  return {
-    content: data.choices[0].message.content,
-    usage: extractUsage(data, 'mistral'),
-  };
+    body,
+    provider: 'mistral',
+  }, openAIParser);
 }
 

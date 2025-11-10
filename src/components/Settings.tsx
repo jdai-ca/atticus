@@ -169,8 +169,9 @@ export default function Settings({ onClose }: SettingsProps) {
       updateProvider(existingProvider.id, {
         model: selectedModel,
         hasApiKey: Boolean(apiKey.trim()),
-        // Store custom endpoint if provided (for Azure)
-        ...(customEndpoint && { endpoint: customEndpoint }),
+        // Always preserve endpoint: use custom if provided, existing if available, or template default
+        endpoint:
+          customEndpoint || existingProvider.endpoint || template.endpoint,
         // Temporarily store API key for main process access
         ...(apiKey.trim() && { _tempApiKey: apiKey.trim() }),
       });
