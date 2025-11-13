@@ -203,6 +203,20 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 
 💡 **Pro Tip**: Most legal queries cost **$0.001 to $0.05** with direct API access. Even with multiple models selected, costs remain minimal compared to subscription services or specialized legal AI platforms.
 
+### 💰 Cost Ledger & Expense Tracking
+
+**Track API costs with complete transparency** through the built-in Cost Ledger:
+
+![Cost Ledger Interface](docs/images/Screenshot-08.png)
+
+- **Per-Message Breakdown** - See input/output token costs for every API call
+- **Real-Time Totals** - Track cumulative costs across entire conversations
+- **Color-Coded Tiers** - Visual indicators for low/medium/high cost calls (green/amber/red)
+- **Detailed Analytics** - Provider, model, timestamps, and individual cost components
+- **Export-Ready** - Full ledger of expenses for budgeting and reporting
+
+💡 **Pro Tip**: Use the Cost Ledger button (next to Audit Log) to review expenses and optimize model selection for cost-effective legal research.
+
 ### 🌍 Multi-Jurisdictional Analysis
 
 **Focus legal analysis on specific jurisdictions** or get comparative analysis across **CUSMA/USMCA** region and beyond:

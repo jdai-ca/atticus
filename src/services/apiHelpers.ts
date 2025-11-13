@@ -241,21 +241,21 @@ export function extractUsage(data: any, provider: string): {
 
     if (!data) return defaultUsage;
 
+    // Anthropic format (check first before OpenAI format)
+    if (provider === 'anthropic' && data.usage) {
+        return {
+            promptTokens: data.usage.input_tokens || 0,
+            completionTokens: data.usage.output_tokens || 0,
+            totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0),
+        };
+    }
+
     // OpenAI, Azure OpenAI, xAI, Mistral format
     if (data.usage) {
         return {
             promptTokens: data.usage.prompt_tokens || 0,
             completionTokens: data.usage.completion_tokens || 0,
             totalTokens: data.usage.total_tokens || 0,
-        };
-    }
-
-    // Anthropic format
-    if (provider === 'anthropic' && data.usage) {
-        return {
-            promptTokens: data.usage.input_tokens || 0,
-            completionTokens: data.usage.output_tokens || 0,
-            totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0),
         };
     }
 

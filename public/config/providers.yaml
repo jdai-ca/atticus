@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.10"
+minAppVersion: "0.9.11"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -120,59 +120,39 @@ providers:
   - id: anthropic
     name: Anthropic
     displayName: Anthropic Claude
-    description: Claude 3.5 and Claude 3 family - Opus, Sonnet, and Haiku
+    description: Claude 4 family - Opus, Sonnet, and Haiku
     endpoint: https://api.anthropic.com/v1/messages
-    defaultModel: claude-3-5-sonnet-20241022
+    defaultModel: claude-sonnet-4-5
 
     models:
-      - id: claude-3-5-sonnet-20241022
-        name: Claude 3.5 Sonnet (Latest)
+      - id: claude-sonnet-4-5
+        name: Claude 4.5 Sonnet (Latest)
         description: Most intelligent model, best for complex analysis and coding
         maxContextWindow: 200000
-        defaultMaxTokens: 8192
-        maxMaxTokens: 8192
+        defaultMaxTokens: 16384
+        maxMaxTokens: 64000
         inputTokenPrice: 3.00
         outputTokenPrice: 15.00
         enabled: true
 
-      - id: claude-3-5-sonnet-20240620
-        name: Claude 3.5 Sonnet (June)
-        description: Previous version of 3.5 Sonnet
-        maxContextWindow: 200000
-        defaultMaxTokens: 8192
-        maxMaxTokens: 8192
-        inputTokenPrice: 3.00
-        outputTokenPrice: 15.00
-        enabled: true
-
-      - id: claude-3-opus-20240229
-        name: Claude 3 Opus
-        description: Powerful model for highly complex tasks
-        maxContextWindow: 200000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 4096
-        inputTokenPrice: 15.00
-        outputTokenPrice: 75.00
-        enabled: true
-
-      - id: claude-3-sonnet-20240229
-        name: Claude 3 Sonnet
-        description: Balanced performance and speed
-        maxContextWindow: 200000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 4096
-        inputTokenPrice: 3.00
-        outputTokenPrice: 15.00
-        enabled: true
-
-      - id: claude-3-haiku-20240307
-        name: Claude 3 Haiku
+      - id: claude-haiku-4-5
+        name: Claude 4.5 Haiku (Latest)
         description: Fastest and most compact model
         maxContextWindow: 200000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 4096
-        inputTokenPrice: 0.25
-        outputTokenPrice: 1.25
+        defaultMaxTokens: 16384
+        maxMaxTokens: 64000
+        inputTokenPrice: 1.00
+        outputTokenPrice: 5.00
+        enabled: true
+
+      - id: claude-opus-4-1
+        name: Claude 4.1 Opus
+        description: Powerful model for highly complex tasks
+        maxContextWindow: 200000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 32000
+        inputTokenPrice: 15.00
+        outputTokenPrice: 75.00
         enabled: true
 
     capabilities:

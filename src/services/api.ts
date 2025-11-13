@@ -99,7 +99,7 @@ async function sendAnthropicMessage(
       temperature,
       max_tokens: maxTokens || 4000,
     }),
-    timeout: 60000, // 60 second timeout
+    timeout: 3600000, // 60 minute timeout for extended thinking
   });
 
   if (!response.ok) {

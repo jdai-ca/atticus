@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "../store";
-import { Send, Paperclip, Loader2, Settings, Shield } from "lucide-react";
+import {
+  Send,
+  Paperclip,
+  Loader2,
+  Settings,
+  Shield,
+  DollarSign,
+} from "lucide-react";
 import {
   Message,
   Jurisdiction,
@@ -36,6 +43,7 @@ import {
 import { downloadMessagePDF } from "../utils/pdfExport";
 import { calculateCost } from "../utils/costCalculator";
 import CostReport from "./CostReport";
+import ConversationCostLedger from "./ConversationCostLedger";
 
 const logger = createLogger("ChatWindow");
 
@@ -77,6 +85,7 @@ export default function ChatWindow() {
   );
   const [pendingMessage, setPendingMessage] = useState<string>("");
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const [showCostLedger, setShowCostLedger] = useState(false);
 
   // API Error Inspector state
   const [inspectedApiTrace, setInspectedApiTrace] = useState<APITrace | null>(
@@ -1170,6 +1179,18 @@ export default function ChatWindow() {
                 </span>
               </button>
 
+              {/* Cost Ledger Button */}
+              <button
+                onClick={() => setShowCostLedger(true)}
+                className="flex items-center gap-2 bg-green-600/20 hover:bg-green-600/30 px-4 py-2 rounded-lg transition-colors border border-green-500/50"
+                title="View Cost Ledger"
+              >
+                <DollarSign className="w-4 h-4 text-green-400" />
+                <span className="text-sm font-medium text-green-300">
+                  Cost Ledger
+                </span>
+              </button>
+
               <button
                 onClick={() => setShowConfigDialog(!showConfigDialog)}
                 className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg transition-colors border border-gray-500"
@@ -1903,6 +1924,14 @@ export default function ChatWindow() {
           conversationId={currentConversation.id}
           onClose={() => setShowAuditLog(false)}
           piiScanner={piiScanner}
+        />
+      )}
+
+      {/* Cost Ledger Viewer */}
+      {showCostLedger && currentConversation && (
+        <ConversationCostLedger
+          conversation={currentConversation}
+          onClose={() => setShowCostLedger(false)}
         />
       )}
 
