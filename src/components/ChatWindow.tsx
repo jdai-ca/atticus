@@ -58,10 +58,11 @@ export default function ChatWindow() {
     setConversationSelectedModels,
     setConversationJurisdictions,
     setConversationMaxTokens,
+    loadingConversations,
+    setConversationLoading,
   } = useStore();
 
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(
@@ -77,6 +78,9 @@ export default function ChatWindow() {
     number | undefined
   >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Derive loading state for current conversation
+  const isLoading = loadingConversations.has(currentConversation?.id ?? "");
 
   // PII Scanner state
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
@@ -798,6 +802,10 @@ export default function ChatWindow() {
   const sendMessage = async (messageText: string) => {
     if (!currentConversation) return;
 
+    // Capture the conversation ID at the start - this ensures messages go to the correct conversation
+    // even if user switches to a different conversation while API call is in progress
+    const targetConversationId = currentConversation.id;
+
     // Detect practice area and advisory area
     const practiceArea = detectPracticeArea(messageText);
     const advisoryArea = detectAdvisoryArea(messageText);
@@ -820,10 +828,10 @@ export default function ChatWindow() {
       advisoryArea
     );
 
-    addMessage(userMessage);
+    addMessage(userMessage, targetConversationId);
     setInput("");
     setAttachments([]);
-    setIsLoading(true);
+    setConversationLoading(currentConversation.id, true);
 
     try {
       // Send to all selected models in parallel
@@ -891,7 +899,7 @@ export default function ChatWindow() {
       );
 
       for (const message of assistantMessages) {
-        addMessage(message);
+        addMessage(message, targetConversationId);
       }
 
       await saveCurrentConversation();
@@ -905,9 +913,9 @@ export default function ChatWindow() {
         }. Please check your API configuration.`,
         timestamp: DateUtils.now(),
       };
-      addMessage(errorMessage);
+      addMessage(errorMessage, targetConversationId);
     } finally {
-      setIsLoading(false);
+      setConversationLoading(targetConversationId, false);
     }
   };
 

@@ -23,6 +23,8 @@ interface AppState {
   conversations: Conversation[];
   currentConversation: Conversation | null;
   isLoading: boolean;
+  loadingConversations: Set<string>; // Track which conversations are loading
+  unreadConversations: Set<string>; // Track which conversations have unread responses
   error: string | null;
   providerTemplates: ProviderTemplate[];
 
@@ -38,7 +40,10 @@ interface AppState {
 
   createConversation: (providerId: string) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
-  addMessage: (message: Message) => void;
+  setConversationLoading: (conversationId: string, loading: boolean) => void;
+  markConversationRead: (conversationId: string) => void;
+  markConversationUnread: (conversationId: string) => void;
+  addMessage: (message: Message, conversationId?: string) => void;
   updateMessage: (messageId: string, updates: Partial<Message>) => void;
   deleteConversation: (id: string) => Promise<void>;
   updateConversationTitle: (conversationId: string, title: string) => Promise<void>;
@@ -69,6 +74,8 @@ export const useStore = create<AppState>((set, get) => ({
   conversations: [],
   currentConversation: null,
   isLoading: false,
+  loadingConversations: new Set<string>(),
+  unreadConversations: new Set<string>(),
   error: null,
   providerTemplates: [],
 
@@ -193,28 +200,76 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setCurrentConversation: (conversation) => {
+    if (conversation) {
+      // Mark as read when user views conversation
+      get().markConversationRead(conversation.id);
+    }
     set({ currentConversation: conversation });
   },
 
-  addMessage: (message) => {
-    const current = get().currentConversation;
-    if (!current) return;
+  setConversationLoading: (conversationId, loading) => {
+    const loadingConversations = new Set(get().loadingConversations);
+    if (loading) {
+      loadingConversations.add(conversationId);
+    } else {
+      loadingConversations.delete(conversationId);
+    }
+    set({ loadingConversations });
+  },
+
+  markConversationRead: (conversationId) => {
+    const unreadConversations = new Set(get().unreadConversations);
+    unreadConversations.delete(conversationId);
+    set({
+      unreadConversations,
+      conversations: get().conversations.map(c =>
+        c.id === conversationId ? { ...c, hasUnreadResponses: false } : c
+      )
+    });
+  },
+
+  markConversationUnread: (conversationId) => {
+    const unreadConversations = new Set(get().unreadConversations);
+    unreadConversations.add(conversationId);
+    set({
+      unreadConversations,
+      conversations: get().conversations.map(c =>
+        c.id === conversationId ? { ...c, hasUnreadResponses: true } : c
+      )
+    });
+  },
+
+  addMessage: (message, conversationId) => {
+    // Use provided conversationId or fall back to current conversation
+    const targetConversation = conversationId
+      ? get().conversations.find(c => c.id === conversationId)
+      : get().currentConversation;
+
+    if (!targetConversation) return;
 
     const updatedConversation = {
-      ...current,
-      messages: [...current.messages, message],
+      ...targetConversation,
+      messages: [...targetConversation.messages, message],
       updatedAt: DateUtils.now(),
-      title: current.messages.length === 0
+      title: targetConversation.messages.length === 0
         ? truncateMessage(message.content)
-        : current.title,
+        : targetConversation.title,
     };
 
+    // Check if user is still viewing this conversation
+    const isStillCurrentConversation = targetConversation.id === get().currentConversation?.id;
+
     set({
-      currentConversation: updatedConversation,
+      currentConversation: isStillCurrentConversation ? updatedConversation : get().currentConversation,
       conversations: get().conversations.map(c =>
-        c.id === current.id ? updatedConversation : c
+        c.id === targetConversation.id ? updatedConversation : c
       ),
     });
+
+    // Mark as unread if AI response is added to a conversation that user has switched away from
+    if (message.role === 'assistant' && !isStillCurrentConversation) {
+      get().markConversationUnread(targetConversation.id);
+    }
   },
 
   updateMessage: (messageId, updates) => {

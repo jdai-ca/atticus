@@ -82,17 +82,24 @@ export function buildOpenAIRequestBody(
         apiMessages.unshift({ role: 'system', content: systemPrompt });
     }
 
+    // Build body
+    const body: any = {
+        model: provider.model,
+        messages: apiMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+        })),
+        max_completion_tokens: maxTokens,
+    };
+
+    // Only include temperature if provider supports it
+    if (provider.supportsTemperature && temperature !== undefined) {
+        body.temperature = temperature;
+    }
+
     return {
         messages: apiMessages,
-        body: {
-            model: provider.model,
-            messages: apiMessages.map(m => ({
-                role: m.role,
-                content: m.content,
-            })),
-            temperature,
-            max_tokens: maxTokens,
-        },
+        body,
     };
 }
 

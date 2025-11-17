@@ -53,6 +53,7 @@ interface RawProviderTemplate {
         supportsMultimodal: boolean;
         supportsRAG: boolean;
         supportsStreaming?: boolean;
+        supportsTemperature?: boolean;
     };
     authentication: {
         apiKeyFormat: string;
@@ -232,7 +233,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.11';
+        return '0.9.12';
     }
 
     /**
@@ -311,6 +312,7 @@ export class ConfigLoader {
                 })),
             supportsMultimodal: provider.capabilities.supportsMultimodal,
             supportsRAG: provider.capabilities.supportsRAG,
+            supportsTemperature: provider.capabilities.supportsTemperature ?? true,
             apiKeyFormat: provider.authentication.apiKeyFormat,
             apiKeyLabel: provider.authentication.apiKeyLabel,
             getApiKeyUrl: provider.authentication.getApiKeyUrl,

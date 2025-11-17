@@ -67,6 +67,7 @@ async function sendOpenAIMessage(
     },
     body,
     provider: 'openai',
+    timeout: 3600000, // 60 minute timeout for extended thinking (GPT-5)
   }, openAIParser);
 }
 
@@ -96,7 +97,7 @@ async function sendAnthropicMessage(
         content: m.content,
       })),
       system: systemPrompt,
-      temperature,
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_tokens: maxTokens || 4000,
     }),
     timeout: 3600000, // 60 minute timeout for extended thinking
@@ -154,8 +155,8 @@ async function sendGoogleMessage(
     body: JSON.stringify({
       model: provider.model,
       messages: formattedMessages,
-      temperature,
-      max_tokens: maxTokens,
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+      max_completion_tokens: maxTokens,
     }),
     timeout: 60000, // 60 second timeout
   });
@@ -215,8 +216,8 @@ async function sendAzureOpenAIMessage(
         role: m.role,
         content: m.content,
       })),
-      temperature,
-      max_tokens: maxTokens,
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+      max_completion_tokens: maxTokens,
     }),
     timeout: 60000, // 60 second timeout
   });
@@ -284,8 +285,8 @@ async function sendCustomMessage(
       messages: systemPrompt
         ? [{ role: 'system', content: systemPrompt }, ...messages]
         : messages,
-      temperature,
-      max_tokens: maxTokens,
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+      max_completion_tokens: maxTokens,
     }),
     timeout: 60000, // 60 second timeout
   });

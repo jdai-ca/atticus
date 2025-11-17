@@ -65,6 +65,7 @@ export interface ProviderConfig {
   enabled: boolean;
   supportsMultimodal?: boolean;
   supportsRAG?: boolean;
+  supportsTemperature?: boolean;
   enabledModels?: string[]; // Array of model IDs that are enabled for selection
   modelDomains?: ModelDomainConfig[]; // Domain-specific model configuration (practice/advisory/both)
   hasApiKey?: boolean; // Indicates if API key is configured (main process only knows the actual key)
@@ -194,6 +195,7 @@ export interface Conversation {
   selectedModels?: SelectedModel[]; // Array of models to query for each message
   selectedJurisdictions?: Jurisdiction[]; // Array of jurisdictions to focus legal analysis on
   maxTokensOverride?: number; // User-selected maxTokens for this conversation (overrides model default)
+  hasUnreadResponses?: boolean; // Indicates if conversation has unread AI responses
 }
 
 export interface SelectedModel {

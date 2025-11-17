@@ -1,0 +1,5120 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 6625
+>>
+stream
+0.5670000000000001 w
+0 G
+0.96 0.97 1. rg
+0. 841.8899999999999864 595.2799999999999727 -141.7322834645669332 re
+f
+BT
+/F2 22 Tf
+25.2999999999999972 TL
+0.118 0.235 0.471 rg
+56.6929133858267775 785.1970866141732586 Td
+(Atticus - In-House AI Counsel) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+56.6929133858267775 751.1813385826771992 Td
+(Our organization is restructuring its board to inc...) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.314 g
+56.6929133858267775 722.8348818897637784 Td
+(Created: 11/10/2025, 2:56:06 PM) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.314 g
+56.6929133858267775 708.6616535433070112 Td
+(AI Models: azure-openai-1762795916151/gpt-4o, azure-openai-1762795916151/gpt-4o-mini, azure-openai-1762795916151/gpt-4) Tj
+ET
+0.78 G
+56.6929133858267775 677.480551181102328 m
+538.5870866141731312 677.480551181102328 l
+S
+0.86 0.9 1. rg
+48.1889763779527627 660.4726771653542983 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 649.1340944881889072 Td
+(You) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 649.1340944881889072 Td
+(2:56:50 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 626.4569291338582389 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 603.7797637795274568 Td
+(Our organization is restructuring its board to include more diverse members, but one candidate has) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 588.1892125984251152 Td
+(undisclosed ties to a competitor. Walk us through your due diligence process, potential conflicts of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 572.5986614173227736 Td
+(interest under corporate law, and how you'd structure a resolution that aligns with long-term business) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 557.0081102362204319 Td
+(goals.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 660.4726771653542983 498.9020472440944332 -119.0551181102362364 re
+S
+0.96 g
+48.1889763779527627 518.7403937007873083 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 507.4018110236219741 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 507.4018110236219741 Td
+(2:57:09 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 484.7246456692913057 Td
+(Azure OpenAI - GPT-4o) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 467.716771653543276 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 445.0396062992125508 Td
+(Restructuring a board is a significant step toward improving governance, and prioritizing diversity is) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 429.4490551181101523 Td
+(commendable. However, the undisclosed ties to a competitor raise potential conflicts of interest and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 413.8585039370078107 Td
+(fiduciary duty concerns. Below, I outline a robust due diligence process, assess the potential legal issues) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 398.2679527559054691 Td
+(under corporate law, and propose steps for resolution that align with your long-term business goals.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 374.1734645669290558 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 350.0789763779526993 Td
+(1. Due Diligence Process for Board Candidates) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 314.6459055118109518 Td
+(The due diligence process must ensure that all candidates meet the organization's expectations for) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 299.0553543307086102 Td
+(integrity, independence, and alignment with fiduciary responsibilities. For the candidate in question:) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 274.9608661417322537 Td
+(Step 1: Background and Conflict Check) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 249.4490551181102092 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 249.4490551181102092 Td
+(Investigate the undisclosed ties to the competitor:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 233.8585039370077538 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 233.8585039370077538 Td
+(Direct relationships: Check whether the candidate serves as a director, officer, employee,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 218.2679527559054122 Td
+(or significant consultant for the competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 202.6774015748030706 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 202.6774015748030706 Td
+(Indirect relationships: Assess whether the candidate has ownership interests, familial) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 187.086850393700729 Td
+(relationships, or other financial ties to the competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 171.4962992125983874 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 171.4962992125983874 Td
+(Financial disclosures: Review the candidate’s financial interests, including stock ownership,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 155.9057480314959321 Td
+(equity positions, or compensation arrangements that may link them to the competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 140.3151968503935905 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 140.3151968503935905 Td
+(Third-party due diligence: Engage an external firm to conduct background checks for further) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 124.7246456692912489 Td
+(verification of undisclosed affiliations or conflicts.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 100.6301574803148924 Td
+(Step 2: Candidate’s Disclosure Obligations) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 75.1183464566928478 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 75.1183464566928478 Td
+(Require the candidate to complete a Director and Officer Questionnaire \(D&O Questionnaire\),) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 59.5277952755905062 Td
+(which includes:) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 1 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 7298
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 785.1970866141732586 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(Disclosure of all material financial interests.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 769.6065354330708033 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 769.6065354330708033 Td
+(Identification of relationships with competitors, significant suppliers, or customers.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 754.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 754.0159842519684616 Td
+(Confirmation of compliance with the organization’s conflict-of-interest policy.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 738.42543307086612 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 738.42543307086612 Td
+(Evaluate whether the candidate's failure to disclose the ties was inadvertent or intentional, as) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 722.8348818897637784 Td
+(this speaks to their integrity and suitability for board membership.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 698.7403937007873083 Td
+(Step 3: Competitor Analysis) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 673.2285826771653774 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 673.2285826771653774 Td
+(Assess the nature of the competitor’s business and determine whether it directly overlaps with) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 657.6380314960629221 Td
+(your organization’s strategic objectives.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 642.0474803149605805 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 642.0474803149605805 Td
+(Identify potential risks, such as the sharing of proprietary information or competitive intelligence,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 626.4569291338582389 Td
+(if the candidate is seated on the board.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 602.3624409448818824 Td
+(Step 4: Legal Review) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 576.8506299212597241 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 576.8506299212597241 Td
+(Review the organization’s bylaws, corporate governance guidelines, and any board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 561.2600787401574962 Td
+(conflict-of-interest policies to determine whether the candidate’s ties violate existing rules.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 545.6695275590550409 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 545.6695275590550409 Td
+(Evaluate whether the candidate qualifies as “independent” under applicable corporate) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 530.0789763779526993 Td
+(governance standards \(e.g., NYSE or NASDAQ listing rules, if applicable\).) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 505.9844881889763428 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 481.8899999999999295 Td
+(2. Potential Conflicts of Interest Under Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 446.4569291338582389 Td
+(The candidate’s ties to a competitor could create significant conflicts of interest, particularly under the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 430.8663779527558404 Td
+(following principles:) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 406.7718897637794839 Td
+(Fiduciary Duties of a Director) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 381.2600787401574394 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 381.2600787401574394 Td
+(Duty of Loyalty:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 365.6695275590550409 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 365.6695275590550409 Td
+(Directors must act in the best interest of the corporation and avoid situations where their) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 350.0789763779526993 Td
+(personal interests \(or those of a competitor\) conflict with the corporation’s interests.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 334.4884251968503008 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 334.4884251968503008 Td
+(Example: The candidate could be exposed to sensitive, competitively advantageous) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 318.8978740157480161 Td
+(information as a board member and use this information to benefit the competitor.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 294.8033858267715459 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 294.8033858267715459 Td
+(Duty of Confidentiality:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 279.2128346456692043 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 279.2128346456692043 Td
+(Directors owe a duty to maintain the confidentiality of the corporation’s proprietary) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 263.6222834645668627 Td
+(information, including trade secrets, strategies, and financial information.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 248.0317322834645211 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 248.0317322834645211 Td
+(A director with ties to a competitor might inadvertently or intentionally disclose confidential) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 232.4411811023621794 Td
+(information.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 208.3466929133857093 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 208.3466929133857093 Td
+(Corporate Opportunity Doctrine:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 192.7561417322833677 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 192.7561417322833677 Td
+(A director must not divert a business opportunity that belongs to the corporation to a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 177.1655905511810261 Td
+(competing entity.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 153.0711023622046696 Td
+(Disclosure Obligations) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 127.559291338582625 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 127.559291338582625 Td
+(Under the Delaware General Corporation Law \(DGCL\), directors must disclose all material facts) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 111.9687401574801697 Td
+(relating to potential conflicts of interest. Failure to disclose such ties could result in legal liability,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 96.3781889763778281 Td
+(including removal from the board.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 72.2837007874014716 Td
+(Liabilities) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 2 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 7725
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 785.1970866141732586 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 785.1970866141732586 Td
+(Breach of fiduciary duty: If the candidate uses their position to benefit a competitor or fails to act) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 769.6065354330708033 Td
+(in the best interests of your organization, they could be held liable for breaches of fiduciary) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 754.0159842519684616 Td
+(duties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 738.42543307086612 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 738.42543307086612 Td
+(Derivative lawsuits: Shareholders may bring a derivative suit if they believe the board has failed) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 722.8348818897637784 Td
+(to address the conflict adequately, potentially exposing the entire board to liability.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 698.7403937007873083 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 674.6459055118109518 Td
+(3. Structuring a Resolution) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 639.212834645669318 Td
+(Given the potential risks, the organization should take clear, proactive steps to address the situation.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 623.6222834645668627 Td
+(Here is a structured approach to resolution:) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 599.5277952755905062 Td
+(Step 1: Assess the Candidate’s Role and Necessity) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 574.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 574.0159842519684616 Td
+(Determine whether the candidate's expertise, background, or diversity perspective is critical to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 558.42543307086612 Td
+(the board’s long-term goals.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 542.8348818897636647 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 542.8348818897636647 Td
+(Assess whether the candidate’s potential contributions outweigh the risks of the conflict or) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 527.2443307086614368 Td
+(whether another candidate could bring similar value without the risks.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 503.1498425196849666 Td
+(Step 2: Evaluate the Conflict of Interest) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 477.6380314960629221 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 477.6380314960629221 Td
+(Engage independent legal counsel to assess whether the candidate’s ties to the competitor) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 462.0474803149605805 Td
+(create an actual, potential, or perceived conflict of interest.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 446.4569291338582389 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 446.4569291338582389 Td
+(Actual conflict: The candidate’s interests are directly adverse to your organization.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 430.8663779527558404 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 430.8663779527558404 Td
+(Potential conflict: The candidate’s interests may conflict in the future.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 415.2758267716534988 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 415.2758267716534988 Td
+(Perceived conflict: The candidate’s perceived ties to a competitor could undermine trust) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 399.6852755905511003 Td
+(and confidence in the board.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 375.5907874015747439 Td
+(Step 3: Develop Mitigation Measures) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 350.0789763779526993 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 350.0789763779526993 Td
+(If the organization decides to proceed with the candidate despite the ties, implement safeguards) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 334.4884251968503008 Td
+(to mitigate conflicts:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 318.8978740157480161 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 318.8978740157480161 Td
+(Recusal: Require the candidate to recuse themselves from board discussions or decisions) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 303.3073228346455608 Td
+(involving competitive strategy, pricing, or market-sensitive opportunities.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 287.7167716535432191 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 287.7167716535432191 Td
+(Non-disclosure agreements \(NDAs\): Require the candidate to sign a robust NDA that) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 272.1262204724408775 Td
+(explicitly prohibits sharing proprietary or competitive information with the competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 256.5356692913385359 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 256.5356692913385359 Td
+(Restricted access: Limit the candidate’s access to highly sensitive or proprietary) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 240.9451181102361943 Td
+(information, such as trade secrets or forward-looking strategies.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 225.354566929133739 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 225.354566929133739 Td
+(Periodic reviews: Conduct periodic reviews of the candidate’s performance and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 209.7640157480313974 Td
+(adherence to conflict-mitigation measures.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 185.6695275590550409 Td
+(Step 4: Amend Governance Policies) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 160.1577165354329964 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 160.1577165354329964 Td
+(Strengthen your conflict-of-interest policy to address situations like this in the future:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 144.5671653543306547 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 144.5671653543306547 Td
+(Require board candidates to disclose all material relationships with competitors, suppliers,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 128.9766141732283131 Td
+(or customers as part of the vetting process.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 113.3860629921258578 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 113.3860629921258578 Td
+(Establish clear procedures for identifying, disclosing, and addressing conflicts of interest.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 97.7955118110235162 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 97.7955118110235162 Td
+(Include a provision allowing for removal of directors who fail to disclose relevant conflicts.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 73.7010236220471597 Td
+(Step 5: Communicate with Stakeholders) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 3 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+9 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 5339
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 785.1970866141732586 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 785.1970866141732586 Td
+(Transparency is key to maintaining trust in the board:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 769.6065354330708033 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 769.6065354330708033 Td
+(Communicate the situation and the resolution to shareholders, emphasizing the steps) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 754.0159842519684616 Td
+(taken to protect the corporation’s interests.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 738.42543307086612 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 738.42543307086612 Td
+(Highlight the board’s commitment to good governance and its efforts to strengthen) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 722.8348818897637784 Td
+(policies.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 698.7403937007873083 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 674.6459055118109518 Td
+(4. Recommendation for Resolution) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 639.212834645669318 Td
+(Given the seriousness of the undisclosed ties to a competitor, the organization has two primary options:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 615.1183464566928478 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 615.1183464566928478 Td
+(Exclude the Candidate from Consideration:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 599.5277952755905062 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 599.5277952755905062 Td
+(If the ties to the competitor create an unavoidable conflict or if the candidate’s failure to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 583.9372440944881646 Td
+(disclose appears intentional, it may be in the best interest of the organization to withdraw) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 568.346692913385823 Td
+(their nomination.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 552.7561417322833677 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 552.7561417322833677 Td
+(Prioritize other diverse candidates who meet the governance standards without posing) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 537.1655905511811397 Td
+(similar risks.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 513.0711023622046696 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 513.0711023622046696 Td
+(Proceed with Mitigation Measures:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 497.480551181102328 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 497.480551181102328 Td
+(If the candidate’s skills and perspectives are critical to the organization’s goals, implement) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 481.8899999999999295 Td
+(the mitigation measures outlined above to address the conflict and protect the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 466.2994488188975879 Td
+(corporation’s interests.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 442.2049606299212314 Td
+(Long-Term Goal Alignment:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 426.614409448818833 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 426.614409448818833 Td
+(By addressing this situation transparently and proactively, the board demonstrates its) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 411.0238582677164914 Td
+(commitment to diversity, good governance, and protecting shareholder value.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 395.4333070866140929 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 395.4333070866140929 Td
+(Strengthening governance policies and procedures ensures the organization is better prepared) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 379.8427559055117513 Td
+(to identify and manage conflicts of interest in the future.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 355.7482677165353948 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 331.6537795275589815 Td
+(Important Legal Disclaimer) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 304.7246456692912489 Td
+(This analysis is for informational purposes only and does not constitute legal advice. Addressing conflicts) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 289.1340944881889072 Td
+(of interest and fiduciary duties requires careful legal analysis tailored to your organization’s unique) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 273.5435433070865656 Td
+(circumstances. You should consult with licensed corporate counsel to ensure compliance with applicable) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 257.952992125984224 Td
+(laws and governance standards.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 518.7403937007873083 498.9020472440944332 -276.3779527559055396 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 4 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+11 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 12 0 R
+>>
+endobj
+12 0 obj
+<<
+/Length 7436
+>>
+stream
+0.8503937007874016 w
+0.78 G
+0.94 0.94 0.98 rg
+42.5196850393700814 785.1970866141731449 510.2406299212597673 -34.0157480314960665 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+0.275 0.275 0.588 rg
+56.6929133858267775 762.5199212598424765 Td
+(--- Response from Azure OpenAI \(GPT-4o mini\) ---) Tj
+ET
+0.96 g
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 734.1734645669291695 Td
+(2:57:09 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 711.4962992125983874 Td
+(Azure OpenAI - GPT-4o mini) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 694.4884251968503577 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 671.8112598425196893 Td
+(When considering the inclusion of a board candidate with undisclosed ties to a competitor, it's essential to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 656.2207086614173477 Td
+(follow a thorough due diligence process to assess potential conflicts of interest and ensure compliance) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 640.6301574803148924 Td
+(with corporate governance principles. Here’s how to approach this situation:) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 616.5356692913385359 Td
+(Due Diligence Process) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 581.1025984251967884 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 581.1025984251967884 Td
+(Background Checks:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 565.5120472440944468 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 565.5120472440944468 Td
+(Conduct comprehensive background checks on the candidate, focusing on professional) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 549.9214960629921052 Td
+(history, affiliations, and any ties to competitors.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 534.3309448818897636 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 534.3309448818897636 Td
+(Review public records, LinkedIn profiles, and news articles to gather information on the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 518.7403937007873083 Td
+(candidate’s past roles and relationships.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 494.6459055118109518 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 494.6459055118109518 Td
+(Conflict of Interest Assessment:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 479.0553543307086102 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 479.0553543307086102 Td
+(Identify any direct or indirect relationships the candidate may have with the competitor,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 463.4648031496062686 Td
+(including financial interests, advisory roles, or other affiliations.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 447.8742519685038701 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 447.8742519685038701 Td
+(Assess how these ties might influence the candidate's ability to act in the best interest of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 432.2837007874015285 Td
+(your organization.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 408.1892125984251152 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 408.1892125984251152 Td
+(Legal Compliance Review:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 392.5986614173227736 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 392.5986614173227736 Td
+(Ensure that the candidate’s background complies with relevant corporate governance) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 377.0081102362204319 Td
+(laws, such as the Delaware General Corporation Law, which outlines standards for board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 361.4175590551180335 Td
+(member qualifications and fiduciary duties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 345.8270078740156919 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 345.8270078740156919 Td
+(Review any applicable bylaws or codes of conduct that govern conflicts of interest.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 321.7325196850392786 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 321.7325196850392786 Td
+(Interviews and Discussions:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 306.1419685039369369 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 306.1419685039369369 Td
+(Conduct interviews with the candidate to discuss their qualifications and any potential) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 290.5514173228345953 Td
+(conflicts openly. This should include questions about their understanding of confidentiality) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 274.9608661417322537 Td
+(and loyalty to your organization.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 259.3703149606297984 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 259.3703149606297984 Td
+(Gather insights from current board members or executives regarding their perceptions of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 243.7797637795274568 Td
+(the candidate’s suitability and potential conflicts.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 219.6852755905511003 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 219.6852755905511003 Td
+(Consult Legal Counsel:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 204.0947244094487587 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 204.0947244094487587 Td
+(Engage with legal counsel to assess the implications of the candidate’s ties to a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 188.5041732283464171 Td
+(competitor and to understand the legal framework surrounding conflicts of interest.) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 164.4096850393699469 Td
+(Potential Conflicts of Interest) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 128.9766141732283131 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 128.9766141732283131 Td
+(Fiduciary Duties:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 113.3860629921258578 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 113.3860629921258578 Td
+(Board members owe fiduciary duties of care and loyalty to the corporation. The) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 97.7955118110235162 Td
+(candidate's undisclosed ties could lead to divided loyalties, which may hinder their ability) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 82.2049606299211746 Td
+(to act in the best interest of your organization.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 58.1104724409448181 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 58.1104724409448181 Td
+(Competitive Intelligence:) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 5 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+13 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 14 0 R
+>>
+endobj
+14 0 obj
+<<
+/Length 6575
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 785.1970866141732586 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(The candidate may unintentionally or intentionally share sensitive information with the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 769.6065354330708033 Td
+(competitor, risking the confidentiality and competitive advantage of your organization.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 745.5120472440944468 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 745.5120472440944468 Td
+(Regulatory Scrutiny:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 729.9214960629921052 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 729.9214960629921052 Td
+(Depending on the industry, regulatory bodies may scrutinize board appointments and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 714.3309448818897636 Td
+(potential conflicts, particularly if there are antitrust concerns.) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 690.2364566929134071 Td
+(Structuring a Resolution) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 654.8033858267716596 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 654.8033858267716596 Td
+(Disclosure Requirement:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 639.212834645669318 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 639.212834645669318 Td
+(Require the candidate to disclose all relevant connections and relationships. This should) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 623.6222834645668627 Td
+(be documented formally to create a transparency record.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 599.5277952755905062 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 599.5277952755905062 Td
+(Board Committee Review:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 583.9372440944881646 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 583.9372440944881646 Td
+(Form a governance committee to evaluate the candidate based on the disclosed) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 568.346692913385823 Td
+(information. This committee can assess whether the candidate’s experience outweighs) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 552.7561417322833677 Td
+(potential conflicts.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 528.6616535433070112 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 528.6616535433070112 Td
+(Independent Oversight:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 513.0711023622046696 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 513.0711023622046696 Td
+(Consider appointing an independent board member or advisor to oversee matters related) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 497.480551181102328 Td
+(to the candidate’s involvement, ensuring that decisions are made without bias.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 473.3860629921259147 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 473.3860629921259147 Td
+(Conditional Appointment:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 457.795511811023573 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 457.795511811023573 Td
+(If the candidate is deemed suitable, consider a conditional appointment with specific) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 442.2049606299212314 Td
+(guidelines on how to handle any potential conflicts. This may include recusal from certain) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 426.614409448818833 Td
+(discussions or decisions related to competitive matters.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 402.5199212598424765 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 402.5199212598424765 Td
+(Conflict of Interest Policy:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 386.929370078740078 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 386.929370078740078 Td
+(Update or reinforce the organization’s conflict of interest policy to ensure that all board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 371.3388188976377364 Td
+(members understand their obligations to disclose any potential conflicts in the future.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 347.24433070866138 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 347.24433070866138 Td
+(Long-term Strategy Alignment:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 331.6537795275589815 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 331.6537795275589815 Td
+(Communicate the commitment to diversity and inclusion while emphasizing the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 316.0632283464566399 Td
+(importance of board integrity and alignment with long-term business goals. This may) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 300.4726771653542983 Td
+(involve training sessions or workshops on ethical decision-making and conflict) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 284.882125984251843 Td
+(management.) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 260.7876377952754865 Td
+(Conclusion) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 225.354566929133739 Td
+(By conducting thorough due diligence, openly addressing potential conflicts, and implementing a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 209.7640157480313974 Td
+(structured resolution process, your organization can make informed decisions about board appointments) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 194.1734645669290558 Td
+(that align with long-term business goals. However, it is crucial to engage specialized legal counsel) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 178.5829133858267141 Td
+(throughout this process to ensure compliance with all relevant corporate governance standards and to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 162.9923622047243725 Td
+(mitigate risks associated with potential conflicts of interest.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -598.1102362204725296 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 6 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+15 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 16 0 R
+>>
+endobj
+16 0 obj
+<<
+/Length 2350
+>>
+stream
+0.8503937007874016 w
+0.78 G
+0.94 0.94 0.98 rg
+42.5196850393700814 785.1970866141731449 510.2406299212597673 -34.0157480314960665 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+0.275 0.275 0.588 rg
+56.6929133858267775 762.5199212598424765 Td
+(--- Response from Azure OpenAI \(GPT-4\) ---) Tj
+ET
+0.96 g
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 734.1734645669291695 Td
+(2:57:09 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 711.4962992125983874 Td
+(Azure OpenAI - GPT-4) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 694.4884251968503577 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 671.8112598425196893 Td
+(Error: Context window too small. Max: 8192, System prompt uses: 6384. Please check your API) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 656.2207086614173477 Td
+(configuration. Suggestion: Use models with larger context windows \(128K+\) or reduce selected) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 640.6301574803148924 Td
+(jurisdictions/complexity.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -120.472440944881896 re
+S
+0.86 0.9 1. rg
+48.1889763779527627 602.3624409448818824 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 591.0238582677164914 Td
+(You) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 591.0238582677164914 Td
+(9:14:44 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 568.346692913385823 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 545.6695275590550409 Td
+(Solidify these as talking points for a board meeting.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 602.3624409448818824 498.9020472440944332 -72.2834645669291405 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 7 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+17 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 18 0 R
+>>
+endobj
+18 0 obj
+<<
+/Length 7486
+>>
+stream
+0.8503937007874016 w
+0.78 G
+0.94 0.94 0.98 rg
+42.5196850393700814 785.1970866141731449 510.2406299212597673 -34.0157480314960665 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+0.275 0.275 0.588 rg
+56.6929133858267775 762.5199212598424765 Td
+(--- Response from Azure OpenAI \(GPT-4o\) ---) Tj
+ET
+0.96 g
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 734.1734645669291695 Td
+(9:15:01 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 711.4962992125983874 Td
+(Azure OpenAI - GPT-4o) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 694.4884251968503577 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 671.8112598425196893 Td
+(For the upcoming board meeting, the following talking points should provide a clear and structured) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 656.2207086614173477 Td
+(framework for discussing the candidate with ties to a competitor. These talking points balance the need) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 640.6301574803148924 Td
+(for transparency and governance rigor while supporting strategic decision-making around board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 625.0396062992125508 Td
+(composition and business goals.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 600.9451181102361943 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 576.8506299212597241 Td
+(1. Introduction) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 549.9214960629921052 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 549.9214960629921052 Td
+(Objective: Address the due diligence findings regarding the board candidate with undisclosed) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 534.3309448818897636 Td
+(ties to a competitor and determine the best course of action.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 518.7403937007873083 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 518.7403937007873083 Td
+(Goal: Reinforce the board’s commitment to good governance, mitigating risks, and aligning with) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 503.1498425196849666 Td
+(the corporation’s long-term interests.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 479.0553543307086102 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 454.9608661417322537 Td
+(2. Overview of the Situation) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 428.0317322834645211 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 428.0317322834645211 Td
+(Candidate Details:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 412.4411811023621226 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 412.4411811023621226 Td
+(The candidate in question was identified as having undisclosed ties to [Competitor Name].) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 396.850629921259781 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 396.850629921259781 Td
+(These ties may create an actual, potential, or perceived conflict of interest.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 381.2600787401574394 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 381.2600787401574394 Td
+(Importance of Inclusion: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 365.6695275590550409 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 365.6695275590550409 Td
+(This candidate was initially recommended due to their qualifications and their alignment) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 350.0789763779526993 Td
+(with the organization's commitment to increasing board diversity and expertise.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 334.4884251968503008 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 334.4884251968503008 Td
+(Key Issue: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 318.8978740157480161 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 318.8978740157480161 Td
+(Failure to disclose this professional relationship in the pre-screening process raises) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 303.3073228346455608 Td
+(concerns regarding transparency, loyalty, and fiduciary obligations.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 279.2128346456692043 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 255.1183464566928478 Td
+(3. Due Diligence Findings) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 228.1892125984251152 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 228.1892125984251152 Td
+(Undisclosed Ties:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 212.5986614173227736 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 212.5986614173227736 Td
+(The candidate's role or financial interest in the competitor was not declared, despite being) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 197.0081102362204319 Td
+(material enough to trigger a conflict of interest.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 181.4175590551179766 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 181.4175590551179766 Td
+(Potential Risks Identified:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 165.827007874015635 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 165.827007874015635 Td
+(Fiduciary Duty of Loyalty: A conflict of interest could compromise their ability to prioritize) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 150.2364566929132934 Td
+(the best interests of the organization over competing loyalties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 134.6459055118109518 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 134.6459055118109518 Td
+(Duty of Confidentiality: The risk of sensitive organizational information being accessed by) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 119.0553543307086102 Td
+(or shared with the competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 103.4648031496061549 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 103.4648031496061549 Td
+(Board Integrity and Trust: Perceived or actual conflicts could undermine trust in board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 87.8742519685038133 Td
+(governance and invite shareholder scrutiny.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 72.2837007874014716 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 72.2837007874014716 Td
+(Legal Compliance:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 56.69314960629913 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 56.69314960629913 Td
+(Under corporate law \(e.g., Delaware General Corporation Law\), undisclosed conflicts of) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 8 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+19 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 20 0 R
+>>
+endobj
+20 0 obj
+<<
+/Length 7812
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(interest could expose both the individual and the board to potential liability.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 761.1025984251967884 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 737.0081102362204319 Td
+(4. Strategic Discussion Framework) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 710.0789763779526993 Td
+(Option 1: Remove the Candidate from Consideration) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 684.5671653543306547 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 684.5671653543306547 Td
+(Advantages:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 668.9766141732283131 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 668.9766141732283131 Td
+(Protects the board from future risks associated with fiduciary breaches and governance) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 653.3860629921259715 Td
+(challenges.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 637.7955118110235162 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 637.7955118110235162 Td
+(Preserves the organization's reputation and demonstrates a zero-tolerance approach to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 622.2049606299212883 Td
+(undisclosed conflicts.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 606.614409448818833 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 606.614409448818833 Td
+(Avoids the need to implement complex mitigation strategies, which may still expose the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 591.0238582677164914 Td
+(organization to risk.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 575.4333070866141497 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 575.4333070866141497 Td
+(Disadvantages:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 559.8427559055116944 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 559.8427559055116944 Td
+(Losing the opportunity to include a potentially valuable and diverse voice on the board.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 535.748267716535338 Td
+(Option 2: Proceed with Mitigation Measures) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 510.2364566929133503 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 510.2364566929133503 Td
+(Governance Mitigations:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 494.6459055118109518 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 494.6459055118109518 Td
+(Require full disclosure of all ties and a formal declaration of commitment to fiduciary) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 479.0553543307086102 Td
+(duties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 463.4648031496062686 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 463.4648031496062686 Td
+(Implement conflict-management strategies, such as recusal from competitive discussions) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 447.8742519685038701 Td
+(and stricter NDAs.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 432.2837007874015285 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 432.2837007874015285 Td
+(Limit the candidate’s access to sensitive or competitively significant information.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 416.69314960629913 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 416.69314960629913 Td
+(Advantages:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 401.1025984251967884 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 401.1025984251967884 Td
+(Retains the expertise and diversity the candidate brings to the board.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 385.5120472440944468 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 385.5120472440944468 Td
+(Demonstrates a balanced approach to managing risks while meeting diversity goals.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 369.9214960629920483 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 369.9214960629920483 Td
+(Disadvantages:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 354.3309448818897067 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 354.3309448818897067 Td
+(Tailored mitigation strategies may still create vulnerability, particularly if the competitive) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 338.7403937007873083 Td
+(relationship becomes more significant over time.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 314.6459055118109518 Td
+(Option 3: Pause and Re-Assess) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 289.1340944881889072 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 289.1340944881889072 Td
+(Defer a final decision until additional due diligence is completed.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 273.5435433070865656 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 273.5435433070865656 Td
+(Seek further clarification on the candidate’s relationship with the competitor, including potential) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 257.952992125984224 Td
+(exit from those ties if appointed.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 233.8585039370077538 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 209.7640157480313974 Td
+(5. Long-Term Governance Improvements) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 182.8348818897636647 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 182.8348818897636647 Td
+(Proposed Action Items:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 167.2443307086613231 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 167.2443307086613231 Td
+(Update conflict-of-interest policy:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+121.8897637795275699 151.6537795275589815 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 151.6537795275589815 Td
+(Mandate periodic disclosures of relationships with competitors, vendors, and other) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 136.0632283464566399 Td
+(entities.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+121.8897637795275699 120.4726771653542983 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 120.4726771653542983 Td
+(Strengthen the screening process for new board members, emphasizing) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 104.882125984251843 Td
+(completeness and transparency.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 89.2915748031495013 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 89.2915748031495013 Td
+(Enhance the organization’s director and officer questionnaire \(D&O Questionnaire\) to) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 73.7010236220471597 Td
+(ensure comprehensive conflict detection.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 58.1104724409448181 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 58.1104724409448181 Td
+(Conduct governance training on fiduciary duties and conflict management for the board to) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+275.1199999999999477 28.3464566929134207 Td
+(Page 9 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+21 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 22 0 R
+>>
+endobj
+22 0 obj
+<<
+/Length 7484
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(reinforce compliance.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 769.6065354330708033 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 769.6065354330708033 Td
+(Key Messaging for Stakeholders:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 754.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 754.0159842519684616 Td
+(The board is committed to maintaining high standards of integrity and transparency while) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 738.42543307086612 Td
+(structuring itself for long-term strategic success.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 722.8348818897637784 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 722.8348818897637784 Td
+(Any decisions about this candidate will focus on protecting the organization’s competitive) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 707.2443307086614368 Td
+(position, shareholder value, and governance standards.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 683.1498425196850803 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 659.0553543307086102 Td
+(6. Next Steps) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 632.1262204724408775 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 632.1262204724408775 Td
+(Board Decision:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 616.5356692913385359 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 616.5356692913385359 Td
+(Agree collectively on the candidate’s status:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+121.8897637795275699 600.9451181102361943 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 600.9451181102361943 Td
+(Decline candidacy, proceed with conditions and mitigations, or defer for further) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+138.8976377952756138 585.3545669291338527 Td
+(inquiry.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 569.7640157480313974 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 569.7640157480313974 Td
+(Timelines: Establish clear timelines for final resolution, ensuring alignment with governance and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 554.1734645669291695 Td
+(operational priorities.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 538.5829133858267141 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 538.5829133858267141 Td
+(Stakeholder Communication:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 522.9923622047243725 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 522.9923622047243725 Td
+(Develop a communication plan to transparently articulate the board’s decision while) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 507.4018110236219741 Td
+(reinforcing confidence in the governance structure.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 491.8112598425196325 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 491.8112598425196325 Td
+(Alternate Candidates:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 476.2207086614172908 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 476.2207086614172908 Td
+(Initiate discussions on alternative candidates to ensure the diversity and expertise) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 460.6301574803148924 Td
+(objectives for the restructuring are preserved if the candidate is removed.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 436.5356692913385359 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 412.4411811023621226 Td
+(7. Conclusion and Final Recommendation) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 385.5120472440944468 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 385.5120472440944468 Td
+(The board should:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+93.5433070866141776 369.9214960629920483 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 369.9214960629920483 Td
+(Carefully weigh the candidate’s qualifications and potential contributions against the risks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 354.3309448818897067 Td
+(presented.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+93.5433070866141776 338.7403937007873083 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 338.7403937007873083 Td
+(Demonstrate leadership in addressing the issue transparently, responsibly, and in) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 323.1498425196849666 Td
+(alignment with the corporation’s governance principles.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+93.5433070866141776 307.559291338582625 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 307.559291338582625 Td
+(Act decisively to mitigate any reputational or fiduciary risks, while maintaining the integrity) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 291.9687401574802834 Td
+(of the board’s composition process.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 267.8742519685038133 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 243.7797637795274568 Td
+(Additional Notes for Discussion \(If Needed\)) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 216.8506299212597241 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 216.8506299212597241 Td
+(Business Implications: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 201.2600787401573825 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 201.2600787401573825 Td
+(Highlight how a decision on this candidate aligns with the strategic priorities of the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 185.6695275590550409 Td
+(organization \(e.g., innovation, market positioning, shareholder value\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 170.0789763779526993 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 170.0789763779526993 Td
+(Precedent: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 154.4884251968503577 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 154.4884251968503577 Td
+(Consider the long-term precedents this decision could set for future board appointments) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 138.8978740157479024 Td
+(and conflict management.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 123.3073228346455608 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 123.3073228346455608 Td
+(Legal Risks Summary: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 107.7167716535432191 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 107.7167716535432191 Td
+(Briefly outline potential legal exposure if the conflict is not adequately addressed,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 92.1262204724408775 Td
+(emphasizing fiduciary duty under Delaware law or otherwise applicable jurisdiction.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 68.0317322834645211 Td
+(---) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 10 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+23 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 24 0 R
+>>
+endobj
+24 0 obj
+<<
+/Length 1008
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 776.69314960629913 Td
+(Important Disclaimer:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 749.7640157480315111 Td
+(The content of this discussion reflects a high-level strategy and does not constitute legal advice. Any) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 734.1734645669291695 Td
+(decision-making process should be reviewed with the guidance of external counsel to ensure compliance) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 718.5829133858267141 Td
+(with applicable corporate laws and governance standards.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -42.5196850393700814 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 11 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+25 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 26 0 R
+>>
+endobj
+26 0 obj
+<<
+/Length 7107
+>>
+stream
+0.8503937007874016 w
+0.78 G
+0.94 0.94 0.98 rg
+42.5196850393700814 785.1970866141731449 510.2406299212597673 -34.0157480314960665 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+0.275 0.275 0.588 rg
+56.6929133858267775 762.5199212598424765 Td
+(--- Response from Azure OpenAI \(GPT-4o mini\) ---) Tj
+ET
+0.96 g
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 734.1734645669291695 Td
+(9:15:01 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 711.4962992125983874 Td
+(Azure OpenAI - GPT-4o mini) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 694.4884251968503577 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 671.8112598425196893 Td
+(Certainly! Here are solidified talking points to present at your board meeting regarding the inclusion of a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 656.2207086614173477 Td
+(candidate with undisclosed ties to a competitor, including due diligence, potential conflicts of interest, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 640.6301574803148924 Td
+(resolution strategies.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 616.5356692913385359 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 592.4411811023621794 Td
+(Talking Points for Board Meeting) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 557.0081102362204319 Td
+(1. Introduction) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 531.4962992125983874 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 531.4962992125983874 Td
+(Objective: Discuss the potential addition of [Candidate’s Name] to the board, including their) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 515.9057480314959321 Td
+(qualifications and the implications of their undisclosed ties to a competitor.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 500.3151968503936473 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 500.3151968503936473 Td
+(Focus: Prioritize transparency, integrity, and alignment with our corporate governance standards.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 476.2207086614172908 Td
+(2. Due Diligence Process) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 450.7088976377952463 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 450.7088976377952463 Td
+(Background Checks: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 435.1183464566928478 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 435.1183464566928478 Td
+(We conducted comprehensive background checks on [Candidate’s Name], reviewing their) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 419.5277952755905062 Td
+(professional history and affiliations.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 403.9372440944881077 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 403.9372440944881077 Td
+(The findings raised concerns regarding undisclosed ties to [Competitor’s Name].) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 379.8427559055117513 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 379.8427559055117513 Td
+(Conflict of Interest Assessment: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 364.2522047244094097 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 364.2522047244094097 Td
+(Analyzed potential direct and indirect relationships with [Competitor’s Name], with a focus) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 348.6616535433070112 Td
+(on financial interests and consulting roles.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 324.5671653543306547 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 324.5671653543306547 Td
+(Legal Compliance Review:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 308.9766141732283131 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 308.9766141732283131 Td
+(Ensured alignment with the Delaware General Corporation Law and our internal) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 293.3860629921258578 Td
+(governance policies regarding board member qualifications.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 269.2915748031495013 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 269.2915748031495013 Td
+(Interviews and Engagements: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 253.7010236220471597 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 253.7010236220471597 Td
+(Engaged in discussions with [Candidate’s Name] to clarify their vision, values, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 238.1104724409448181 Td
+(understanding of their responsibilities related to board duties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 214.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 214.0159842519684616 Td
+(Legal Counsel Involvement: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 198.4254330708660063 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 198.4254330708660063 Td
+(Engaged with our legal counsel to understand the legal framework surrounding this) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 182.8348818897636647 Td
+(potential conflict and its implications.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 158.7403937007873083 Td
+(3. Potential Conflicts of Interest) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 133.2285826771652637 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 133.2285826771652637 Td
+(Fiduciary Duties: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 117.6380314960629221 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 117.6380314960629221 Td
+(Highlight the importance of the fiduciary duties of care and loyalty, which may be) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 102.0474803149605805 Td
+(compromised due to the candidate’s ties.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 77.9529921259841103 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 77.9529921259841103 Td
+(Competitive Intelligence Risks: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 62.3624409448817687 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 62.3624409448817687 Td
+(Discuss potential risks regarding the sharing of sensitive, proprietary information that) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 12 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+27 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 28 0 R
+>>
+endobj
+28 0 obj
+<<
+/Length 7203
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(could advantage [Competitor’s Name].) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 761.1025984251967884 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 761.1025984251967884 Td
+(Regulatory Scrutiny: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 745.5120472440944468 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 745.5120472440944468 Td
+(Acknowledge the possibility of regulatory scrutiny linked to board appointments and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 729.9214960629921052 Td
+(potential conflicts, especially in our industry.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 705.8270078740157487 Td
+(4. Proposed Resolution Strategies) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 680.3151968503937042 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 680.3151968503937042 Td
+(Disclosure Requirement:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 664.7246456692912489 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 664.7246456692912489 Td
+(Recommend the formal requirement for the candidate to disclose all relevant connections) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 649.1340944881889072 Td
+(and affiliations going forward.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 625.0396062992125508 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 625.0396062992125508 Td
+(Board Committee Review:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 609.4490551181102092 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 609.4490551181102092 Td
+(Propose the formation of a governance committee to evaluate the candidate’s suitability) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 593.8585039370078675 Td
+(based on the disclosed information and mitigate risks.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 569.7640157480313974 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 569.7640157480313974 Td
+(Independent Oversight:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 554.1734645669291695 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 554.1734645669291695 Td
+(Suggest engaging an independent board member or advisor to oversee the candidate’s) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 538.5829133858267141 Td
+(participation on sensitive competitive matters.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 514.4884251968503577 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 514.4884251968503577 Td
+(Conditional Appointment:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 498.8978740157479592 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 498.8978740157479592 Td
+(If the board agrees to proceed, consider a conditional appointment, stipulating recusal) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 483.3073228346456176 Td
+(from discussions directly involving competitive strategies.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 459.2128346456692611 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 459.2128346456692611 Td
+(Conflict of Interest Policy Update:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 443.6222834645668627 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 443.6222834645668627 Td
+(Recommend reinforcing our conflict of interest policy, ensuring all board members are) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 428.0317322834645211 Td
+(aware of their obligations to disclose potential conflicts in the future.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 403.9372440944881077 Td
+(5. Long-term Strategy Alignment) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 378.4254330708660632 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 378.4254330708660632 Td
+(Commitment to Diversity and Inclusion:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 362.8348818897637216 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 362.8348818897637216 Td
+(Emphasize our ongoing commitment to enhancing board diversity while maintaining the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 347.24433070866138 Td
+(highest standards of integrity and governance.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 323.1498425196849666 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 323.1498425196849666 Td
+(Integrity and Trust:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 307.559291338582625 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 307.559291338582625 Td
+(Stress the importance of building and maintaining trust both internally and externally, as it) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 291.9687401574802834 Td
+(pertains to board governance and our corporate reputation.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 267.8742519685038133 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 267.8742519685038133 Td
+(Next Steps:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 252.2837007874014716 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 252.2837007874014716 Td
+(Outline plans to advance the discussion, including setting timelines for further evaluations) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 236.69314960629913 Td
+(and establishing a path to decision-making.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 212.5986614173227736 Td
+(---) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 188.5041732283464171 Td
+(Conclusion) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 161.5750393700786844 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 161.5750393700786844 Td
+(Final Thoughts: ) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 145.9844881889763428 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 145.9844881889763428 Td
+(Reiterate that successful governance requires balancing diverse perspectives with the) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 130.3939370078738875 Td
+(utmost candor and integrity.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 114.8033858267715459 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 114.8033858267715459 Td
+(Encourage an open dialogue regarding questions or concerns, ensuring we make a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 99.2128346456692043 Td
+(decision that serves the long-term interests of our organization. ) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 75.1183464566928478 Td
+(---) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 13 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+29 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 30 0 R
+>>
+endobj
+30 0 obj
+<<
+/Length 704
+>>
+stream
+0.8503937007874016 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 785.1970866141732586 Td
+(These talking points outline a comprehensive approach to addressing the situation while fostering) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 769.6065354330708033 Td
+(transparency and governance integrity during the board meeting.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 745.5120472440944468 498.9020472440944332 8.5039370078740166 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 14 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+31 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 32 0 R
+>>
+endobj
+32 0 obj
+<<
+/Length 1662
+>>
+stream
+0.8503937007874016 w
+0.78 G
+0.94 0.94 0.98 rg
+42.5196850393700814 785.1970866141731449 510.2406299212597673 -34.0157480314960665 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+0.275 0.275 0.588 rg
+56.6929133858267775 762.5199212598424765 Td
+(--- Response from Azure OpenAI \(GPT-4\) ---) Tj
+ET
+0.96 g
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 734.1734645669291695 Td
+(9:15:01 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 711.4962992125983874 Td
+(Azure OpenAI - GPT-4) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.471 0.314 0.314 rg
+56.6929133858267775 694.4884251968503577 Td
+(Practice Area: Corporate Law) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 671.8112598425196893 Td
+(Error: Context window too small. Max: 8192, System prompt uses: 6924. Please check your API) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 656.2207086614173477 Td
+(configuration. Suggestion: Use models with larger context windows \(128K+\) or reduce selected) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 640.6301574803148924 Td
+(jurisdictions/complexity.) Tj
+ET
+0.78 G
+0.8503937007874016 w
+48.1889763779527627 745.5120472440944468 498.9020472440944332 -120.472440944881896 re
+S
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+272.9200000000000159 28.3464566929134207 Td
+(Page 15 of 15) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R ]
+/Count 15
+>>
+endobj
+33 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+34 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+35 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+36 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+37 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+38 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+39 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+40 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+41 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+42 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+43 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+44 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+45 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+46 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 33 0 R
+/F2 34 0 R
+/F3 35 0 R
+/F4 36 0 R
+/F5 37 0 R
+/F6 38 0 R
+/F7 39 0 R
+/F8 40 0 R
+/F9 41 0 R
+/F10 42 0 R
+/F11 43 0 R
+/F12 44 0 R
+/F13 45 0 R
+/F14 46 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+47 0 obj
+<<
+/Producer (jsPDF 3.0.3)
+/CreationDate (D:20251117040404-05'00')
+>>
+endobj
+48 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 49
+0000000000 65535 f 
+0000086698 00000 n 
+0000088616 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000006829 00000 n 
+0000006966 00000 n 
+0000014316 00000 n 
+0000014453 00000 n 
+0000022230 00000 n 
+0000022368 00000 n 
+0000027760 00000 n 
+0000027899 00000 n 
+0000035388 00000 n 
+0000035527 00000 n 
+0000042155 00000 n 
+0000042294 00000 n 
+0000044697 00000 n 
+0000044836 00000 n 
+0000052375 00000 n 
+0000052514 00000 n 
+0000060379 00000 n 
+0000060518 00000 n 
+0000068055 00000 n 
+0000068194 00000 n 
+0000069255 00000 n 
+0000069394 00000 n 
+0000076554 00000 n 
+0000076693 00000 n 
+0000083949 00000 n 
+0000084088 00000 n 
+0000084844 00000 n 
+0000084983 00000 n 
+0000086851 00000 n 
+0000086977 00000 n 
+0000087108 00000 n 
+0000087242 00000 n 
+0000087380 00000 n 
+0000087504 00000 n 
+0000087633 00000 n 
+0000087765 00000 n 
+0000087901 00000 n 
+0000088029 00000 n 
+0000088156 00000 n 
+0000088285 00000 n 
+0000088418 00000 n 
+0000088520 00000 n 
+0000088869 00000 n 
+0000088955 00000 n 
+trailer
+<<
+/Size 49
+/Root 48 0 R
+/Info 47 0 R
+/ID [ <8BD458AB63932D99EC9035808C180EAD> <8BD458AB63932D99EC9035808C180EAD> ]
+>>
+startxref
+89059
+%%EOF

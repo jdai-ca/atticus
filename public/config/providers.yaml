@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.11"
+minAppVersion: "0.9.12"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -16,89 +16,49 @@ providers:
   - id: openai
     name: OpenAI
     displayName: OpenAI
-    description: GPT-4o, o1, GPT-4 Turbo, and GPT-3.5 models
+    description: GPT-5 collection of models
     endpoint: https://api.openai.com/v1/chat/completions
-    defaultModel: gpt-4o
+    defaultModel: gpt-5.1
 
     models:
-      - id: gpt-4o
-        name: GPT-4o
-        description: Most advanced multimodal model, faster and cheaper than GPT-4 Turbo
-        maxContextWindow: 128000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 16384
-        inputTokenPrice: 2.50
+      - id: gpt-5.1
+        name: GPT-5.1
+        description: Next-generation model with superior reasoning and creativity
+        maxContextWindow: 400000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
+        inputTokenPrice: 1.25
         outputTokenPrice: 10.00
         enabled: true
 
-      - id: gpt-4o-mini
-        name: GPT-4o mini
-        description: Affordable small model for fast, lightweight tasks
-        maxContextWindow: 128000
-        defaultMaxTokens: 2048
-        maxMaxTokens: 8192
-        inputTokenPrice: 0.15
-        outputTokenPrice: 0.60
+      - id: gpt-5
+        name: GPT-5
+        description: Advanced model with enhanced capabilities
+        maxContextWindow: 400000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
+        inputTokenPrice: 1.25
+        outputTokenPrice: 10.00
         enabled: true
 
-      - id: o1-preview
-        name: O1 Preview
-        description: Advanced reasoning model, excels at complex problem-solving
-        maxContextWindow: 128000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 32768
-        inputTokenPrice: 15.00
-        outputTokenPrice: 60.00
+      - id: gpt-5-mini
+        name: GPT-5 Mini
+        description: Balanced performance and cost for general tasks
+        maxContextWindow: 400000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
+        inputTokenPrice: 0.25
+        outputTokenPrice: 2.00
         enabled: true
 
-      - id: o1-mini
-        name: O1 Mini
-        description: Faster reasoning model, great for code and STEM
-        maxContextWindow: 128000
-        defaultMaxTokens: 2048
-        maxMaxTokens: 16384
-        inputTokenPrice: 3.00
-        outputTokenPrice: 12.00
-        enabled: true
-
-      - id: gpt-4-turbo
-        name: GPT-4 Turbo
-        description: GPT-4 with 128K context, vision capabilities
-        maxContextWindow: 128000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 16384
-        inputTokenPrice: 10.00
-        outputTokenPrice: 30.00
-        enabled: true
-
-      - id: gpt-4-turbo-preview
-        name: GPT-4 Turbo Preview
-        description: Preview version of GPT-4 Turbo
-        maxContextWindow: 128000
-        defaultMaxTokens: 4096
-        maxMaxTokens: 16384
-        inputTokenPrice: 10.00
-        outputTokenPrice: 30.00
-        enabled: true
-
-      - id: gpt-4
-        name: GPT-4
-        description: High quality, comprehensive responses (8K context)
-        maxContextWindow: 8192
-        defaultMaxTokens: 2048
-        maxMaxTokens: 4096
-        inputTokenPrice: 30.00
-        outputTokenPrice: 60.00
-        enabled: true
-
-      - id: gpt-3.5-turbo
-        name: GPT-3.5 Turbo
-        description: Fast and cost-effective for simple queries
-        maxContextWindow: 16385
-        defaultMaxTokens: 2048
-        maxMaxTokens: 4096
-        inputTokenPrice: 0.50
-        outputTokenPrice: 1.50
+      - id: gpt-5-nano
+        name: GPT-5 Nano
+        description: Cost-effective version of GPT-5 for general tasks
+        maxContextWindow: 400000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
+        inputTokenPrice: 0.05
+        outputTokenPrice: 0.40
         enabled: true
 
     capabilities:
@@ -106,6 +66,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
+      supportsTemperature: false
 
     authentication:
       apiKeyFormat: sk-...
@@ -160,6 +121,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: sk-ant-...
@@ -214,6 +176,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: AI...
@@ -268,6 +231,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: "..."
@@ -322,6 +286,7 @@ providers:
       supportsRAG: true
       supportsVision: true
       supportsFunctionCalling: false
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: xai-...
@@ -395,6 +360,7 @@ providers:
       supportsMultimodal: false
       supportsRAG: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: "..."
@@ -458,6 +424,7 @@ providers:
       supportsMultimodal: false
       supportsRAG: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: "..."
@@ -531,6 +498,7 @@ providers:
       supportsMultimodal: false
       supportsRAG: true
       supportsFunctionCalling: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: gsk_...
@@ -596,6 +564,7 @@ providers:
       supportsFunctionCalling: false
       supportsWebSearch: true
       supportsCitations: true
+      supportsTemperature: true
 
     authentication:
       apiKeyFormat: pplx-...
