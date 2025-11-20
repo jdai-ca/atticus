@@ -173,6 +173,7 @@ export interface Message {
     modelName: string;
   };
   apiTrace?: APITrace; // API call trace for debugging
+  tags?: string[]; // Tags for categorization and search (e.g., 'interesting', 'important', 'wisdom')
 }
 
 export interface Attachment {

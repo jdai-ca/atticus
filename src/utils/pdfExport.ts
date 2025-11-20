@@ -278,7 +278,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
   // Message header with background
   pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
+  pdf.setFont('times', 'bold');
   const role = message.role === 'user' ? 'You' : 'Assistant';
   const timestamp = DateUtils.formatTime(message.timestamp);
 
@@ -290,7 +290,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   pdf.text(`${role}`, margin, y);
 
   // Timestamp on the right
-  pdf.setFont('helvetica', 'normal');
+  pdf.setFont('times', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(100, 100, 100);
   const timestampWidth = pdf.getTextWidth(timestamp);
@@ -340,7 +340,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     // Set font based on segment type
     if (segment.isHeading) {
       pdf.setFontSize(segment.fontSize || 12);
-      pdf.setFont('helvetica', 'bold');
+      pdf.setFont('times', 'bold');
       pdf.setTextColor(0, 0, 80);
       const lines = pdf.splitTextToSize(segment.text, maxWidth - 6);
       for (const line of lines) {
@@ -377,7 +377,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     // Bullet points
     if (segment.isBullet) {
       pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
+      pdf.setFont('times', 'normal');
       const bulletIndent = margin + (segment.indent || 0) * 10 + 3;
 
       // Draw bullet
@@ -404,7 +404,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     // Numbered lists
     if (segment.isNumbered) {
       pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
+      pdf.setFont('times', 'normal');
       const numberIndent = margin + (segment.indent || 0) * 10 + 3;
 
       // We'd need to track numbering - for now just use bullets
@@ -428,7 +428,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
     // Regular text paragraphs
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
+    pdf.setFont('times', 'normal');
     const lines = pdf.splitTextToSize(segment.text, maxWidth - 6);
 
     for (const line of lines) {
@@ -442,7 +442,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   }
 
   pdf.setTextColor(0, 0, 0);
-  pdf.setFont('helvetica', 'normal');
+  pdf.setFont('times', 'normal');
 
   // Attachments
   if (message.attachments && message.attachments.length > 0) {
@@ -527,8 +527,8 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
 export async function downloadPDF(conversation: Conversation): Promise<void> {
   try {
     const pdfData = await exportConversationToPDF(conversation);
-    // Sanitize filename by replacing all non-alphanumeric characters with hyphens
-    const filename = `atticus-${conversation.title.split('').map(char => /[a-z0-9]/i.test(char) ? char : '-').join('').toLowerCase()}-${Date.now()}.pdf`;
+    // Use conversation ID with transcript type and timestamp
+    const filename = `atticus-${conversation.id}-transcript-${Date.now()}.pdf`;
 
     const result = await (globalThis as any).electronAPI.savePDF({
       filename,
@@ -564,12 +564,12 @@ export async function exportMessageToPDF(
 
   // Add simple header
   pdf.setFontSize(16);
-  pdf.setFont('helvetica', 'bold');
+  pdf.setFont('times', 'bold');
   pdf.setTextColor(30, 58, 138);
   pdf.text('Atticus AI', margin, 15);
 
   pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
+  pdf.setFont('times', 'normal');
   pdf.setTextColor(100, 100, 100);
   pdf.text(`From: ${conversationTitle}`, margin, 22);
   pdf.text(DateUtils.formatDate(new Date().toISOString()), pageWidth - margin - 30, 22);
@@ -595,13 +595,13 @@ export async function exportMessageToPDF(
  */
 export async function downloadMessagePDF(
   message: Message,
-  conversationTitle: string
+  conversationTitle: string,
+  conversationId: string
 ): Promise<void> {
   try {
     const pdfData = await exportMessageToPDF(message, conversationTitle);
     const role = message.role === 'user' ? 'user' : 'assistant';
-    const timestamp = new Date(message.timestamp).getTime();
-    const filename = `atticus-message-${role}-${timestamp}.pdf`;
+    const filename = `atticus-${conversationId}-message-${role}-${Date.now()}.pdf`;
 
     const result = await (globalThis as any).electronAPI.savePDF({
       filename,
@@ -615,4 +615,92 @@ export async function downloadMessagePDF(
     console.error('Error downloading message PDF:', error);
     throw error;
   }
+}
+
+/**
+ * Export a cluster of messages (query + responses) to PDF
+ */
+export async function downloadClusterPDF(
+  messages: Message[],
+  conversationTitle: string,
+  conversationId: string,
+  type: 'cluster' | 'analysis' = 'cluster'
+): Promise<void> {
+  try {
+    const pdfData = await exportClusterToPDF(messages, conversationTitle);
+    const filename = `atticus-${conversationId}-${type}-${Date.now()}.pdf`;
+
+    const result = await (globalThis as any).electronAPI.savePDF({
+      filename,
+      data: pdfData,
+    });
+
+    if (result.success && result.data) {
+      console.log('Cluster PDF saved:', result.data.filepath);
+    }
+  } catch (error) {
+    console.error('Error downloading cluster PDF:', error);
+    throw error;
+  }
+}
+
+/**
+ * Export a cluster of messages to PDF format
+ */
+export async function exportClusterToPDF(
+  messages: Message[],
+  conversationTitle: string
+): Promise<string> {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 20;
+  const maxWidth = pageWidth - (margin * 2);
+
+  // Add header
+  pdf.setFontSize(16);
+  pdf.setFont('times', 'bold');
+  pdf.setTextColor(30, 58, 138);
+  pdf.text('Atticus AI - Query & Response Cluster', margin, 15);
+
+  pdf.setFontSize(10);
+  pdf.setFont('times', 'normal');
+  pdf.setTextColor(100, 100, 100);
+  pdf.text(`From: ${conversationTitle}`, margin, 22);
+  pdf.text(DateUtils.formatDate(new Date().toISOString()), pageWidth - margin - 30, 22);
+
+  // Divider
+  pdf.setDrawColor(200, 200, 200);
+  pdf.line(margin, 28, pageWidth - margin, 28);
+
+  let yPosition = 35;
+
+  // Add all messages in the cluster
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i];
+
+    // Add spacing between messages
+    if (i > 0) {
+      yPosition += 5;
+    }
+
+    yPosition = addMessageContent(pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition);
+
+    // Check if we need a new page
+    if (yPosition > pageHeight - 40 && i < messages.length - 1) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+  }
+
+  // Add footers
+  addPDFFooters(pdf, pageWidth, pageHeight);
+
+  // Return as base64
+  return pdf.output('datauristring').split(',')[1];
 }

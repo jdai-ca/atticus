@@ -40,7 +40,7 @@ import {
   AuditEventType,
   AuditSeverity,
 } from "../services/appLogger";
-import { downloadMessagePDF } from "../utils/pdfExport";
+import { downloadMessagePDF, downloadClusterPDF } from "../utils/pdfExport";
 import { calculateCost } from "../utils/costCalculator";
 import CostReport from "./CostReport";
 import ConversationCostLedger from "./ConversationCostLedger";
@@ -96,6 +96,21 @@ export default function ChatWindow() {
     null
   );
 
+  // Tag Dialog state
+  const [showTagDialog, setShowTagDialog] = useState(false);
+  const [tagDialogClusterStart, setTagDialogClusterStart] = useState<number>(0);
+  const [tagDialogClusterEnd, setTagDialogClusterEnd] = useState<number>(0);
+  const [newTagInput, setNewTagInput] = useState<string>("");
+
+  // Analysis Dialog state
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+  const [analysisClusterStart, setAnalysisClusterStart] = useState<number>(0);
+  const [analysisClusterEnd, setAnalysisClusterEnd] = useState<number>(0);
+  const [selectedAnalysisModel, setSelectedAnalysisModel] = useState<
+    string | null
+  >(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   // Load provider templates on mount
   useEffect(() => {
     if (providerTemplates.length === 0) {
@@ -105,6 +120,286 @@ export default function ChatWindow() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Get all existing tags from all messages in current conversation
+  const getAllExistingTags = (): string[] => {
+    if (!currentConversation) return [];
+    const tagSet = new Set<string>();
+    currentConversation.messages.forEach((msg) => {
+      if (msg.tags) {
+        msg.tags.forEach((tag) => tagSet.add(tag));
+      }
+    });
+    return Array.from(tagSet).sort();
+  };
+
+  // Handle tag selection/deselection
+  const handleTagToggle = (tag: string) => {
+    for (let i = tagDialogClusterStart; i <= tagDialogClusterEnd; i++) {
+      const msg = currentConversation!.messages[i];
+      const tags = msg.tags || [];
+      const hasTag = tags.includes(tag);
+      useStore.getState().updateMessage(msg.id, {
+        tags: hasTag ? tags.filter((t) => t !== tag) : [...tags, tag],
+      });
+    }
+  };
+
+  // Handle adding a new tag
+  const handleAddNewTag = () => {
+    const tag = newTagInput.trim().toLowerCase().replace(/^#+/, ""); // Remove leading # if present
+    if (tag && !getAllExistingTags().includes(tag)) {
+      handleTagToggle(tag);
+      setNewTagInput("");
+    }
+  };
+
+  // Get models used in the current cluster
+  const getModelsUsedInCluster = (
+    startIndex: number,
+    endIndex: number
+  ): Set<string> => {
+    const usedModels = new Set<string>();
+    if (!currentConversation) return usedModels;
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      const msg = currentConversation.messages[i];
+      if (msg.role === "assistant" && msg.modelInfo) {
+        usedModels.add(`${msg.modelInfo.providerId}:${msg.modelInfo.modelId}`);
+      }
+    }
+    return usedModels;
+  };
+
+  // Get available models not used in cluster
+  const getAvailableAnalysisModels = (startIndex: number, endIndex: number) => {
+    const usedModels = getModelsUsedInCluster(startIndex, endIndex);
+    const availableModels: { key: string; label: string; provider: string }[] =
+      [];
+
+    config.providers.forEach((provider) => {
+      const template = providerTemplates.find(
+        (t) => t.id === provider.provider
+      );
+      if (!template) return;
+
+      template.models.forEach((model) => {
+        const modelKey = `${provider.id}:${model.id}`;
+        if (
+          !usedModels.has(modelKey) &&
+          isModelEnabled(provider.id, model.id)
+        ) {
+          availableModels.push({
+            key: modelKey,
+            label: model.name,
+            provider: provider.name || template.name,
+          });
+        }
+      });
+    });
+
+    return availableModels;
+  };
+
+  // Handle analysis execution
+  const handleRunAnalysis = async () => {
+    if (!currentConversation || !selectedAnalysisModel) return;
+
+    setIsAnalyzing(true);
+
+    try {
+      // Get the user query from the cluster
+      const userMessage = currentConversation.messages[analysisClusterStart];
+      if (userMessage.role !== "user") {
+        throw new Error("First message in cluster must be user message");
+      }
+
+      // Collect all assistant responses in the cluster
+      const responses: string[] = [];
+      for (let i = analysisClusterStart + 1; i <= analysisClusterEnd; i++) {
+        const msg = currentConversation.messages[i];
+        if (msg.role === "assistant" && msg.modelInfo) {
+          responses.push(`**${msg.modelInfo.modelName}**: ${msg.content}`);
+        }
+      }
+
+      // Construct analysis prompt
+      const analysisPrompt = `You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.
+
+**Original Query:**
+${userMessage.content}
+
+**Responses to Analyze:**
+${responses.join("\\n\\n")}
+
+**Your Task:**
+Provide a comprehensive analysis covering:
+1. **Consistency**: Are the responses consistent with each other?
+2. **Accuracy**: Do you identify any potential inaccuracies or confabulations?
+3. **Completeness**: Are there important points missed by any response?
+4. **Quality Ranking**: Rank the responses from best to worst with justification.
+5. **Recommendations**: Which response(s) should the user trust most and why?`;
+
+      // Parse selected model
+      const [providerId, modelId] = selectedAnalysisModel.split(":");
+      const provider = config.providers.find((p) => p.id === providerId);
+      const template = providerTemplates.find(
+        (t) => t.id === provider?.provider
+      );
+      const model = template?.models.find((m) => m.id === modelId);
+
+      if (!provider || !model) {
+        throw new Error("Selected model not found");
+      }
+
+      // Create provider config with selected model
+      const providerConfig = {
+        ...provider,
+        model: modelId,
+        endpoint: provider.endpoint || template?.endpoint || "",
+      };
+
+      // Add analysis request as a user message
+      const analysisMessageId = `msg_${Date.now()}_analysis`;
+      const analysisUserMessage: Message = {
+        id: analysisMessageId,
+        role: "user",
+        content: analysisPrompt,
+        timestamp: new Date().toISOString(),
+      };
+
+      addMessage(analysisUserMessage);
+
+      // Send to API
+      const result = await globalThis.window.electronAPI.secureChatRequest({
+        provider: providerConfig,
+        messages: [
+          ...currentConversation.messages.slice(0, analysisClusterEnd + 1),
+          analysisUserMessage,
+        ],
+        systemPrompt:
+          "You are an expert AI validator analyzing responses for accuracy, consistency, and potential confabulations.",
+        temperature: 0.3, // Lower temperature for more focused analysis
+        maxTokens: maxTokensOverride || 2048,
+      });
+
+      if (result.success && result.data) {
+        const response = result.data;
+
+        // Calculate cost if usage data is available
+        const apiTrace: APITrace = {
+          requestId: `req-${Date.now()}-analysis`,
+          timestamp: new Date().toISOString(),
+          provider: provider.provider,
+          model: modelId,
+          endpoint: provider.endpoint || template?.endpoint || "default",
+          durationMs: 0, // Duration not tracked for analysis requests
+          status: "success" as const,
+          usage: response.usage,
+          cost:
+            response.usage && model?.inputTokenPrice && model?.outputTokenPrice
+              ? calculateCost(response.usage, {
+                  inputTokenPrice: model.inputTokenPrice,
+                  outputTokenPrice: model.outputTokenPrice,
+                })
+              : undefined,
+        };
+
+        const assistantMessage: Message = {
+          id: `msg_${Date.now()}_analysis_response`,
+          role: "assistant",
+          content: response.content,
+          timestamp: new Date().toISOString(),
+          modelInfo: {
+            providerId: provider.id,
+            providerName: provider.name || template?.name || "Unknown",
+            modelId: model.id,
+            modelName: model.name,
+          },
+          apiTrace,
+        };
+
+        addMessage(assistantMessage);
+        await saveCurrentConversation();
+
+        logger.info("Analysis completed", {
+          model: selectedAnalysisModel,
+          clusterSize: analysisClusterEnd - analysisClusterStart + 1,
+          usage: response.usage,
+          cost: apiTrace.cost,
+        });
+
+        setShowAnalysisDialog(false);
+        setSelectedAnalysisModel(null);
+      } else {
+        // Handle API failure - create error message
+        const errorMessage = result.error?.message || "Analysis request failed";
+        const errorCode = result.error?.code || "UNKNOWN_ERROR";
+
+        logger.error("Analysis API call failed", {
+          errorCode,
+          errorMessage,
+          model: selectedAnalysisModel,
+        });
+
+        // Create error trace
+        const errorTrace: APITrace = {
+          requestId: `req-${Date.now()}-analysis-error`,
+          timestamp: new Date().toISOString(),
+          provider: provider.provider,
+          model: modelId,
+          endpoint: provider.endpoint || template?.endpoint || "default",
+          durationMs: 0,
+          status: "error" as const,
+          error: {
+            code: errorCode,
+            message: errorMessage,
+          },
+        };
+
+        // Add error message to conversation
+        const errorAssistantMessage: Message = {
+          id: `msg_${Date.now()}_analysis_error`,
+          role: "assistant",
+          content: `❌ **Analysis Failed**\n\n${errorMessage}\n\nError Code: ${errorCode}\n\nPlease check your API configuration and try again.`,
+          timestamp: new Date().toISOString(),
+          modelInfo: {
+            providerId: provider.id,
+            providerName: provider.name || template?.name || "Unknown",
+            modelId: model.id,
+            modelName: model.name,
+          },
+          apiTrace: errorTrace,
+        };
+
+        addMessage(errorAssistantMessage);
+        await saveCurrentConversation();
+
+        setShowAnalysisDialog(false);
+        setSelectedAnalysisModel(null);
+      }
+    } catch (error) {
+      logger.error("Analysis failed", { error });
+
+      // Create error message for unexpected failures
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_analysis_exception`,
+        role: "assistant",
+        content: `❌ **Analysis Error**\n\n${
+          (error as Error).message
+        }\n\nAn unexpected error occurred during analysis. Please try again.`,
+        timestamp: new Date().toISOString(),
+      };
+
+      addMessage(errorMessage);
+      await saveCurrentConversation();
+
+      setShowAnalysisDialog(false);
+      setSelectedAnalysisModel(null);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   useEffect(() => {
@@ -937,7 +1232,11 @@ export default function ChatWindow() {
     if (!currentConversation) return;
 
     try {
-      await downloadMessagePDF(message, currentConversation.title);
+      await downloadMessagePDF(
+        message,
+        currentConversation.title,
+        currentConversation.id
+      );
       logger.info("Message exported to PDF", { messageId: message.id });
     } catch (error) {
       logger.error("Failed to export message to PDF", { error });
@@ -1696,78 +1995,228 @@ export default function ChatWindow() {
             </p>
           </div>
         ) : (
-          currentConversation.messages.map((message, index) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-3xl rounded-lg p-4 ${
-                  message.role === "user"
-                    ? "bg-legal-blue text-white"
-                    : "bg-gray-800 text-gray-100"
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold">
-                      {message.role === "user" ? "You" : "Atticus"}
-                    </span>
-                    {/* Model badge for assistant messages */}
-                    {message.role === "assistant" && message.modelInfo && (
-                      <span className="inline-flex items-center gap-1 bg-gray-700 px-2 py-0.5 rounded text-xs text-legal-gold border border-legal-gold">
-                        <span className="text-sm">
-                          {providerTemplates.find(
-                            (t) =>
-                              config.providers.find(
-                                (p) => p.id === message.modelInfo?.providerId
-                              )?.provider === t.id
-                          )?.icon || "🤖"}
+          currentConversation.messages.map((message, index) => {
+            // Determine if this is the last assistant message in a cluster
+            const isLastInCluster =
+              message.role === "assistant" &&
+              (index === currentConversation.messages.length - 1 ||
+                currentConversation.messages[index + 1]?.role === "user");
+
+            // Find the start of this cluster (the user query)
+            let clusterStartIndex = index;
+            if (message.role === "assistant") {
+              for (let i = index; i >= 0; i--) {
+                if (currentConversation.messages[i].role === "user") {
+                  clusterStartIndex = i;
+                  break;
+                }
+              }
+            }
+
+            // Check if this is an analysis cluster (contains analysis messages)
+            const isAnalysisCluster =
+              isLastInCluster &&
+              (() => {
+                for (let i = clusterStartIndex; i <= index; i++) {
+                  if (
+                    currentConversation.messages[i].id.includes("_analysis")
+                  ) {
+                    return true;
+                  }
+                }
+                return false;
+              })();
+
+            // For analysis clusters, find the original cluster that was analyzed
+            let originalClusterStart = clusterStartIndex;
+            let originalClusterEnd = index;
+            if (isAnalysisCluster && clusterStartIndex > 0) {
+              // The analysis query should reference the cluster before it
+              // Walk backwards to find the previous cluster
+              for (let i = clusterStartIndex - 1; i >= 0; i--) {
+                if (
+                  currentConversation.messages[i].role === "assistant" &&
+                  (i === 0 ||
+                    currentConversation.messages[i + 1]?.role === "user")
+                ) {
+                  // Found the end of the previous cluster
+                  originalClusterEnd = i;
+                  // Now find its start
+                  for (let j = i; j >= 0; j--) {
+                    if (currentConversation.messages[j].role === "user") {
+                      originalClusterStart = j;
+                      break;
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+
+            return (
+              <>
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-3xl rounded-lg p-4 ${
+                      message.role === "user"
+                        ? "bg-legal-blue text-white"
+                        : "bg-gray-800 text-gray-100"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">
+                          {message.role === "user" ? "You" : "Atticus"}
                         </span>
-                        <span className="font-medium">
-                          {message.modelInfo.providerName}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span>{message.modelInfo.modelName}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {message.practiceArea && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-700">
-                        ⚖️ {message.practiceArea}
-                      </span>
-                    )}
-                    {message.advisoryArea && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700">
-                        💼 {message.advisoryArea}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                        {/* Model badge for assistant messages */}
+                        {message.role === "assistant" && message.modelInfo && (
+                          <span className="inline-flex items-center gap-1 bg-gray-700 px-2 py-0.5 rounded text-xs text-legal-gold border border-legal-gold">
+                            <span className="text-sm">
+                              {providerTemplates.find(
+                                (t) =>
+                                  config.providers.find(
+                                    (p) =>
+                                      p.id === message.modelInfo?.providerId
+                                  )?.provider === t.id
+                              )?.icon || "🤖"}
+                            </span>
+                            <span className="font-medium">
+                              {message.modelInfo.providerName}
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span>{message.modelInfo.modelName}</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {message.practiceArea && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-700">
+                            ⚖️ {message.practiceArea}
+                          </span>
+                        )}
+                        {message.advisoryArea && (
+                          <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700">
+                            💼 {message.advisoryArea}
+                          </span>
+                        )}
+                        {/* Display tags */}
+                        {message.tags &&
+                          message.tags.length > 0 &&
+                          message.tags.map((tag) => {
+                            let tagStyles =
+                              "bg-gray-700/30 text-gray-300 border-gray-600";
+                            if (tag === "interesting") {
+                              tagStyles =
+                                "bg-yellow-900/30 text-yellow-300 border-yellow-700";
+                            } else if (tag === "important") {
+                              tagStyles =
+                                "bg-red-900/30 text-red-300 border-red-700";
+                            } else if (tag === "wisdom") {
+                              tagStyles =
+                                "bg-purple-900/30 text-purple-300 border-purple-700";
+                            }
 
-                <div className="markdown-content">
-                  <ReactMarkdown>{message.content}</ReactMarkdown>
-                </div>
+                            return (
+                              <span
+                                key={tag}
+                                className={`text-xs px-2 py-0.5 rounded border ${tagStyles}`}
+                              >
+                                #{tag}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    </div>
 
-                {/* Cost Report - show token usage and cost for assistant messages */}
-                {message.role === "assistant" && message.apiTrace && (
-                  <CostReport apiTrace={message.apiTrace} />
-                )}
+                    <div className="markdown-content">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
 
-                {/* API Error Actions (Inspect & Resend) */}
-                {message.role === "assistant" &&
-                  message.apiTrace?.status === "error" && (
-                    <div className="mt-3 pt-3 border-t border-red-500/30 flex flex-wrap gap-2">
+                    {/* Cost Report - show token usage and cost for assistant messages */}
+                    {message.role === "assistant" && message.apiTrace && (
+                      <CostReport apiTrace={message.apiTrace} />
+                    )}
+
+                    {/* API Error Actions (Inspect & Resend) */}
+                    {message.role === "assistant" &&
+                      message.apiTrace?.status === "error" && (
+                        <div className="mt-3 pt-3 border-t border-red-500/30 flex flex-wrap gap-2">
+                          <button
+                            onClick={() =>
+                              setInspectedApiTrace(message.apiTrace!)
+                            }
+                            className="flex items-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors border border-red-500/50 text-xs font-medium"
+                            title="Inspect API error details"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            <span>Inspect Error</span>
+                          </button>
+                          <button
+                            onClick={() => handleResendMessage(index - 1)}
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 rounded-lg transition-colors border border-blue-500/50 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Resend the previous message"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                            <span>Resend Message</span>
+                          </button>
+                        </div>
+                      )}
+
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-600">
+                        {message.attachments.map((att) => (
+                          <div
+                            key={att.id}
+                            className="text-xs flex items-center gap-2"
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            <span>{att.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-xs text-gray-400">
+                        {DateUtils.formatMessageTimestamp(message.timestamp)}
+                      </div>
                       <button
-                        onClick={() => setInspectedApiTrace(message.apiTrace!)}
-                        className="flex items-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors border border-red-500/50 text-xs font-medium"
-                        title="Inspect API error details"
+                        onClick={() => handleExportMessage(message)}
+                        className="text-xs text-gray-400 hover:text-legal-gold transition-colors flex items-center gap-1"
+                        title="Export this message to PDF"
                       >
                         <svg
-                          className="w-4 h-4"
+                          className="w-3.5 h-3.5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1776,77 +2225,151 @@ export default function ChatWindow() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        <span>Inspect Error</span>
-                      </button>
-                      <button
-                        onClick={() => handleResendMessage(index - 1)}
-                        disabled={isLoading}
-                        className="flex items-center gap-2 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 rounded-lg transition-colors border border-blue-500/50 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Resend the previous message"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                        <span>Resend Message</span>
+                        <span>Export PDF</span>
                       </button>
                     </div>
-                  )}
+                  </div>
+                </div>
 
-                {message.attachments && message.attachments.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-600">
-                    {message.attachments.map((att) => (
-                      <div
-                        key={att.id}
-                        className="text-xs flex items-center gap-2"
+                {/* Cluster Action Bar - appears after the last message in each cluster */}
+                {isLastInCluster && (
+                  <div
+                    key={`action-bar-${message.id}`}
+                    className="flex justify-center my-6"
+                  >
+                    <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800 to-gray-750 rounded-xl px-6 py-3 shadow-lg border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300">
+                      {/* Show contextual label for analysis clusters */}
+                      {isAnalysisCluster && (
+                        <span className="text-xs text-gray-400 mr-2 px-2 py-1 bg-gray-700/50 rounded border border-gray-600">
+                          Actions for original cluster:
+                        </span>
+                      )}
+
+                      {/* Export Cluster to PDF */}
+                      <button
+                        onClick={async () => {
+                          // For analysis clusters, export the original cluster
+                          const startIdx = isAnalysisCluster
+                            ? originalClusterStart
+                            : clusterStartIndex;
+                          const endIdx = isAnalysisCluster
+                            ? originalClusterEnd
+                            : index;
+
+                          const clusterMessages = [];
+                          for (let i = startIdx; i <= endIdx; i++) {
+                            clusterMessages.push(
+                              currentConversation.messages[i]
+                            );
+                          }
+
+                          // Export the cluster
+                          try {
+                            await downloadClusterPDF(
+                              clusterMessages,
+                              currentConversation.title,
+                              currentConversation.id,
+                              "cluster" // Always use "cluster" since we're exporting the original
+                            );
+                            logger.info("Cluster exported to PDF", {
+                              messageCount: clusterMessages.length,
+                              isOriginalCluster: isAnalysisCluster,
+                            });
+                          } catch (error) {
+                            logger.error("Failed to export cluster to PDF", {
+                              error,
+                            });
+                          }
+                        }}
+                        className="text-sm text-gray-300 hover:text-white transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700/70 font-medium"
+                        title={
+                          isAnalysisCluster
+                            ? "Export the original query/response cluster to PDF"
+                            : "Export this query/response cluster to PDF"
+                        }
                       >
-                        <Paperclip className="w-3 h-3" />
-                        <span>{att.name}</span>
-                      </div>
-                    ))}
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        <span>Export PDF</span>
+                      </button>
+
+                      <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+
+                      {/* Add Tag Button */}
+                      <button
+                        onClick={() => {
+                          // For analysis clusters, tag the original cluster
+                          const startIdx = isAnalysisCluster
+                            ? originalClusterStart
+                            : clusterStartIndex;
+                          const endIdx = isAnalysisCluster
+                            ? originalClusterEnd
+                            : index;
+
+                          setTagDialogClusterStart(startIdx);
+                          setTagDialogClusterEnd(endIdx);
+                          setShowTagDialog(true);
+                        }}
+                        className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
+                        title={
+                          isAnalysisCluster
+                            ? "Add or manage tags for the original cluster"
+                            : "Add or manage tags for this cluster"
+                        }
+                      >
+                        <span className="text-base">🏷️</span>
+                        <span>Add Tag</span>
+                      </button>
+
+                      <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+
+                      {/* Analysis Button */}
+                      <button
+                        onClick={() => {
+                          // For analysis clusters, analyze the original cluster again
+                          const startIdx = isAnalysisCluster
+                            ? originalClusterStart
+                            : clusterStartIndex;
+                          const endIdx = isAnalysisCluster
+                            ? originalClusterEnd
+                            : index;
+
+                          setAnalysisClusterStart(startIdx);
+                          setAnalysisClusterEnd(endIdx);
+                          setShowAnalysisDialog(true);
+                        }}
+                        className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
+                        title={
+                          isAnalysisCluster
+                            ? "Run another analysis on the original cluster"
+                            : "Analyze this cluster for accuracy and consistency"
+                        }
+                      >
+                        <span className="text-base">🔍</span>
+                        <span>
+                          {isAnalysisCluster ? "Re-Analyze" : "Analysis"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 )}
-
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-xs text-gray-400">
-                    {DateUtils.formatTime(message.timestamp)}
-                  </div>
-                  <button
-                    onClick={() => handleExportMessage(message)}
-                    className="text-xs text-gray-400 hover:text-legal-gold transition-colors flex items-center gap-1"
-                    title="Export this message to PDF"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    <span>Export PDF</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
+              </>
+            );
+          })
         )}
 
         {isLoading && (
@@ -1949,6 +2472,290 @@ export default function ChatWindow() {
           apiTrace={inspectedApiTrace}
           onClose={() => setInspectedApiTrace(null)}
         />
+      )}
+
+      {/* Tag Dialog */}
+      {showTagDialog && currentConversation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span className="text-xl">🏷️</span> Manage Tags
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTagDialog(false);
+                  setNewTagInput("");
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Close tag dialog"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Existing Tags */}
+              {getAllExistingTags().length > 0 && (
+                <div>
+                  <div className="text-sm font-medium text-gray-300 mb-2">
+                    Existing Tags
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {getAllExistingTags().map((tag) => {
+                      // Check if any message in the cluster has this tag
+                      const isActive = currentConversation.messages
+                        .slice(tagDialogClusterStart, tagDialogClusterEnd + 1)
+                        .some((msg) => msg.tags?.includes(tag));
+
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => handleTagToggle(tag)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? "bg-legal-blue text-white border-2 border-legal-blue"
+                              : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
+                          }`}
+                        >
+                          #{tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Add New Tag */}
+              <div>
+                <label
+                  htmlFor="new-tag-input"
+                  className="text-sm font-medium text-gray-300 mb-2 block"
+                >
+                  Add New Tag
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      #
+                    </span>
+                    <input
+                      id="new-tag-input"
+                      type="text"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddNewTag();
+                        }
+                      }}
+                      placeholder="tag-name"
+                      className="w-full bg-gray-700 text-white rounded-lg pl-8 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddNewTag}
+                    disabled={!newTagInput.trim()}
+                    className="px-4 py-2 bg-legal-blue hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                  >
+                    Add
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Tags help organize and search conversations
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowTagDialog(false);
+                  setNewTagInput("");
+                }}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analysis Dialog */}
+      {showAnalysisDialog && currentConversation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span className="text-xl">🔍</span> Analyze Response Cluster
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAnalysisDialog(false);
+                  setSelectedAnalysisModel(null);
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Close analysis dialog"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-gray-300">
+                Select an unused model to independently analyze this response
+                cluster for accuracy, consistency, and potential confabulations.
+              </p>
+
+              {/* Model Selection */}
+              <div>
+                <label
+                  htmlFor="analysis-model-select"
+                  className="text-sm font-medium text-gray-300 mb-2 block"
+                >
+                  Analysis Model
+                </label>
+                {(() => {
+                  const availableModels = getAvailableAnalysisModels(
+                    analysisClusterStart,
+                    analysisClusterEnd
+                  );
+                  const modelsUsed = getModelsUsedInCluster(
+                    analysisClusterStart,
+                    analysisClusterEnd
+                  );
+
+                  if (availableModels.length === 0) {
+                    return (
+                      <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 text-sm text-yellow-300">
+                        <p className="font-medium mb-1">
+                          ⚠️ No unused models available
+                        </p>
+                        <p className="text-xs text-yellow-400">
+                          All configured models were already used in this
+                          cluster. Analysis requires an independent model for
+                          validation.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      <select
+                        id="analysis-model-select"
+                        value={selectedAnalysisModel || ""}
+                        onChange={(e) =>
+                          setSelectedAnalysisModel(e.target.value)
+                        }
+                        className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                      >
+                        <option value="">Select a model...</option>
+                        {availableModels.map((model) => (
+                          <option key={model.key} value={model.key}>
+                            {model.label} ({model.provider})
+                          </option>
+                        ))}
+                      </select>
+                      {modelsUsed.size > 0 && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          Models used in cluster:{" "}
+                          {Array.from(modelsUsed).join(", ")}
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Information Box */}
+              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 text-sm text-blue-300">
+                <p className="font-medium mb-1">ℹ️ Analysis Process</p>
+                <p className="text-xs text-blue-400">
+                  The selected model will receive the original query and all
+                  responses, then provide an independent assessment of accuracy,
+                  consistency, completeness, and potential confabulations.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowAnalysisDialog(false);
+                  setSelectedAnalysisModel(null);
+                }}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                disabled={isAnalyzing}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRunAnalysis}
+                disabled={!selectedAnalysisModel || isAnalyzing}
+                className="px-4 py-2 bg-legal-blue hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-2"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔍</span>
+                    <span>Run Analysis</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

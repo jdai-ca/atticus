@@ -4,7 +4,7 @@
 # Last Updated: 2025-10-14
 
 version: "1.1.0"
-minAppVersion: "0.9.12"
+minAppVersion: "0.9.13"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."

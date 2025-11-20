@@ -1,6 +1,6 @@
 # Atticus - In-House AI Counsel
 
-A powerful desktop application that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with interprovincial/interstate complexity awareness, and comprehensive business consulting capabilities. The time & cost savings are a force multiplier.
+A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with interprovincial/interstate complexity awareness, and comprehensive business consulting capabilities. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
 
 > **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
 
@@ -48,10 +48,12 @@ Before using Atticus, please review these critical documents:
   - [Multi-Provider AI Support](#-multi-provider-ai-support)
   - [Multi-Model Selection](#-multi-model-selection)
   - [Real-Time Cost Transparency](#-real-time-cost-transparency)
+  - [AI Response Validation & Analysis](#-ai-response-validation--analysis)
   - [Multi-Jurisdictional Analysis](#-multi-jurisdictional-analysis)
   - [Legal Practice Area Detection](#️-legal-practice-area-detection)
   - [Business Advisory Detection](#-business-advisory-detection)
   - [Privacy & Security Features](#-privacy--security-features)
+  - [Offline Resilience & Business Continuity](#-offline-resilience--business-continuity)
 - [Architecture & Design](#-architecture--design)
 - [Configuration](#-configuration)
 - [Development](#development)
@@ -68,60 +70,53 @@ Before using Atticus, please review these critical documents:
 
 Access **9 leading AI providers** with **60+ models** through one unified interface:
 
-| Provider            | Models Available                                                                                         | Key Capabilities                                         | Best For                                          |
-| ------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------- |
-| **🔴 OpenAI**       | GPT-4o, GPT-4o mini, o1-preview, o1-mini, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo                              | Vision, Function Calling, 128K context                   | Industry standard, complex reasoning, coding      |
-| **🟣 Anthropic**    | Claude 3.5 Sonnet (Oct '24), Claude 3.5 Sonnet (Jun '24), Claude 3 Opus, Claude 3 Sonnet, Claude 3 Haiku | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing |
-| **🔵 Google**       | Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro (Legacy), Gemini Pro Vision (Legacy)                        | Vision, 2M token context, Function Calling               | Massive context, multimodal analysis              |
-| **☁️ Azure OpenAI** | GPT-4o, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo                                                                | Vision, Function Calling, Enterprise SLA                 | Enterprise deployment, compliance requirements    |
-| **𝕏 xAI**           | Grok Beta, Grok Vision Beta                                                                              | Vision, Real-time knowledge                              | Current events, real-time analysis                |
-| **🌬️ Mistral**      | Mistral Large 2 (123B), Mistral Medium, Mistral Small, Mixtral 8x22B, Mixtral 8x7B                       | Function Calling, EU-based                               | EU compliance, open models, cost-effective        |
-| **🧬 Cohere**       | Command R+, Command R, Command, Command Light                                                            | RAG-optimized, 128K context, Function Calling            | Enterprise search, legal research, citations      |
-| **⚡ Groq**         | Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B                                     | Ultra-fast inference (500+ tokens/sec), Function Calling | Speed-critical tasks, rapid prototyping           |
-| **🔍 Perplexity**   | Sonar Large (Online), Sonar Small (Online), Sonar Large (Chat), Sonar Small (Chat)                       | Web search, Citations, 128K context                      | Legal research, current case law, fact-checking   |
+| Provider            | Models Available                                                                   | Key Capabilities                                         | Best For                                            |
+| ------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| **🤖 OpenAI**       | GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano                                             | Vision, 400K context, Function Calling                   | Next-gen reasoning, complex legal analysis          |
+| **🧠 Anthropic**    | Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.1 Opus                               | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing   |
+| **🔷 Google**       | Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite                            | Vision, 1M token context, Function Calling               | Massive context, multimodal analysis                |
+| **☁️ Azure OpenAI** | GPT-4o, GPT-4o mini, GPT-4                                                         | Vision, Function Calling, Enterprise SLA                 | Enterprise deployment, compliance requirements      |
+| **𝕏 xAI**           | Grok 4, Grok 4 Fast Reasoning, Grok 4 Fast Non-Reasoning                           | Vision, 2M token context, Real-time knowledge            | Current events, real-time analysis, massive context |
+| **🌬️ Mistral**      | Mistral Large 2 (123B), Mistral Medium, Mistral Small, Mixtral 8x22B, Mixtral 8x7B | Function Calling, EU-based, 128K context                 | EU compliance, open models, cost-effective          |
+| **🧬 Cohere**       | Command R+, Command R, Command, Command Light                                      | RAG-optimized, 128K context, Function Calling            | Enterprise search, legal research, citations        |
+| **⚡ Groq**         | Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B               | Ultra-fast inference (500+ tokens/sec), Function Calling | Speed-critical tasks, rapid prototyping             |
+| **🔍 Perplexity**   | Sonar Large (Online), Sonar Small (Online), Sonar Large (Chat), Sonar Small (Chat) | Web search, Citations, 128K context                      | Legal research, current case law, fact-checking     |
 
 **💡 Pro Tip**: Select multiple models simultaneously to cross-validate legal analysis and reduce hallucinations!
 
 <details>
 <summary><strong>📋 Detailed Model Breakdown by Provider</strong></summary>
 
-### OpenAI (8 models)
+### OpenAI (4 models)
 
-- **GPT-4o** - Most advanced multimodal model, faster and cheaper than GPT-4 Turbo ⭐ _Default_
-- **GPT-4o mini** - Affordable small model for fast, lightweight tasks
-- **o1-preview** - Advanced reasoning model, excels at complex problem-solving
-- **o1-mini** - Faster reasoning model, great for code and STEM
-- **GPT-4 Turbo** - 128K context window, vision capabilities
-- **GPT-4 Turbo Preview** - Preview version with latest features
-- **GPT-4** - Original GPT-4 with 8K context
-- **GPT-3.5 Turbo** - Fast and cost-effective for simple tasks
+- **GPT-5.1** - Next-generation model with superior reasoning and creativity (400K context) ⭐ _Default_
+- **GPT-5** - Advanced model with enhanced capabilities (400K context)
+- **GPT-5 Mini** - Balanced performance and cost for general tasks (400K context)
+- **GPT-5 Nano** - Cost-effective version for general tasks (400K context)
 
-### Anthropic (5 models)
+### Anthropic (3 models)
 
-- **Claude 3.5 Sonnet (Oct '24)** - Most intelligent model, best for complex analysis and coding ⭐ _Default_
-- **Claude 3.5 Sonnet (Jun '24)** - Previous version of 3.5 Sonnet
-- **Claude 3 Opus** - Powerful model for highly complex tasks
-- **Claude 3 Sonnet** - Balanced performance and speed
-- **Claude 3 Haiku** - Fastest and most compact model
+- **Claude 4.5 Sonnet** - Most intelligent model, best for complex analysis and coding (200K context) ⭐ _Default_
+- **Claude 4.5 Haiku** - Fastest and most compact model (200K context)
+- **Claude 4.1 Opus** - Powerful model for highly complex tasks (200K context)
 
-### Google (4 models)
+### Google (3 models)
 
-- **Gemini 1.5 Pro** - Most capable, 2M token context, multimodal ⭐ _Default_
-- **Gemini 1.5 Flash** - Fast and efficient, 1M token context, multimodal
-- **Gemini Pro (Legacy)** - Previous generation, 32K context
-- **Gemini Pro Vision (Legacy)** - Previous generation multimodal
+- **Gemini 2.5 Pro** - Most capable model, 1M token context, multimodal ⭐ _Default_
+- **Gemini 2.5 Flash** - Fast and efficient, 1M token context, multimodal
+- **Gemini 2.5 Flash Lite** - Lightweight and cost-effective, 1M token context
 
-### Azure OpenAI (4 models)
+### Azure OpenAI (3 models)
 
-- **GPT-4o** - GPT-4o via Azure (if deployed) ⭐ _Default_
-- **GPT-4 Turbo** - GPT-4 Turbo with 128K context via Azure
+- **GPT-4o** - GPT-4o via Azure (128K context) ⭐ _Default_
+- **GPT-4o mini** - GPT-4o mini with 128K context via Azure
 - **GPT-4** - GPT-4 8K via Azure
-- **GPT-3.5 Turbo** - GPT-3.5 via Azure
 
-### xAI (2 models)
+### xAI (3 models)
 
-- **Grok Beta** - Latest Grok model with real-time knowledge ⭐ _Default_
-- **Grok Vision Beta** - Grok with image understanding capabilities
+- **Grok 4** - Latest Grok model with real-time knowledge (256K context) ⭐ _Default_
+- **Grok 4 Fast Reasoning** - Grok with fast reasoning capabilities (2M context)
+- **Grok 4 Fast Non-Reasoning** - Grok with fast non-reasoning capabilities (2M context)
 
 ### Mistral AI (5 models)
 
@@ -153,7 +148,7 @@ Access **9 leading AI providers** with **60+ models** through one unified interf
 - **Sonar Large (Chat)** - Offline reasoning, no web search
 - **Sonar Small (Chat)** - Fast offline chat model
 
-**Total: 46 models** across 9 providers (Updated October 2024)
+**Total: 37 models** across 9 providers (Updated November 2025)
 
 </details>
 
@@ -216,6 +211,29 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 - **Export-Ready** - Full ledger of expenses for budgeting and reporting
 
 💡 **Pro Tip**: Use the Cost Ledger button (next to Audit Log) to review expenses and optimize model selection for cost-effective legal research.
+
+### 🔍 AI Response Validation & Analysis
+
+**Catch confabulations and validate accuracy** with independent AI analysis of response clusters:
+
+![Response Cluster Analysis](docs/images/Screenshot-09.png)
+
+- **Multi-Model Validation** - Have an unused model independently analyze and judge responses from other models
+- **Consistency Checking** - Identify conflicting information across different AI responses
+- **Accuracy Assessment** - Detect potential inaccuracies, hallucinations, and confabulations
+- **Quality Ranking** - Get comparative rankings of responses with justifications
+- **Trust Recommendations** - Receive guidance on which responses are most reliable
+- **Iterative Analysis** - Run multiple analyses with different validator models for consensus building
+
+**How it works**:
+
+1. Get responses from multiple models for your legal query
+2. Click the **Analysis** button on the cluster action bar
+3. Select an unused model to act as an independent validator
+4. The validator model reviews all responses and provides detailed quality assessment
+5. Results include consistency checks, accuracy ratings, completeness analysis, and recommendations
+
+💡 **Pro Tip**: Use Analysis after getting responses from 2+ models to identify potential issues before relying on the advice. Multiple validator models can provide consensus validation for critical decisions.
 
 ### 🌍 Multi-Jurisdictional Analysis
 
@@ -500,6 +518,21 @@ _All conversations are stored locally on your device with full search capabiliti
 - ✅ **Direct API calls** - no intermediaries or third-party servers
 - ✅ **Full control** - you own your data
 - ✅ **Secure credentials** - encrypted local storage
+- ✅ **Offline resilience** - work continues when internet/cloud services are down
+
+### 💪 Offline Resilience & Business Continuity
+
+**Atticus works when the cloud doesn't.** Unlike web-based AI tools that become completely unusable during outages, Atticus maintains critical functionality:
+
+- **📚 Access Your Work** - All conversations, research, and analysis remain accessible locally even when internet is down
+- **📝 Continue Working** - Review past conversations, search through history, export PDFs, and prepare queries offline
+- **🔍 Search & Review** - Full-text search across all conversations works without internet connectivity
+- **💾 Local-First Architecture** - All data stored on your machine; you're never locked out of your own work
+- **📊 Cost Analysis** - Review expense ledgers and token usage reports offline
+
+**Real-World Impact**: During AWS outages (Dec 2021, Jun 2022, Dec 2022), Azure incidents (Jan 2023, Jul 2024), or Cloudflare disruptions (Jun 2022, Nov 2023), web-based AI tools become completely inaccessible. Atticus users continue reviewing research, preparing queries, and accessing critical legal analysis without interruption.
+
+💡 **Business Continuity**: When you need to reference legal research during a pitch, court preparation, or client call, cloud outages can't block access to your work. Your data stays with you, not trapped in someone else's datacenter.
 
 ### 🏢 Why Use API Endpoints Instead of Consumer Apps?
 
@@ -1005,4 +1038,4 @@ See `LICENSE` file for full details.
 
 ---
 
-## Built with Artificial Intelligence & Human ingenuity
+## Built with Artificial Intelligence & Human Ingenuity

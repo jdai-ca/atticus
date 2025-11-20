@@ -42,6 +42,21 @@ export function formatTime(date: Date | string): string {
 }
 
 /**
+ * Format timestamp for conversation messages (date + time, without seconds)
+ */
+export function formatMessageTimestamp(date: Date | string): string {
+    const dateObj = typeof date === 'string' ? parse(date) : date;
+    return dateObj.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+/**
  * Check if a date string is valid
  */
 export function isValidDate(isoString: string): boolean {
@@ -116,6 +131,7 @@ export const DateUtils = {
     formatDateTime,
     formatDate,
     formatTime,
+    formatMessageTimestamp,
     isValidDate,
     toISOString,
     getRelativeTime,
