@@ -1,6 +1,6 @@
 {
   "name": "atticus",
-  "version": "0.9.13",
+  "version": "0.9.14",
   "description": "Atticus - In-House AI Counsel",
   "main": "dist-electron/main.js",
   "author": "John Kost",
@@ -15,7 +15,8 @@
     "validate:practices": "node scripts/validate-practices-clean.js",
     "validate:advisory": "node scripts/validate-advisory-clean.js",
     "validate:providers": "node scripts/validate-providers-clean.js",
-    "validate:all": "npm run validate:practices && npm run validate:advisory && npm run validate:providers",
+    "validate:analysis": "node scripts/validate-analysis-clean.js",
+    "validate:all": "npm run validate:practices && npm run validate:advisory && npm run validate:providers && npm run validate:analysis",
     "ediscovery": "tsx scripts/eDiscovery.ts",
     "ediscovery:export": "tsx scripts/eDiscovery.ts --export",
     "predev": "npm run validate:all",

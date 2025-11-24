@@ -34,9 +34,12 @@
             "type": "string",
             "description": "License identifier for this configuration file"
         },
+        "customized": {
+            "type": "boolean",
+            "description": "Flag indicating whether configuration has been customized by user (true) or is factory default (false)"
+        },
         "providers": {
             "type": "array",
-            "minItems": 1,
             "description": "Array of AI provider configurations",
             "items": {
                 "$ref": "#/definitions/provider"

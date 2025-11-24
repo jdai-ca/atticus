@@ -52,6 +52,7 @@ Before using Atticus, please review these critical documents:
   - [Multi-Jurisdictional Analysis](#-multi-jurisdictional-analysis)
   - [Legal Practice Area Detection](#️-legal-practice-area-detection)
   - [Business Advisory Detection](#-business-advisory-detection)
+  - [Advanced Configuration: YAML System Prompt Editing](#️-advanced-configuration-yaml-system-prompt-editing)
   - [Privacy & Security Features](#-privacy--security-features)
   - [Offline Resilience & Business Continuity](#-offline-resilience--business-continuity)
 - [Architecture & Design](#-architecture--design)
@@ -468,6 +469,80 @@ Each area includes:
 - **Geographic coverage** - 🇨🇦 80% Canada, 🇺🇸 92% US, �🇽 70% Mexico, �🇪🇺 75% EU
 - **CUSMA/USMCA optimized** - Full North American free trade zone support
 - **Copyright & disclaimer** - Legal notices and AI usage guidelines
+
+### ✏️ Advanced Configuration: YAML System Prompt Editing
+
+**Full control over AI behavior** with direct YAML configuration editing for power users:
+
+![YAML System Prompt Editor](docs/images/Screenshot-10.png)
+_Advanced YAML editor in Settings allows direct modification of practice areas, advisory areas, and analysis configurations - customize system prompts, keywords, detection rules, and AI behavior at a granular level_
+
+**Comprehensive Editing Capabilities**:
+
+- **📝 Practice Areas Configuration** - Edit all 44 legal practice areas directly in YAML
+
+  - Customize system prompts with expert-level legal instructions for each area
+  - Modify keyword detection rules (3,500+ keywords across all areas)
+  - Adjust area names, descriptions, and color coding
+  - Enable/disable specific practice areas
+  - Add new practice areas with custom detection logic
+
+- **💼 Advisory Areas Configuration** - Edit all 11 business advisory areas
+
+  - Customize consulting-grade system prompts for strategic guidance
+  - Modify business keyword detection (1,200+ keywords)
+  - Adjust advisory focus areas and descriptions
+  - Add new advisory domains with custom expertise
+
+- **🔍 Analysis Configuration** - Control AI response validation behavior
+  - Customize system prompts for multi-model validation
+  - Define accuracy assessment criteria
+  - Configure consistency checking logic
+  - Adjust confabulation detection sensitivity
+
+**Advanced Features**:
+
+- **🔄 Factory Reset** - Restore default configurations from `https://jdai.ca/atticus/`
+  - Separate reset buttons for Practice Areas, Advisory Areas, and Analysis
+  - Confirmation dialogs prevent accidental resets
+  - Fetch latest official configurations from remote endpoint
+- **🛡️ Customization Protection** - Modified configurations are protected from automatic updates
+
+  - `customized: true` flag prevents overwriting your changes on app restart
+  - Clear visual indicators show factory vs. customized status
+  - Manual control over when to adopt upstream updates
+
+- **✅ Real-Time Validation** - Instant feedback on YAML syntax and structure
+
+  - JSON Schema validation ensures configuration integrity
+  - Duplicate ID detection prevents conflicts
+  - Required field validation (id, name, description, keywords)
+  - Color format validation for UI consistency
+
+- **📊 Validation Scripts** - Pre-startup validation for all configurations
+  - `validate-practices-clean.js` - Validates all 44 practice areas
+  - `validate-advisory-clean.js` - Validates all 11 advisory areas
+  - `validate-providers-clean.js` - Validates provider configurations
+  - `validate-analysis-clean.js` - Validates analysis settings
+  - Customization status reporting in validation output
+
+**Why Direct YAML Editing?**
+
+- **🎯 Precision Control** - Fine-tune AI behavior beyond what UI controls offer
+- **🚀 Power User Features** - Implement custom practice areas for niche legal domains
+- **🔬 Experimentation** - Test different system prompts and detection strategies
+- **📚 Version Control** - Configuration files can be tracked in Git for team collaboration
+- **🏢 Enterprise Customization** - Adapt Atticus to firm-specific practice areas and terminology
+
+**Configuration File Locations**:
+
+- **Development**: `c:\JDAI\atticus\public\config\`
+- **Production**: `%APPDATA%\atticus\config\` (Windows) after first edit
+- Files: `practices.yaml`, `advisory.yaml`, `analysis.yaml`, `providers.yaml`
+
+💡 **Pro Tip**: Use the expandable keyword viewer in the UI to understand detection patterns before editing. Make incremental changes and test with the validation scripts to ensure configuration integrity.
+
+⚠️ **Caution**: Direct YAML editing is powerful but requires understanding of YAML syntax and JSON Schema validation. Always use the "Reset" buttons if configurations become corrupted. The factory configurations from `https://jdai.ca/atticus/` are always available as a fallback.
 
 ### 🎨 Model Filtering & Customization
 

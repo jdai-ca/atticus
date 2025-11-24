@@ -18,6 +18,7 @@ interface AdvisoryConfigFile {
     minAppVersion: string;
     lastUpdated: string;
     updateUrl?: string;
+    customized?: boolean;
     practiceAreas: LegalPracticeArea[]; // Reusing the same type for consistency
 }
 
@@ -129,8 +130,15 @@ class AdvisoryConfigLoader {
      */
     private async updateFromRemote(currentVersion: string): Promise<void> {
         try {
-            // Load bundled config to get update URL
+            // Load bundled config to get update URL and check if customized
             const bundled = await this.loadBundledConfig();
+
+            // Skip remote update if configuration has been customized by user
+            if (bundled.customized === true) {
+                console.log('[AdvisoryLoader] Skipping remote update - configuration is customized');
+                return;
+            }
+
             if (!bundled.updateUrl) {
                 console.log('[AdvisoryLoader] No update URL configured');
                 return;
@@ -232,7 +240,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.13',
+            minAppVersion: '0.9.14',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

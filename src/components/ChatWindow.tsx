@@ -35,6 +35,7 @@ import { piiScanner, PIIScanResult } from "../services/piiScanner";
 import PrivacyWarningDialog from "./PrivacyWarningDialog";
 import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
 import APIErrorInspector from "./APIErrorInspector";
+import * as yaml from "js-yaml";
 import {
   auditLogger,
   AuditEventType,
@@ -110,6 +111,9 @@ export default function ChatWindow() {
     string | null
   >(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisConfig, setAnalysisConfig] = useState<{
+    systemPrompt: string;
+  } | null>(null);
 
   // Load provider templates on mount
   useEffect(() => {
@@ -117,6 +121,32 @@ export default function ChatWindow() {
       loadProviderTemplates();
     }
   }, [providerTemplates.length, loadProviderTemplates]);
+
+  // Load analysis configuration
+  useEffect(() => {
+    const loadAnalysisConfig = async () => {
+      try {
+        const result = await (globalThis as any).electronAPI.loadBundledConfig(
+          "analysis.yaml"
+        );
+        if (result.success && result.data) {
+          const parsed = yaml.load(result.data) as any;
+          if (parsed?.analysis?.systemPrompt) {
+            setAnalysisConfig({ systemPrompt: parsed.analysis.systemPrompt });
+            logger.info("Analysis configuration loaded successfully");
+          }
+        }
+      } catch (error) {
+        logger.error("Failed to load analysis configuration", { error });
+        // Set default fallback if loading fails
+        setAnalysisConfig({
+          systemPrompt:
+            "You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.",
+        });
+      }
+    };
+    loadAnalysisConfig();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -224,22 +254,18 @@ export default function ChatWindow() {
         }
       }
 
-      // Construct analysis prompt
-      const analysisPrompt = `You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.
+      // Construct analysis prompt using loaded configuration
+      const systemPrompt =
+        analysisConfig?.systemPrompt ||
+        "You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.";
+
+      const analysisPrompt = `${systemPrompt}
 
 **Original Query:**
 ${userMessage.content}
 
 **Responses to Analyze:**
-${responses.join("\\n\\n")}
-
-**Your Task:**
-Provide a comprehensive analysis covering:
-1. **Consistency**: Are the responses consistent with each other?
-2. **Accuracy**: Do you identify any potential inaccuracies or confabulations?
-3. **Completeness**: Are there important points missed by any response?
-4. **Quality Ranking**: Rank the responses from best to worst with justification.
-5. **Recommendations**: Which response(s) should the user trust most and why?`;
+${responses.join("\\n\\n")}`;
 
       // Parse selected model
       const [providerId, modelId] = selectedAnalysisModel.split(":");
@@ -2251,13 +2277,33 @@ Provide a comprehensive analysis covering:
                       {/* Export Cluster to PDF */}
                       <button
                         onClick={async () => {
-                          // For analysis clusters, export the original cluster
-                          const startIdx = isAnalysisCluster
-                            ? originalClusterStart
-                            : clusterStartIndex;
-                          const endIdx = isAnalysisCluster
-                            ? originalClusterEnd
-                            : index;
+                          // Determine what to export
+                          let startIdx, endIdx, exportType;
+
+                          if (isAnalysisCluster) {
+                            // User is on an analysis cluster action bar
+                            // Export the original cluster that was analyzed
+                            startIdx = originalClusterStart;
+                            endIdx = originalClusterEnd;
+                            exportType = "cluster";
+                          } else {
+                            // Regular cluster - check if it contains analysis results
+                            const clusterMsgs = [];
+                            for (let i = clusterStartIndex; i <= index; i++) {
+                              clusterMsgs.push(currentConversation.messages[i]);
+                            }
+
+                            // Check if this cluster contains analysis results
+                            const hasAnalysisContent = clusterMsgs.some(
+                              (msg) => msg.metadata?.isAnalysis === true
+                            );
+
+                            startIdx = clusterStartIndex;
+                            endIdx = index;
+                            exportType = hasAnalysisContent
+                              ? "analysis"
+                              : "cluster";
+                          }
 
                           const clusterMessages = [];
                           for (let i = startIdx; i <= endIdx; i++) {
@@ -2272,11 +2318,11 @@ Provide a comprehensive analysis covering:
                               clusterMessages,
                               currentConversation.title,
                               currentConversation.id,
-                              "cluster" // Always use "cluster" since we're exporting the original
+                              exportType as "cluster" | "analysis"
                             );
                             logger.info("Cluster exported to PDF", {
                               messageCount: clusterMessages.length,
-                              isOriginalCluster: isAnalysisCluster,
+                              exportType,
                             });
                           } catch (error) {
                             logger.error("Failed to export cluster to PDF", {

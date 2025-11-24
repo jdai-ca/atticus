@@ -1,18 +1,11 @@
-# Atticus AI Provider Configuration
-# This file defines all available AI providers, their models, and capabilities
-# Format: YAML 1.2
-# Last Updated: 2025-10-14
-
 version: "1.1.0"
-minAppVersion: "0.9.13"
+minAppVersion: "0.9.14"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
+customized: false
 
-# AI Provider Templates
-# Each provider includes models, capabilities, authentication info, and UI settings
 providers:
-  # OpenAI - GPT Models
   - id: openai
     name: OpenAI
     displayName: OpenAI
@@ -76,8 +69,6 @@ providers:
     ui:
       icon: "🤖"
       order: 1
-
-  # Anthropic - Claude Models
   - id: anthropic
     name: Anthropic
     displayName: Anthropic Claude
@@ -131,8 +122,6 @@ providers:
     ui:
       icon: "🧠"
       order: 2
-
-  # Google - Gemini Models
   - id: google
     name: Google
     displayName: Google Gemini
@@ -186,8 +175,6 @@ providers:
     ui:
       icon: "🔷"
       order: 3
-
-  # Azure OpenAI
   - id: azure-openai
     name: Azure OpenAI
     displayName: Azure OpenAI
@@ -241,8 +228,6 @@ providers:
     ui:
       icon: "☁️"
       order: 4
-
-  # xAI - Grok Models
   - id: xai
     name: xAI
     displayName: xAI Grok
@@ -296,8 +281,6 @@ providers:
     ui:
       icon: "𝕏"
       order: 5
-
-  # Mistral AI
   - id: mistral
     name: Mistral
     displayName: Mistral AI
@@ -370,8 +353,6 @@ providers:
     ui:
       icon: "🌬️"
       order: 6
-
-  # Cohere
   - id: cohere
     name: Cohere
     displayName: Cohere
@@ -434,8 +415,6 @@ providers:
     ui:
       icon: "🧬"
       order: 7
-
-  # Groq - Ultra-fast inference
   - id: groq
     name: Groq
     displayName: Groq
@@ -508,8 +487,6 @@ providers:
     ui:
       icon: "⚡"
       order: 8
-
-  # Perplexity AI
   - id: perplexity
     name: Perplexity
     displayName: Perplexity AI

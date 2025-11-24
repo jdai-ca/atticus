@@ -269,7 +269,6 @@ function addPDFMessage(options: MessagePDFOptions): number {
 
 function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidth: number, pageWidth: number, pageHeight: number, startY: number): number {
   let y = startY;
-  const messageStartY = y;
   const isUser = message.role === 'user';
 
   // Draw subtle border around message
@@ -442,18 +441,12 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   }
 
   pdf.setTextColor(0, 0, 0);
-  pdf.setFont('times', 'normal');
+  pdf.setFont("times", "normal");
 
   // Attachments
   if (message.attachments && message.attachments.length > 0) {
     y = addMessageAttachments(pdf, message.attachments, margin, pageHeight, y);
   }
-
-  // Draw border around entire message
-  const messageHeight = y - messageStartY;
-  pdf.setDrawColor(200, 200, 200);
-  pdf.setLineWidth(0.3);
-  pdf.rect(margin - 3, messageStartY - 4, maxWidth + 6, messageHeight + 4);
 
   return y + 12; // Increased spacing between messages
 }
@@ -479,6 +472,16 @@ function addPDFFooters(pdf: jsPDF, pageWidth: number, pageHeight: number): void 
   }
 }
 
+/**
+ * Generate PDF data for a complete conversation transcript
+ * 
+ * Internal function that creates the PDF document with all messages.
+ * Called by: downloadPDF() (from Sidebar export button)
+ * 
+ * @param conversation - Full conversation object with all messages
+ * @returns Base64 encoded PDF data
+ * @output Filename: atticus-{id}-transcript-{timestamp}.pdf
+ */
 export async function exportConversationToPDF(conversation: Conversation): Promise<string> {
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -501,7 +504,10 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
 
   // Add messages with model tracking
   let prevModelInfo: Message['modelInfo'] | undefined;
-  for (const message of conversation.messages) {
+  for (let i = 0; i < conversation.messages.length; i++) {
+    const message = conversation.messages[i];
+    const nextMessage = i < conversation.messages.length - 1 ? conversation.messages[i + 1] : null;
+
     yPosition = addPDFMessage({
       pdf,
       message,
@@ -515,6 +521,13 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
     if (message.role === 'assistant' && message.modelInfo) {
       prevModelInfo = message.modelInfo;
     }
+
+    // Add page break when transitioning from assistant response to new user query
+    // This creates a clear separation between different Q&A pairs
+    if (nextMessage && message.role === 'assistant' && nextMessage.role === 'user') {
+      pdf.addPage();
+      yPosition = margin;
+    }
   }
 
   // Add footers
@@ -524,6 +537,20 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
   return pdf.output('datauristring').split(',')[1];
 }
 
+/**
+ * Download complete conversation transcript as PDF
+ * 
+ * USE CASE 1: Full Conversation Transcript
+ * - Trigger: Sidebar "Export to PDF" button
+ * - Output: atticus-{id}-transcript-{timestamp}.pdf
+ * - Content: All messages in the conversation with page breaks between Q&A pairs
+ * 
+ * Public API function that exports the entire conversation with all messages
+ * and metadata, including proper page breaks for professional formatting.
+ * 
+ * @param conversation - Complete conversation to export
+ * @throws Error if PDF generation or save fails
+ */
 export async function downloadPDF(conversation: Conversation): Promise<void> {
   try {
     const pdfData = await exportConversationToPDF(conversation);
@@ -545,7 +572,21 @@ export async function downloadPDF(conversation: Conversation): Promise<void> {
 }
 
 /**
- * Export a single message to PDF
+ * Generate PDF data for a single message
+ * 
+ * Internal function that creates a PDF document containing one message.
+ * Handles TWO distinct use cases:
+ * 1. Regular message export (user/assistant messages)
+ * 2. Analysis message export (validation/comparison results)
+ * 
+ * Automatically detects analysis messages (_analysis in ID) and enhances
+ * header with model information and validation type.
+ * Called by: downloadMessagePDF() (from message dropdown menu)
+ * 
+ * @param message - The message to export
+ * @param conversationTitle - Title of parent conversation for context
+ * @returns Base64 encoded PDF data
+ * @output Filename determined by downloadMessagePDF based on message type
  */
 export async function exportMessageToPDF(
   message: Message,
@@ -562,23 +603,66 @@ export async function exportMessageToPDF(
   const margin = 20;
   const maxWidth = pageWidth - (margin * 2);
 
-  // Add simple header
+  // Check if this is an analysis message
+  const isAnalysis = message.id.includes('_analysis');
+
+  // Add enhanced header
   pdf.setFontSize(16);
   pdf.setFont('times', 'bold');
   pdf.setTextColor(30, 58, 138);
-  pdf.text('Atticus AI', margin, 15);
+
+  if (isAnalysis) {
+    pdf.text('Atticus AI - Response Analysis', margin, 15);
+  } else {
+    pdf.text('Atticus AI - Response Export', margin, 15);
+  }
 
   pdf.setFontSize(10);
   pdf.setFont('times', 'normal');
   pdf.setTextColor(100, 100, 100);
-  pdf.text(`From: ${conversationTitle}`, margin, 22);
-  pdf.text(DateUtils.formatDate(new Date().toISOString()), pageWidth - margin - 30, 22);
+
+  let headerY = 22;
+  pdf.text(`From: ${conversationTitle}`, margin, headerY);
+  pdf.text(DateUtils.formatDate(new Date().toISOString()), pageWidth - margin - 30, headerY);
+
+  // Add analysis-specific metadata if available
+  if (isAnalysis && message.metadata) {
+    headerY += 5;
+
+    // Extract model information from metadata or content
+    if (message.metadata.model) {
+      pdf.text(`Analysis Model: ${message.metadata.model}`, margin, headerY);
+      headerY += 5;
+    }
+
+    // Try to extract models used from content if not in metadata
+    if (message.content && typeof message.content === 'string') {
+      const modelsMatch = message.content.match(/Models Used:([^\n]+)/i);
+      if (modelsMatch) {
+        const modelsText = modelsMatch[1].trim();
+        pdf.setFont('times', 'italic');
+        pdf.setTextColor(80, 80, 80);
+        pdf.text(`Models Analyzed: ${modelsText}`, margin, headerY);
+        headerY += 5;
+      }
+
+      // Check for validation type
+      if (message.content.includes('Consistency Analysis') ||
+        message.content.includes('Quality Rankings') ||
+        message.content.includes('Accuracy Assessment')) {
+        pdf.setTextColor(30, 58, 138);
+        pdf.setFont('times', 'bold');
+        pdf.text('Multi-Model Validation Analysis', margin, headerY);
+        headerY += 5;
+      }
+    }
+  }
 
   // Divider
   pdf.setDrawColor(200, 200, 200);
-  pdf.line(margin, 28, pageWidth - margin, 28);
+  pdf.line(margin, headerY + 3, pageWidth - margin, headerY + 3);
 
-  let yPosition = 35;
+  let yPosition = headerY + 10;
 
   // Add the single message
   addMessageContent(pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition);
@@ -592,6 +676,24 @@ export async function exportMessageToPDF(
 
 /**
  * Download a single message as PDF
+ * 
+ * Public API function triggered by individual message "Export PDF" menu option.
+ * Handles TWO of the FOUR PDF export use cases:
+ * 
+ * USE CASE 2: Regular Message Export
+ * - Trigger: Message dropdown menu → Export PDF (non-analysis messages)
+ * - Output: atticus-{id}-message-user-{timestamp}.pdf
+ *          atticus-{id}-message-assistant-{timestamp}.pdf
+ * 
+ * USE CASE 4: Individual Analysis Export
+ * - Trigger: Analysis message dropdown menu → Export PDF
+ * - Output: atticus-{id}-analysis-{timestamp}.pdf
+ * - Special handling: Enhanced header with model info and validation type
+ * 
+ * @param message - The message to export
+ * @param conversationTitle - Parent conversation title for header
+ * @param conversationId - Conversation ID for filename generation
+ * @throws Error if PDF generation or save fails
  */
 export async function downloadMessagePDF(
   message: Message,
@@ -600,8 +702,17 @@ export async function downloadMessagePDF(
 ): Promise<void> {
   try {
     const pdfData = await exportMessageToPDF(message, conversationTitle);
-    const role = message.role === 'user' ? 'user' : 'assistant';
-    const filename = `atticus-${conversationId}-message-${role}-${Date.now()}.pdf`;
+
+    // Check if this is an analysis message (by ID pattern)
+    const isAnalysis = message.id.includes('_analysis');
+
+    let filename: string;
+    if (isAnalysis) {
+      filename = `atticus-${conversationId}-analysis-${Date.now()}.pdf`;
+    } else {
+      const role = message.role === 'user' ? 'user' : 'assistant';
+      filename = `atticus-${conversationId}-message-${role}-${Date.now()}.pdf`;
+    }
 
     const result = await (globalThis as any).electronAPI.savePDF({
       filename,
@@ -618,7 +729,25 @@ export async function downloadMessagePDF(
 }
 
 /**
- * Export a cluster of messages (query + responses) to PDF
+ * Download a cluster of messages as PDF
+ * 
+ * USE CASE 3: Cluster Export (Q&A Group)
+ * - Trigger: Cluster action bar "Export PDF" button
+ * - Output: atticus-{id}-cluster-{timestamp}.pdf (regular)
+ *          atticus-{id}-analysis-{timestamp}.pdf (contains analysis)
+ * - Content: Query + response(s) with page breaks between Q&A pairs
+ * 
+ * Public API function that exports a query and its response(s) as a cohesive
+ * group with professional page breaks between different Q&A pairs.
+ * 
+ * Note: When a cluster contains analysis results, type='analysis' for proper
+ * filename generation, but the content is still the original Q&A cluster.
+ * 
+ * @param messages - Array of messages in the cluster (user query + assistant responses)
+ * @param conversationTitle - Parent conversation title for header
+ * @param conversationId - Conversation ID for filename generation
+ * @param type - Export type: 'cluster' (default) or 'analysis'
+ * @throws Error if PDF generation or save fails
  */
 export async function downloadClusterPDF(
   messages: Message[],
@@ -645,7 +774,17 @@ export async function downloadClusterPDF(
 }
 
 /**
- * Export a cluster of messages to PDF format
+ * Generate PDF data for a message cluster (Q&A group)
+ * 
+ * Internal function that creates a PDF document for a group of related messages.
+ * Automatically adds page breaks between assistant→user transitions to separate
+ * different Q&A pairs for improved readability.
+ * Called by: downloadClusterPDF() (from cluster action bar)
+ * 
+ * @param messages - Array of messages in the cluster
+ * @param conversationTitle - Parent conversation title for header
+ * @returns Base64 encoded PDF data
+ * @output Filename determined by downloadClusterPDF based on cluster type
  */
 export async function exportClusterToPDF(
   messages: Message[],
@@ -683,6 +822,7 @@ export async function exportClusterToPDF(
   // Add all messages in the cluster
   for (let i = 0; i < messages.length; i++) {
     const message = messages[i];
+    const nextMessage = i < messages.length - 1 ? messages[i + 1] : null;
 
     // Add spacing between messages
     if (i > 0) {
@@ -691,8 +831,13 @@ export async function exportClusterToPDF(
 
     yPosition = addMessageContent(pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition);
 
-    // Check if we need a new page
-    if (yPosition > pageHeight - 40 && i < messages.length - 1) {
+    // Add page break when transitioning from assistant response to new user query
+    // This creates a clear separation between different Q&A pairs
+    if (nextMessage && message.role === 'assistant' && nextMessage.role === 'user') {
+      pdf.addPage();
+      yPosition = margin;
+    } else if (yPosition > pageHeight - 40 && i < messages.length - 1) {
+      // Only add automatic page break if we didn't just add a role-transition page break
       pdf.addPage();
       yPosition = margin;
     }

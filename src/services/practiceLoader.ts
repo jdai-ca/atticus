@@ -18,6 +18,7 @@ interface PracticeConfigFile {
     minAppVersion: string;
     lastUpdated: string;
     updateUrl?: string;
+    customized?: boolean;
     practiceAreas: LegalPracticeArea[];
 }
 
@@ -127,8 +128,15 @@ class PracticeConfigLoader {
      */
     private async updateFromRemote(currentVersion: string): Promise<void> {
         try {
-            // Load bundled config to get update URL
+            // Load bundled config to get update URL and check if customized
             const bundled = await this.loadBundledConfig();
+
+            // Skip remote update if configuration has been customized by user
+            if (bundled.customized === true) {
+                console.log('[PracticeLoader] Skipping remote update - configuration is customized');
+                return;
+            }
+
             if (!bundled.updateUrl) {
                 console.log('[PracticeLoader] No update URL configured');
                 return;
@@ -203,7 +211,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.13';
+        const appVersion = '0.9.14';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -264,7 +272,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.13',
+            minAppVersion: '0.9.14',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

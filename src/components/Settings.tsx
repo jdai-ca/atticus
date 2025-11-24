@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "../store";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Edit3, Settings as SettingsIcon } from "lucide-react";
+import * as yaml from "js-yaml";
 import {
   ProviderConfig,
   AIProvider,
@@ -47,7 +48,7 @@ export default function Settings({ onClose }: SettingsProps) {
     loadProviderTemplates,
   } = useStore();
   const [activeTab, setActiveTab] = useState<
-    "providers" | "practice" | "advisory" | "privacy" | "about"
+    "providers" | "practice" | "advisory" | "analysis" | "privacy" | "about"
   >("providers");
   const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>(
     {}
@@ -64,6 +65,20 @@ export default function Settings({ onClose }: SettingsProps) {
   const [expandedAdvisoryAreas, setExpandedAdvisoryAreas] = useState<
     Set<string>
   >(new Set());
+  const [showYamlEditor, setShowYamlEditor] = useState(false);
+  const [editingYamlType, setEditingYamlType] = useState<
+    "practices" | "advisory" | "analysis"
+  >("practices");
+  const [yamlLoadError, setYamlLoadError] = useState<string | null>(null);
+  const [parsedAreas, setParsedAreas] = useState<any[]>([]);
+  const [analysisPrompt, setAnalysisPrompt] = useState<string>("");
+  const [expandedEditorCards, setExpandedEditorCards] = useState<Set<string>>(
+    new Set()
+  );
+  const [keywordInputs, setKeywordInputs] = useState<Record<number, string>>(
+    {}
+  );
+  const [isResetting, setIsResetting] = useState<string | null>(null);
 
   // Load provider templates on mount
   useEffect(() => {
@@ -86,6 +101,343 @@ export default function Settings({ onClose }: SettingsProps) {
     templateId: AIProvider
   ): ProviderConfig | undefined => {
     return config.providers.find((p) => p.provider === templateId);
+  };
+
+  // Parse YAML to structured areas array
+  // Parse YAML to areas using js-yaml
+  const parseYamlToAreas = (yamlText: string): any[] => {
+    try {
+      const parsed = yaml.load(yamlText) as any;
+      return parsed?.practiceAreas || [];
+    } catch (error) {
+      console.error("[Settings] Failed to parse YAML:", error);
+      throw new Error(`YAML parsing failed: ${(error as Error).message}`);
+    }
+  };
+
+  // Serialize areas back to YAML using js-yaml
+  const serializeAreasToYaml = (areas: any[]): string => {
+    const now = new Date().toISOString();
+    const type = editingYamlType === "practices" ? "practices" : "advisory";
+
+    // Build the configuration object
+    const config = {
+      version: "1.0.0",
+      minAppVersion: "0.9.14",
+      lastUpdated: now,
+      updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
+      license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
+      customized: true,
+      practiceAreas: areas.map((area) => ({
+        id: area.id,
+        name: area.name,
+        description: area.description,
+        color: area.color,
+        keywords: area.keywords || [],
+        enabled: area.enabled !== undefined ? area.enabled : true,
+        systemPrompt: area.systemPrompt || "",
+      })),
+    };
+
+    return yaml.dump(config, {
+      indent: 2,
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: false,
+    });
+  };
+
+  // Reset to factory configuration
+  const resetToFactory = async (
+    type: "practices" | "advisory" | "analysis" | "providers"
+  ) => {
+    const filename =
+      type === "practices"
+        ? "practices.yaml"
+        : type === "advisory"
+        ? "advisory.yaml"
+        : type === "analysis"
+        ? "analysis.yaml"
+        : "providers.yaml";
+
+    const confirmed = confirm(
+      `Are you sure you want to reset ${type} configuration to factory defaults?\n\nThis will overwrite any customizations you've made.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsResetting(type);
+      const result = await (globalThis as any).electronAPI.fetchFactoryConfig(
+        filename
+      );
+
+      if (result.success) {
+        // Parse the fetched YAML to verify it's valid
+        const parsed = yaml.load(result.data) as any;
+
+        // Verify the customized flag is false in factory config
+        if (parsed.customized === true) {
+          alert(
+            "Warning: Downloaded configuration appears to be customized. Factory reset cancelled."
+          );
+          setIsResetting(null);
+          return;
+        }
+
+        // Save the factory configuration
+        const saveResult = await (
+          globalThis as any
+        ).electronAPI.saveBundledConfig(filename, result.data);
+
+        if (saveResult.success) {
+          alert(`${type} configuration has been reset to factory defaults.`);
+          // Reload the page to apply changes
+          window.location.reload();
+        } else {
+          alert(
+            `Failed to save factory configuration: ${
+              saveResult.error?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        alert(
+          `Failed to fetch factory configuration: ${
+            result.error?.message || "Unknown error"
+          }`
+        );
+      }
+    } catch (error) {
+      alert(`Error resetting to factory: ${(error as Error).message}`);
+    } finally {
+      setIsResetting(null);
+    }
+  };
+
+  // Load YAML file content
+  const loadYamlContent = async (
+    type: "practices" | "advisory" | "analysis"
+  ) => {
+    try {
+      setYamlLoadError(null);
+      const filename =
+        type === "practices"
+          ? "practices.yaml"
+          : type === "advisory"
+          ? "advisory.yaml"
+          : "analysis.yaml";
+      const result = await (globalThis as any).electronAPI.loadBundledConfig(
+        filename
+      );
+
+      if (result.success) {
+        setEditingYamlType(type);
+
+        if (type === "analysis") {
+          // Parse analysis.yaml
+          const parsed = yaml.load(result.data) as any;
+          if (parsed?.analysis?.systemPrompt) {
+            setAnalysisPrompt(parsed.analysis.systemPrompt);
+            setShowYamlEditor(true);
+          } else {
+            setYamlLoadError("Invalid analysis.yaml structure");
+          }
+        } else {
+          // Parse practices/advisory using js-yaml
+          const areas = parseYamlToAreas(result.data);
+          setParsedAreas(areas);
+          setShowYamlEditor(true);
+        }
+      } else {
+        setYamlLoadError(
+          result.error?.message || "Failed to load configuration file"
+        );
+      }
+    } catch (error) {
+      setYamlLoadError(
+        `Failed to load ${type}.yaml: ${(error as Error).message}`
+      );
+    }
+  };
+
+  // Validate areas before saving (basic validation only, detailed validation happens in scripts)
+  const validateAreas = (): { valid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    const seenIds = new Set<string>();
+
+    for (let index = 0; index < parsedAreas.length; index++) {
+      const area = parsedAreas[index];
+
+      // Skip if area is null/undefined
+      if (!area?.id) continue;
+
+      // Check for duplicate IDs
+      if (seenIds.has(area.id)) {
+        errors.push(`Duplicate ID "${area.id}" found`);
+      }
+      seenIds.add(area.id);
+
+      // Check required fields
+      if (area.id.trim() === "") {
+        errors.push(`Area ${index + 1}: ID is required`);
+      }
+      if (!area.name || area.name.trim() === "") {
+        errors.push(`Area ${index + 1} (${area.id}): Name is required`);
+      }
+      if (!area.description || area.description.trim() === "") {
+        errors.push(`Area ${index + 1} (${area.id}): Description is required`);
+      }
+
+      // Validate color format
+      if (!area.color || !/^#[0-9A-Fa-f]{6}$/.test(area.color)) {
+        errors.push(
+          `Area ${index + 1} (${
+            area.id
+          }): Color must be a valid hex code (e.g., #3B82F6)`
+        );
+      }
+
+      // Validate keywords array exists
+      if (!Array.isArray(area.keywords)) {
+        errors.push(
+          `Area ${index + 1} (${area.id}): Keywords must be an array`
+        );
+      }
+    }
+
+    // Note: Keyword collision detection is handled by validation scripts (validate-practices-clean.js, validate-advisory-clean.js)
+    // This provides more accurate collision detection across the entire configuration
+
+    return { valid: errors.length === 0, errors };
+  };
+
+  // Save YAML file content
+  const saveYamlContent = async () => {
+    try {
+      let serializedYaml: string;
+
+      if (editingYamlType === "analysis") {
+        // Validate analysis prompt
+        if (!analysisPrompt.trim()) {
+          alert("Analysis system prompt cannot be empty");
+          return;
+        }
+
+        // Serialize analysis.yaml
+        serializedYaml = `version: 1.0.0
+minAppVersion: 0.9.14
+lastUpdated: "${new Date().toISOString()}"
+updateUrl: https://jdai.ca/atticus/analysis.yaml
+license: "Copyright (c) 2025 John Kost, All Rights Reserved."
+customized: true
+analysis:
+  systemPrompt: |
+${analysisPrompt
+  .split("\n")
+  .map((line) => "    " + line)
+  .join("\n")}
+`;
+      } else {
+        // Validate areas before saving
+        const validation = validateAreas();
+        if (!validation.valid) {
+          alert(
+            `Cannot save due to validation errors:\n\n${validation.errors.join(
+              "\n"
+            )}`
+          );
+          return;
+        }
+
+        // Serialize structured data back to YAML
+        serializedYaml = serializeAreasToYaml(parsedAreas);
+      }
+
+      const filename =
+        editingYamlType === "practices"
+          ? "practices.yaml"
+          : editingYamlType === "advisory"
+          ? "advisory.yaml"
+          : "analysis.yaml";
+      const result = await (globalThis as any).electronAPI.saveBundledConfig(
+        filename,
+        serializedYaml
+      );
+
+      if (result.success) {
+        setShowYamlEditor(false);
+        alert(
+          `${filename} saved successfully! Please restart Atticus for changes to take effect.`
+        );
+      } else {
+        alert(`Failed to save: ${result.error?.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      alert(`Failed to save: ${(error as Error).message}`);
+    }
+  };
+
+  // Update area field
+  const updateAreaField = (index: number, field: string, value: string) => {
+    const updated = [...parsedAreas];
+    updated[index] = { ...updated[index], [field]: value };
+    setParsedAreas(updated);
+  };
+
+  // Add new keyword to area
+  const addKeywordToArea = (index: number, keyword: string) => {
+    if (!keyword.trim()) return;
+    const updated = [...parsedAreas];
+    updated[index] = {
+      ...updated[index],
+      keywords: [...updated[index].keywords, keyword.trim()],
+    };
+    setParsedAreas(updated);
+  };
+
+  // Remove keyword from area
+  const removeKeywordFromArea = (index: number, keywordIndex: number) => {
+    const updated = [...parsedAreas];
+    updated[index] = {
+      ...updated[index],
+      keywords: updated[index].keywords.filter(
+        (_: any, i: number) => i !== keywordIndex
+      ),
+    };
+    setParsedAreas(updated);
+  };
+
+  // Delete area
+  const deleteArea = (index: number) => {
+    if (confirm("Are you sure you want to delete this area?")) {
+      setParsedAreas(parsedAreas.filter((_, i) => i !== index));
+    }
+  };
+
+  // Add new area
+  const addNewArea = () => {
+    const newArea = {
+      id: `custom-area-${Date.now()}`,
+      name: "New Area",
+      description: "Description for new area",
+      color: "#3B82F6",
+      keywords: [],
+      systemPrompt: "",
+    };
+    setParsedAreas([...parsedAreas, newArea]);
+    setExpandedEditorCards(new Set([...expandedEditorCards, newArea.id]));
+
+    // Scroll to bottom after new area is added
+    setTimeout(() => {
+      const editorContent = document.querySelector(".yaml-editor-content");
+      if (editorContent) {
+        editorContent.scrollTo({
+          top: editorContent.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
   };
 
   // Get model domain configuration
@@ -303,6 +655,16 @@ export default function Settings({ onClose }: SettingsProps) {
             }`}
           >
             Advisory Areas
+          </button>
+          <button
+            onClick={() => setActiveTab("analysis")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "analysis"
+                ? "text-gray-200 border-b-2 border-gray-400"
+                : "text-gray-400 hover:text-gray-300"
+            }`}
+          >
+            Analysis
           </button>
           <button
             onClick={() => setActiveTab("privacy")}
@@ -673,10 +1035,33 @@ export default function Settings({ onClose }: SettingsProps) {
 
           {activeTab === "practice" && (
             <div>
-              <p className="text-gray-400 mb-4">
-                Atticus automatically detects the practice area based on your
-                conversation content. Here are the configured practice areas:
-              </p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-gray-400">
+                  Atticus automatically detects the practice area based on your
+                  conversation content. Here are the configured practice areas:
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => resetToFactory("practices")}
+                    disabled={isResetting === "practices"}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
+                    title="Reset to factory defaults"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>
+                      {isResetting === "practices" ? "Resetting..." : "Reset"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => loadYamlContent("practices")}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+                    title="Edit practices.yaml"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Customize</span>
+                  </button>
+                </div>
+              </div>
 
               <div className="space-y-3">
                 {[...config.legalPracticeAreas]
@@ -769,11 +1154,34 @@ export default function Settings({ onClose }: SettingsProps) {
 
           {activeTab === "advisory" && (
             <div>
-              <p className="text-gray-400 mb-4">
-                Atticus provides comprehensive business advisory capabilities to
-                complement legal services. The system automatically detects
-                advisory topics and adjusts guidance accordingly.
-              </p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-gray-400">
+                  Atticus provides comprehensive business advisory capabilities
+                  to complement legal services. The system automatically detects
+                  advisory topics and adjusts guidance accordingly.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => resetToFactory("advisory")}
+                    disabled={isResetting === "advisory"}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
+                    title="Reset to factory defaults"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>
+                      {isResetting === "advisory" ? "Resetting..." : "Reset"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => loadYamlContent("advisory")}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+                    title="Edit advisory.yaml"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Customize</span>
+                  </button>
+                </div>
+              </div>
 
               {!config.advisoryAreas || config.advisoryAreas.length === 0 ? (
                 <div className="bg-gray-900 rounded-lg p-6 text-center">
@@ -866,6 +1274,147 @@ export default function Settings({ onClose }: SettingsProps) {
                     business support
                   </li>
                 </ul>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "analysis" && (
+            <div>
+              <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-6">
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  🔍 Response Analysis Configuration
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  Configure the system prompt used for multi-model response
+                  validation and analysis. This prompt guides the AI quality
+                  analyst when comparing responses from different models.
+                </p>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-semibold text-white">
+                      Analysis System Prompt
+                    </h4>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Defines how AI models analyze and compare responses for
+                      consistency, accuracy, and quality.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => resetToFactory("analysis")}
+                      disabled={isResetting === "analysis"}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
+                      title="Reset to factory defaults"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>
+                        {isResetting === "analysis" ? "Resetting..." : "Reset"}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => loadYamlContent("analysis")}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <SettingsIcon className="h-4 w-4" />
+                      Customize
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <h5 className="text-sm font-semibold text-gray-300 mb-2">
+                    Current Configuration
+                  </h5>
+                  <p className="text-xs text-gray-400 mb-3">
+                    Source:{" "}
+                    <code className="bg-gray-700 px-2 py-1 rounded">
+                      analysis.yaml
+                    </code>
+                  </p>
+                  <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono bg-gray-900 p-3 rounded border border-gray-600 max-h-64 overflow-y-auto">
+                    {`version: 1.0.0
+lastUpdated: ${new Date().toISOString().split("T")[0]}
+
+analysis:
+  systemPrompt: |
+    [Configured system prompt for response analysis]
+    
+Used when: User clicks "Analyze Response Cluster" to compare
+multiple AI responses using an independent model.`}
+                  </pre>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-700/50">
+                    <h5 className="text-sm font-semibold text-blue-400 mb-2">
+                      💡 What is Response Analysis?
+                    </h5>
+                    <p className="text-xs text-gray-300">
+                      When you receive responses from multiple AI models, you
+                      can use an independent "judge" model to analyze and
+                      compare them. The analysis system prompt guides this judge
+                      model to evaluate consistency, accuracy, completeness, and
+                      quality of the responses.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <h5 className="text-sm font-semibold text-gray-300 mb-2">
+                      Key Analysis Criteria
+                    </h5>
+                    <ul className="text-xs text-gray-300 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">1.</span>
+                        <span>
+                          <strong>Consistency:</strong> Are the responses
+                          aligned with each other?
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">2.</span>
+                        <span>
+                          <strong>Accuracy:</strong> Identify potential
+                          inaccuracies or confabulations
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">3.</span>
+                        <span>
+                          <strong>Completeness:</strong> What important points
+                          are missing?
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">4.</span>
+                        <span>
+                          <strong>Quality Ranking:</strong> Rank responses from
+                          best to worst
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">5.</span>
+                        <span>
+                          <strong>Recommendations:</strong> Which response(s) to
+                          trust most
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-700/50">
+                    <h5 className="text-sm font-semibold text-yellow-400 mb-2">
+                      ⚠️ Customization Note
+                    </h5>
+                    <p className="text-xs text-gray-300">
+                      The analysis prompt can be customized to emphasize
+                      specific criteria relevant to your use case (e.g., legal
+                      accuracy, technical precision, business viability). Click
+                      "Customize" to edit the system prompt in a structured
+                      editor.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1384,6 +1933,377 @@ export default function Settings({ onClose }: SettingsProps) {
           )}
         </div>
       </div>
+
+      {/* YAML Editor Dialog */}
+      {showYamlEditor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-700 shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Edit3 className="w-5 h-5" />
+                Edit{" "}
+                {editingYamlType === "practices"
+                  ? "practices.yaml"
+                  : editingYamlType === "advisory"
+                  ? "advisory.yaml"
+                  : "analysis.yaml"}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowYamlEditor(false);
+                  setYamlLoadError(null);
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-auto p-4 yaml-editor-content">
+              {yamlLoadError ? (
+                <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 text-red-300">
+                  {yamlLoadError}
+                </div>
+              ) : editingYamlType === "analysis" ? (
+                <>
+                  <div className="mb-4 text-sm text-gray-400">
+                    <p className="mb-2">
+                      Edit the analysis system prompt below. This prompt guides
+                      the AI quality analyst when comparing responses from
+                      different models.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Analysis System Prompt
+                    </label>
+                    <textarea
+                      value={analysisPrompt}
+                      onChange={(e) => setAnalysisPrompt(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white font-mono text-sm min-h-[400px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter the system prompt for response analysis..."
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      {analysisPrompt.length} characters
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 text-sm text-gray-400">
+                    <p className="mb-2">
+                      Edit the configuration below. Changes will take effect
+                      after restarting Atticus.
+                    </p>
+                  </div>
+
+                  {/* Add New Area Button */}
+                  <div className="mb-4">
+                    <button
+                      onClick={addNewArea}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                    >
+                      <span>+</span> Add New Area
+                    </button>
+                  </div>
+
+                  {/* Area Cards */}
+                  <div className="space-y-4">
+                    {parsedAreas.map((area, index) => {
+                      const isExpanded = expandedEditorCards.has(area.id);
+
+                      return (
+                        <div
+                          key={area.id}
+                          className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden"
+                        >
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between p-4 bg-gray-800">
+                            <div className="flex items-center gap-3 flex-1">
+                              <button
+                                onClick={() => {
+                                  const newSet = new Set(expandedEditorCards);
+                                  if (isExpanded) {
+                                    newSet.delete(area.id);
+                                  } else {
+                                    newSet.add(area.id);
+                                  }
+                                  setExpandedEditorCards(newSet);
+                                }}
+                                className="text-gray-400 hover:text-white transition-colors"
+                                aria-label={isExpanded ? "Collapse" : "Expand"}
+                              >
+                                {isExpanded ? "▼" : "▶"}
+                              </button>
+                              <div
+                                className="w-6 h-6 rounded border border-gray-600"
+                                style={{ backgroundColor: area.color }}
+                                aria-label="Area color"
+                              />
+                              <span className="font-semibold text-white">
+                                {area.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({area.id})
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => deleteArea(index)}
+                              className="text-red-400 hover:text-red-300 transition-colors px-2"
+                              title="Delete area"
+                              aria-label="Delete area"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Card Content (Expanded) */}
+                          {isExpanded && (
+                            <div className="p-4 space-y-4">
+                              {/* ID (Read-only) */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                  ID (read-only)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={area.id}
+                                  disabled
+                                  className="w-full bg-gray-800 text-gray-500 text-sm px-3 py-2 rounded border border-gray-700 cursor-not-allowed"
+                                  aria-label="Area ID"
+                                />
+                              </div>
+
+                              {/* Name */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                  Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={area.name}
+                                  onChange={(e) =>
+                                    updateAreaField(
+                                      index,
+                                      "name",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                                  placeholder="Area name"
+                                />
+                              </div>
+
+                              {/* Description */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                  Description
+                                </label>
+                                <textarea
+                                  value={area.description}
+                                  onChange={(e) =>
+                                    updateAreaField(
+                                      index,
+                                      "description",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
+                                  rows={3}
+                                  placeholder="Area description"
+                                />
+                              </div>
+
+                              {/* Color */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                  Color
+                                </label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={area.color}
+                                    onChange={(e) =>
+                                      updateAreaField(
+                                        index,
+                                        "color",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-12 h-10 bg-gray-800 rounded border border-gray-700 cursor-pointer"
+                                    title="Pick color"
+                                    aria-label="Color picker"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={area.color}
+                                    onChange={(e) =>
+                                      updateAreaField(
+                                        index,
+                                        "color",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="flex-1 bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue font-mono"
+                                    placeholder="#3B82F6"
+                                    pattern="^#[0-9A-Fa-f]{6}$"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* System Prompt */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                  System Prompt
+                                </label>
+                                <textarea
+                                  value={area.systemPrompt || ""}
+                                  onChange={(e) =>
+                                    updateAreaField(
+                                      index,
+                                      "systemPrompt",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none font-mono"
+                                  rows={8}
+                                  placeholder="Enter the system prompt that will guide AI responses for this area..."
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  This prompt defines the AI's expertise,
+                                  approach, and guidelines when responding to
+                                  queries in this area.
+                                </p>
+                              </div>
+
+                              {/* Keywords */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-2">
+                                  Keywords ({area.keywords.length})
+                                </label>
+                                <div className="flex flex-wrap gap-2 mb-2 min-h-[2rem] bg-gray-800 p-2 rounded border border-gray-700">
+                                  {area.keywords.length === 0 ? (
+                                    <span className="text-xs text-gray-500 italic">
+                                      No keywords added yet
+                                    </span>
+                                  ) : (
+                                    area.keywords.map(
+                                      (keyword: string, kIndex: number) => (
+                                        <span
+                                          key={kIndex}
+                                          className="inline-flex items-center gap-1 bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded"
+                                        >
+                                          {keyword}
+                                          <button
+                                            onClick={() =>
+                                              removeKeywordFromArea(
+                                                index,
+                                                kIndex
+                                              )
+                                            }
+                                            className="text-gray-400 hover:text-red-400 transition-colors"
+                                            title="Remove keyword"
+                                            aria-label={`Remove keyword ${keyword}`}
+                                          >
+                                            <X className="w-3 h-3" />
+                                          </button>
+                                        </span>
+                                      )
+                                    )
+                                  )}
+                                </div>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={keywordInputs[index] || ""}
+                                    onChange={(e) =>
+                                      setKeywordInputs({
+                                        ...keywordInputs,
+                                        [index]: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        const keyword =
+                                          keywordInputs[index]?.trim();
+                                        if (keyword) {
+                                          addKeywordToArea(index, keyword);
+                                          setKeywordInputs({
+                                            ...keywordInputs,
+                                            [index]: "",
+                                          });
+                                        }
+                                      }
+                                    }}
+                                    className="flex-1 bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue"
+                                    placeholder="Add keyword..."
+                                    aria-label="New keyword"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const keyword =
+                                        keywordInputs[index]?.trim();
+                                      if (keyword) {
+                                        addKeywordToArea(index, keyword);
+                                        setKeywordInputs({
+                                          ...keywordInputs,
+                                          [index]: "",
+                                        });
+                                      }
+                                    }}
+                                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm font-medium transition-colors"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 border-t border-gray-700">
+              <div className="text-xs text-gray-400">
+                File:{" "}
+                {editingYamlType === "practices"
+                  ? "practices.yaml"
+                  : editingYamlType === "advisory"
+                  ? "advisory.yaml"
+                  : "analysis.yaml"}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowYamlEditor(false);
+                    setYamlLoadError(null);
+                  }}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveYamlContent}
+                  disabled={!!yamlLoadError}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

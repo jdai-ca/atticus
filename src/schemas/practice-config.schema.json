@@ -35,9 +35,12 @@
             "type": "string",
             "description": "License identifier for this configuration file"
         },
+        "customized": {
+            "type": "boolean",
+            "description": "Flag indicating whether configuration has been customized by user (true) or is factory default (false)"
+        },
         "practiceAreas": {
             "type": "array",
-            "minItems": 1,
             "description": "Array of legal practice area configurations",
             "items": {
                 "$ref": "#/definitions/PracticeArea"
@@ -52,7 +55,6 @@
                 "name",
                 "description",
                 "keywords",
-                "systemPrompt",
                 "color"
             ],
             "properties": {
@@ -75,7 +77,6 @@
                 },
                 "keywords": {
                     "type": "array",
-                    "minItems": 1,
                     "uniqueItems": true,
                     "description": "Keywords for practice area detection",
                     "items": {
@@ -85,7 +86,6 @@
                 },
                 "systemPrompt": {
                     "type": "string",
-                    "minLength": 50,
                     "description": "Specialized system prompt for this practice area"
                 },
                 "color": {
