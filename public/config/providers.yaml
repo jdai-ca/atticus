@@ -1,5 +1,5 @@
 version: "1.1.0"
-minAppVersion: "0.9.14"
+minAppVersion: "0.9.15"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -71,14 +71,14 @@ providers:
       order: 1
   - id: anthropic
     name: Anthropic
-    displayName: Anthropic Claude
-    description: Claude 4 family - Opus, Sonnet, and Haiku
+    displayName: Anthropic AI
+    description: Claude 4.5 family - Opus, Sonnet, and Haiku
     endpoint: https://api.anthropic.com/v1/messages
     defaultModel: claude-sonnet-4-5
 
     models:
       - id: claude-sonnet-4-5
-        name: Claude 4.5 Sonnet (Latest)
+        name: Claude 4.5 Sonnet
         description: Most intelligent model, best for complex analysis and coding
         maxContextWindow: 200000
         defaultMaxTokens: 16384
@@ -88,7 +88,7 @@ providers:
         enabled: true
 
       - id: claude-haiku-4-5
-        name: Claude 4.5 Haiku (Latest)
+        name: Claude 4.5 Haiku
         description: Fastest and most compact model
         maxContextWindow: 200000
         defaultMaxTokens: 16384
@@ -97,14 +97,14 @@ providers:
         outputTokenPrice: 5.00
         enabled: true
 
-      - id: claude-opus-4-1
-        name: Claude 4.1 Opus
+      - id: claude-opus-4-5
+        name: Claude 4.5 Opus
         description: Powerful model for highly complex tasks
         maxContextWindow: 200000
         defaultMaxTokens: 16384
         maxMaxTokens: 32000
-        inputTokenPrice: 15.00
-        outputTokenPrice: 75.00
+        inputTokenPrice: 5.00
+        outputTokenPrice: 25.00
         enabled: true
 
     capabilities:
@@ -124,7 +124,7 @@ providers:
       order: 2
   - id: google
     name: Google
-    displayName: Google Gemini
+    displayName: Google AI
     description: Gemini 2.5 Pro, Flash, and other Gemini models
     endpoint: https://generativelanguage.googleapis.com/v1beta/openai/
     defaultModel: gemini-2.5-pro
@@ -230,7 +230,7 @@ providers:
       order: 4
   - id: xai
     name: xAI
-    displayName: xAI Grok
+    displayName: xAI
     description: Grok models by xAI (Elon Musk's AI company)
     endpoint: https://api.x.ai/v1/chat/completions
     defaultModel: grok-4
@@ -355,7 +355,7 @@ providers:
       order: 6
   - id: cohere
     name: Cohere
-    displayName: Cohere
+    displayName: Cohere AI
     description: Enterprise-grade Command models for complex reasoning
     endpoint: https://api.cohere.ai/v1/chat
     defaultModel: command-r-plus
@@ -417,7 +417,7 @@ providers:
       order: 7
   - id: groq
     name: Groq
-    displayName: Groq
+    displayName: Groq AI
     description: Ultra-fast inference with Llama 3.3, Llama 3.1, Mixtral, and Gemma
     endpoint: https://api.groq.com/openai/v1/chat/completions
     defaultModel: llama-3.3-70b-versatile

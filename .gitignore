@@ -15,7 +15,6 @@ package-lock.json
 dist
 dist-electron
 release
-scripts
 notes
 *.local
 

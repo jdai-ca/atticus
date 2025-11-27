@@ -15,9 +15,42 @@ interface FormattedTextSegment {
   isHeading?: number; // 1-6 for heading level
 }
 
+// Helper function to sanitize text for PDF - removes hidden characters and normalizes text
+function sanitizeTextForPDF(text: string): string {
+  let clean = text;
+
+  // Remove zero-width characters and other invisible Unicode
+  clean = clean.replace(/[\u200B-\u200F]/g, ''); // Zero-width spaces, joiners, marks
+  clean = clean.replace(/[\u2060-\u206F]/g, ''); // Word joiners, direction marks
+  clean = clean.replace(/[\u00AD]/g, ''); // Soft hyphens
+  clean = clean.replace(/[\u034F]/g, ''); // Combining grapheme joiner
+  clean = clean.replace(/[\uFEFF]/g, ''); // Byte order mark
+  clean = clean.replace(/[\uFFF9-\uFFFB]/g, ''); // Interlinear annotations
+  clean = clean.replace(/[\u180E]/g, ''); // Mongolian vowel separator
+
+  // Remove variation selectors and format characters
+  clean = clean.replace(/[\uFE00-\uFE0F]/g, ''); // Variation selectors
+  clean = clean.replace(/[\u202A-\u202E]/g, ''); // Bidirectional formatting
+
+  // Remove combining diacritical marks that might cause spacing
+  clean = clean.replace(/[\u0300-\u036F]/g, '');
+
+  // Remove control characters except newlines and tabs
+  clean = clean.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+  // Normalize Unicode to NFD first (decomposed), remove combining marks, then back to NFC
+  clean = clean.normalize('NFD').replace(/[\u0300-\u036F]/g, '').normalize('NFC');
+
+  // Remove any remaining non-printable characters but be more permissive
+  clean = clean.replace(/[^\x20-\x7E\n\r\t\u00A0-\u024F\u1E00-\u1EFF]/g, '');
+
+  return clean;
+}
+
 // Helper function to strip markdown formatting from text
 function stripMarkdown(text: string): string {
-  let cleanText = text;
+  // First sanitize the text
+  let cleanText = sanitizeTextForPDF(text);
 
   // Remove ALL backticks first (they render as %ı in PDF)
   // Handle triple backticks with or without language/text
@@ -277,7 +310,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
   // Message header with background
   pdf.setFontSize(11);
-  pdf.setFont('times', 'bold');
+  pdf.setFont('helvetica', 'bold');
   const role = message.role === 'user' ? 'You' : 'Assistant';
   const timestamp = DateUtils.formatTime(message.timestamp);
 
@@ -289,7 +322,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   pdf.text(`${role}`, margin, y);
 
   // Timestamp on the right
-  pdf.setFont('times', 'normal');
+  pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(100, 100, 100);
   const timestampWidth = pdf.getTextWidth(timestamp);
@@ -339,9 +372,10 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     // Set font based on segment type
     if (segment.isHeading) {
       pdf.setFontSize(segment.fontSize || 12);
-      pdf.setFont('times', 'bold');
+      pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(0, 0, 80);
-      const lines = pdf.splitTextToSize(segment.text, maxWidth - 6);
+      const sanitized = sanitizeTextForPDF(segment.text);
+      const lines = pdf.splitTextToSize(sanitized, maxWidth - 10);
       for (const line of lines) {
         if (y > pageHeight - 20) {
           pdf.addPage();
@@ -361,22 +395,30 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
       pdf.setFont('courier', 'normal');
       pdf.setFillColor(240, 240, 240);
       const codeIndent = margin + (segment.indent || 0) * 10 + 3;
+      const sanitized = sanitizeTextForPDF(segment.text);
+      const codeLines = pdf.splitTextToSize(sanitized, maxWidth - 10 - (segment.indent || 0) * 10);
 
-      // Background for code
-      const textWidth = pdf.getTextWidth(segment.text);
-      pdf.rect(codeIndent - 2, y - 4, Math.min(textWidth + 4, maxWidth - 6), 6, 'F');
+      for (const codeLine of codeLines) {
+        if (y > pageHeight - 20) {
+          pdf.addPage();
+          y = margin;
+        }
+        // Background for code
+        const lineWidth = pdf.getTextWidth(codeLine);
+        pdf.rect(codeIndent - 2, y - 4, Math.min(lineWidth + 4, maxWidth - 10), 6, 'F');
 
-      pdf.setTextColor(0, 100, 0);
-      pdf.text(segment.text, codeIndent, y);
+        pdf.setTextColor(0, 100, 0);
+        pdf.text(codeLine, codeIndent, y);
+        y += 5.5;
+      }
       pdf.setTextColor(0, 0, 0);
-      y += 5.5;
       continue;
     }
 
     // Bullet points
     if (segment.isBullet) {
       pdf.setFontSize(10);
-      pdf.setFont('times', 'normal');
+      pdf.setFont('helvetica', 'normal');
       const bulletIndent = margin + (segment.indent || 0) * 10 + 3;
 
       // Draw bullet
@@ -385,7 +427,8 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
       // Wrap bullet text
       pdf.setFontSize(10);
-      const bulletLines = pdf.splitTextToSize(segment.text, maxWidth - 20 - (segment.indent || 0) * 10);
+      const sanitized = sanitizeTextForPDF(segment.text);
+      const bulletLines = pdf.splitTextToSize(sanitized, maxWidth - 25 - (segment.indent || 0) * 10);
       for (let i = 0; i < bulletLines.length; i++) {
         if (y > pageHeight - 20) {
           pdf.addPage();
@@ -403,14 +446,15 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     // Numbered lists
     if (segment.isNumbered) {
       pdf.setFontSize(10);
-      pdf.setFont('times', 'normal');
+      pdf.setFont('helvetica', 'normal');
       const numberIndent = margin + (segment.indent || 0) * 10 + 3;
 
       // We'd need to track numbering - for now just use bullets
       pdf.text('•', numberIndent, y);
 
       // Wrap numbered text
-      const numberLines = pdf.splitTextToSize(segment.text, maxWidth - 20 - (segment.indent || 0) * 10);
+      const sanitized = sanitizeTextForPDF(segment.text);
+      const numberLines = pdf.splitTextToSize(sanitized, maxWidth - 25 - (segment.indent || 0) * 10);
       for (let i = 0; i < numberLines.length; i++) {
         if (y > pageHeight - 20) {
           pdf.addPage();
@@ -427,8 +471,9 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
     // Regular text paragraphs
     pdf.setFontSize(10);
-    pdf.setFont('times', 'normal');
-    const lines = pdf.splitTextToSize(segment.text, maxWidth - 6);
+    pdf.setFont('helvetica', 'normal');
+    const sanitized = sanitizeTextForPDF(segment.text);
+    const lines = pdf.splitTextToSize(sanitized, maxWidth - 10);
 
     for (const line of lines) {
       if (y > pageHeight - 20) {
@@ -441,7 +486,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   }
 
   pdf.setTextColor(0, 0, 0);
-  pdf.setFont("times", "normal");
+  pdf.setFont("helvetica", "normal");
 
   // Attachments
   if (message.attachments && message.attachments.length > 0) {

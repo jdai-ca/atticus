@@ -1,10 +1,10 @@
 # Atticus - In-House AI Counsel
 
-A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with interprovincial/interstate complexity awareness, and comprehensive business consulting capabilities. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
+A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
 
 > **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
 
-![Atticus Application Interface](docs/images/Screenshot-02.png)
+![Atticus Application Interface](docs/images/Screenshot-11.png)
 
 ## ⚠️ Important Documentation
 
@@ -99,7 +99,7 @@ Access **9 leading AI providers** with **60+ models** through one unified interf
 
 - **Claude 4.5 Sonnet** - Most intelligent model, best for complex analysis and coding (200K context) ⭐ _Default_
 - **Claude 4.5 Haiku** - Fastest and most compact model (200K context)
-- **Claude 4.1 Opus** - Powerful model for highly complex tasks (200K context)
+- **Claude 4.5 Opus** - Powerful model for highly complex tasks (200K context)
 
 ### Google (3 models)
 
@@ -240,16 +240,16 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 
 **Focus legal analysis on specific jurisdictions** or get comparative analysis across **CUSMA/USMCA** region and beyond:
 
-- **🇨🇦 Canada** - Canadian federal and provincial law, including interprovincial trade and regulatory differences
+- **🇨🇦 Canada** - Canadian federal and provincial law, including inter-provincial trade and regulatory differences
 - **🇺🇸 United States** - U.S. federal and state law, including interstate commerce and jurisdictional conflicts
 - **🇲🇽 Mexico** - Mexican federal and state law, including interstate commerce and regulatory variations
 - **🇺 European Union** - EU regulations and member state law, including cross-border harmonization
 
-**Interprovincial/Interstate Complexity Coverage**:
+**Inter-provincial/Interstate Complexity Coverage**:
 
 Atticus intelligently addresses **internal jurisdictional complexities** within each country:
 
-**🇨🇦 Canadian Interprovincial**:
+**🇨🇦 Canadian Inter-provincial**:
 
 - **Division of powers** - Federal vs. provincial jurisdiction (Constitution Act, 1867)
 - **Interprovincial trade barriers** - Agreement on Internal Trade (AIT), Canadian Free Trade Agreement (CFTA)
@@ -294,8 +294,8 @@ The system is **fully optimized for CUSMA/USMCA** (Canada-United States-Mexico A
 - CA + US + MX → CUSMA-specific guidance **with internal trade barrier considerations**
 - No selection → Global legal perspective
 
-![Thread Configuration Dialog](docs/images/Screenshot-06.png)
-_Comprehensive per-conversation configuration: select multiple AI models simultaneously, choose specific jurisdictions for legal analysis (Canada, US, Mexico, EU), and control response size with preset options or custom token limits for optimal results_
+![Thread Configuration Dialog](docs/images/Screenshot-12.png)
+_Comprehensive per-conversation configuration: select multiple AI models simultaneously and choose specific jurisdictions for legal analysis (Canada, US, Mexico, EU) for optimal results_
 
 ### ⚖️ Legal Practice Area Detection
 

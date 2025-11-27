@@ -245,27 +245,46 @@ export default function ChatWindow() {
         throw new Error("First message in cluster must be user message");
       }
 
-      // Collect all assistant responses in the cluster
+      // Collect all assistant responses in the cluster (ONLY from the cluster, not including any previous analysis)
       const responses: string[] = [];
       for (let i = analysisClusterStart + 1; i <= analysisClusterEnd; i++) {
         const msg = currentConversation.messages[i];
-        if (msg.role === "assistant" && msg.modelInfo) {
-          responses.push(`**${msg.modelInfo.modelName}**: ${msg.content}`);
+        // Exclude previous analysis messages - only include original query responses
+        if (
+          msg.role === "assistant" &&
+          msg.modelInfo &&
+          !msg.id.includes("_analysis")
+        ) {
+          // Format each response with clear header and separator using simple ASCII characters
+          const responseHeader = `===================================================================
+RESPONSE FROM: ${msg.modelInfo.modelName}
+Provider: ${msg.modelInfo.providerName}
+===================================================================`;
+
+          responses.push(`${responseHeader}\n\n${msg.content}`);
         }
       }
 
-      // Construct analysis prompt using loaded configuration
+      // Get system prompt from loaded configuration
       const systemPrompt =
         analysisConfig?.systemPrompt ||
         "You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.";
 
-      const analysisPrompt = `${systemPrompt}
+      // Log for debugging
+      logger.info("Analysis system prompt loaded", {
+        promptLength: systemPrompt.length,
+        hasConfig: !!analysisConfig,
+      });
 
-**Original Query:**
+      // Construct analysis prompt (user message content) with clear structure
+      const separator = "\n\n" + "-".repeat(70) + "\n\n";
+      const analysisPrompt = `**Original Query:**
 ${userMessage.content}
 
-**Responses to Analyze:**
-${responses.join("\\n\\n")}`;
+${separator}**Responses to Analyze (${responses.length} model${
+        responses.length !== 1 ? "s" : ""
+      }):**
+${separator}${responses.join("\n\n" + separator)}`;
 
       // Parse selected model
       const [providerId, modelId] = selectedAnalysisModel.split(":");
@@ -278,6 +297,31 @@ ${responses.join("\\n\\n")}`;
       if (!provider || !model) {
         throw new Error("Selected model not found");
       }
+
+      // Determine optimal maxTokens based on model's output capacity
+      // Use model's maxOutputTokens if available, otherwise fallback to reasonable defaults
+      let analysisMaxTokens = maxTokensOverride;
+      if (!analysisMaxTokens) {
+        if (model.maxOutputTokens) {
+          // Use 80% of model's max output capacity to be safe
+          analysisMaxTokens = Math.floor(model.maxOutputTokens * 0.8);
+        } else {
+          // Fallback: scale based on number of responses being analyzed
+          // More responses = need more output tokens for comprehensive analysis
+          const baseTokens = 4096;
+          const tokensPerResponse = 1024;
+          analysisMaxTokens = Math.min(
+            baseTokens + responses.length * tokensPerResponse,
+            32000 // Cap at 32k for safety
+          );
+        }
+      }
+
+      logger.info("Analysis token allocation", {
+        modelMaxOutput: model.maxOutputTokens,
+        responseCount: responses.length,
+        allocatedTokens: analysisMaxTokens,
+      });
 
       // Create provider config with selected model
       const providerConfig = {
@@ -297,17 +341,14 @@ ${responses.join("\\n\\n")}`;
 
       addMessage(analysisUserMessage);
 
-      // Send to API
+      // Send to API - ONLY send the analysis query, not previous conversation history
+      // This ensures previous analysis results don't pollute the new analysis
       const result = await globalThis.window.electronAPI.secureChatRequest({
         provider: providerConfig,
-        messages: [
-          ...currentConversation.messages.slice(0, analysisClusterEnd + 1),
-          analysisUserMessage,
-        ],
-        systemPrompt:
-          "You are an expert AI validator analyzing responses for accuracy, consistency, and potential confabulations.",
+        messages: [analysisUserMessage],
+        systemPrompt: systemPrompt,
         temperature: 0.3, // Lower temperature for more focused analysis
-        maxTokens: maxTokensOverride || 2048,
+        maxTokens: analysisMaxTokens,
       });
 
       if (result.success && result.data) {
@@ -1767,230 +1808,6 @@ ${responses.join("\\n\\n")}`;
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Response Size Section - Full Width */}
-              <div className="mt-6 pt-6 border-t border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white">
-                    Response Size
-                  </h3>
-                  <span className="text-sm font-medium text-legal-gold">
-                    {(() => {
-                      const currentTokens =
-                        maxTokensOverride ||
-                        (selectedModelKeys.size > 0
-                          ? Array.from(selectedModelKeys).map((key) => {
-                              const [providerId, modelId] = key.split(":");
-                              const provider = config.providers.find(
-                                (p: any) => p.id === providerId
-                              );
-                              const template = providerTemplates.find(
-                                (t: any) => t.id === provider?.provider
-                              );
-                              const model = template?.models.find(
-                                (m: any) => m.id === modelId
-                              );
-                              return model?.defaultMaxTokens || 2048;
-                            })[0]
-                          : 2048);
-                      const preset = getPresetByTokens(currentTokens);
-                      return `${preset.icon} ${preset.name} (${formatTokenCount(
-                        currentTokens
-                      )} tokens)`;
-                    })()}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-400 mb-2">
-                  Choose response length based on your needs. Longer responses
-                  work better for contract drafting and comprehensive analysis.
-                  {selectedModelKeys.size > 0 &&
-                    (() => {
-                      const maxModelLimit = Array.from(
-                        selectedModelKeys
-                      ).reduce((max, key) => {
-                        const [providerId, modelId] = key.split(":");
-                        const provider = config.providers.find(
-                          (p: any) => p.id === providerId
-                        );
-                        const template = providerTemplates.find(
-                          (t: any) => t.id === provider?.provider
-                        );
-                        const model = template?.models.find(
-                          (m: any) => m.id === modelId
-                        );
-                        return Math.max(max, model?.maxMaxTokens || 0);
-                      }, 0);
-                      if (maxModelLimit > 0) {
-                        return ` Maximum output: ${formatTokenCount(
-                          maxModelLimit
-                        )} tokens.`;
-                      }
-                      return "";
-                    })()}
-                </div>
-                <div className="text-xs bg-amber-900/20 border border-amber-700 rounded p-2 mb-6 text-amber-200">
-                  ⚠️ Note: Output tokens may cost more than input tokens
-                  depending on your model provider's pricing.
-                </div>
-
-                {/* Slider Control */}
-                {(() => {
-                  const maxModelLimit =
-                    selectedModelKeys.size > 0
-                      ? Array.from(selectedModelKeys).reduce((max, key) => {
-                          const [providerId, modelId] = key.split(":");
-                          const provider = config.providers.find(
-                            (p: any) => p.id === providerId
-                          );
-                          const template = providerTemplates.find(
-                            (t: any) => t.id === provider?.provider
-                          );
-                          const model = template?.models.find(
-                            (m: any) => m.id === modelId
-                          );
-                          return Math.max(max, model?.maxMaxTokens || 0);
-                        }, 0)
-                      : 32768;
-
-                  const currentValue =
-                    maxTokensOverride ||
-                    (selectedModelKeys.size > 0
-                      ? Array.from(selectedModelKeys).map((key) => {
-                          const [providerId, modelId] = key.split(":");
-                          const provider = config.providers.find(
-                            (p: any) => p.id === providerId
-                          );
-                          const template = providerTemplates.find(
-                            (t: any) => t.id === provider?.provider
-                          );
-                          const model = template?.models.find(
-                            (m: any) => m.id === modelId
-                          );
-                          return model?.defaultMaxTokens || 2048;
-                        })[0]
-                      : 2048);
-
-                  // Get available presets for markers
-                  const availablePresets = RESPONSE_SIZE_PRESETS.filter(
-                    (preset) => preset.tokens <= maxModelLimit
-                  );
-
-                  return (
-                    <div className="mb-6">
-                      {/* Slider */}
-                      <div className="relative px-2 mb-8">
-                        {/* Track background with gradient */}
-                        <div
-                          className="absolute inset-0 h-2 bg-gray-700 rounded-lg pointer-events-none mx-2"
-                          style={{
-                            background: `linear-gradient(to right, #D4AF37 0%, #D4AF37 ${
-                              ((currentValue - 512) / (maxModelLimit - 512)) *
-                              100
-                            }%, #374151 ${
-                              ((currentValue - 512) / (maxModelLimit - 512)) *
-                              100
-                            }%, #374151 100%)`,
-                          }}
-                        />
-                        <input
-                          type="range"
-                          min="512"
-                          max={maxModelLimit}
-                          step="512"
-                          value={currentValue}
-                          onChange={(e) => {
-                            const newValue = Number.parseInt(e.target.value);
-                            setMaxTokensOverride(newValue);
-                            if (currentConversation) {
-                              setConversationMaxTokens(
-                                currentConversation.id,
-                                newValue
-                              );
-                            }
-                          }}
-                          aria-label="Response size in tokens"
-                          className="relative w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer slider-thumb"
-                        />
-
-                        {/* Preset Markers */}
-                        <div className="relative w-full h-6 mt-2">
-                          {availablePresets.map((preset) => {
-                            const position =
-                              ((preset.tokens - 512) / (maxModelLimit - 512)) *
-                              100;
-                            const isActive =
-                              Math.abs(currentValue - preset.tokens) < 256;
-
-                            return (
-                              <div
-                                key={preset.id}
-                                className="absolute transform -translate-x-1/2"
-                                style={{ left: `${position}%` }}
-                              >
-                                <div
-                                  className={`w-0.5 h-3 mb-1 transition-all ${
-                                    isActive
-                                      ? "bg-legal-gold h-4"
-                                      : "bg-gray-500"
-                                  }`}
-                                />
-                                <div
-                                  className={`text-xs whitespace-nowrap transition-all ${
-                                    isActive
-                                      ? "text-legal-gold font-semibold"
-                                      : "text-gray-500"
-                                  }`}
-                                >
-                                  {preset.icon}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Info Box with Use Cases */}
-                      {(() => {
-                        const preset = getPresetByTokens(currentValue);
-                        return (
-                          <div className="p-4 bg-gray-750 rounded-lg border border-gray-600">
-                            <div className="text-xs text-gray-300">
-                              <p className="font-medium mb-2 text-white">
-                                {preset.icon} {preset.name} - Best for:
-                              </p>
-                              <ul className="space-y-1 text-gray-400">
-                                {preset.useCases.map((useCase, idx) => (
-                                  <li key={`${preset.id}-${idx}`}>
-                                    • {useCase}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  );
-                })()}
-
-                {/* Reset to Default Button */}
-                {maxTokensOverride !== undefined && (
-                  <button
-                    onClick={() => {
-                      setMaxTokensOverride(undefined);
-                      if (currentConversation) {
-                        setConversationMaxTokens(
-                          currentConversation.id,
-                          undefined
-                        );
-                      }
-                    }}
-                    className="text-xs text-gray-400 hover:text-legal-gold transition-colors"
-                  >
-                    Reset to model defaults
-                  </button>
-                )}
               </div>
             </div>
 

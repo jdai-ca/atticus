@@ -123,7 +123,7 @@ export default function Settings({ onClose }: SettingsProps) {
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.14",
+      minAppVersion: "0.9.15",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -326,7 +326,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.14
+minAppVersion: 0.9.15
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
