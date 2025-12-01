@@ -46,6 +46,7 @@ export type AIProvider =
   | 'mistral'
   | 'groq'
   | 'perplexity'
+  | 'cerebras'
   | 'custom';
 
 export type ModelDomain = 'practice' | 'advisory' | 'both';
@@ -189,6 +190,8 @@ export interface Conversation {
   title: string;
   messages: Message[];
   practiceArea?: string;
+  otherPracticeArea?: string; // Secondary practice area for multi-area conversations
+  advisoryArea?: string; // Business advisory area if applicable
   createdAt: string; // ISO string for consistent persistence
   updatedAt: string; // ISO string for consistent persistence
   provider: string; // Deprecated: kept for backward compatibility
@@ -197,6 +200,33 @@ export interface Conversation {
   selectedJurisdictions?: Jurisdiction[]; // Array of jurisdictions to focus legal analysis on
   maxTokensOverride?: number; // User-selected maxTokens for this conversation (overrides model default)
   hasUnreadResponses?: boolean; // Indicates if conversation has unread AI responses
+  tags?: string[]; // User-defined tags for organization (e.g., 'important', 'contract-review', 'client-x')
+  description?: string; // Optional description or notes about the conversation
+  isPinned?: boolean; // Pin important conversations to the top
+  isFavorite?: boolean; // Mark as favorite for quick access
+  status?: 'active' | 'archived' | 'completed' | 'draft'; // Workflow status
+  projectId?: string; // Associate with a project/matter for grouping
+  clientMatter?: string; // Client matter number or reference
+  totalCost?: number; // Aggregate cost of all API calls in this conversation (USD)
+  totalTokens?: number; // Aggregate tokens used across all messages
+  appVersion?: string; // Version of Atticus used to create/last modify this conversation
+  configProvenance?: ConfigProvenance; // Legal provenance tracking for liability protection
+}
+
+// Configuration provenance for legal protection
+export interface ConfigProvenance {
+  source: 'factory' | 'user-custom' | 'remote-update'; // Origin of configuration
+  isFactoryDefault: boolean; // True if using unmodified factory configuration
+  customConfigHash?: string; // SHA-256 hash of custom YAML file for tamper detection
+  customConfigVersion?: string; // Version string from custom YAML (if provided by author)
+  customConfigAuthor?: string; // Author/organization from custom YAML metadata
+  customConfigLoadedAt?: string; // ISO timestamp when custom config was loaded
+  customConfigFilePath?: string; // Path to custom YAML file (for audit trail)
+  factoryConfigVersion?: string; // Version of factory config that was modified/replaced
+  userAcknowledgedCustom?: boolean; // User explicitly acknowledged using custom config
+  userAcknowledgementTimestamp?: string; // ISO timestamp of user acknowledgement
+  disclaimerShown?: boolean; // Legal disclaimer was displayed before loading custom config
+  configModifications?: string[]; // List of areas modified from factory defaults
 }
 
 export interface SelectedModel {

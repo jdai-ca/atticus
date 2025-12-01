@@ -341,6 +341,9 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
       addMessage(analysisUserMessage);
 
+      // Track request timing for performance metrics
+      const requestStartTime = Date.now();
+
       // Send to API - ONLY send the analysis query, not previous conversation history
       // This ensures previous analysis results don't pollute the new analysis
       const result = await globalThis.window.electronAPI.secureChatRequest({
@@ -350,6 +353,9 @@ ${separator}${responses.join("\n\n" + separator)}`;
         temperature: 0.3, // Lower temperature for more focused analysis
         maxTokens: analysisMaxTokens,
       });
+
+      const requestEndTime = Date.now();
+      const durationMs = requestEndTime - requestStartTime;
 
       if (result.success && result.data) {
         const response = result.data;
@@ -361,7 +367,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           provider: provider.provider,
           model: modelId,
           endpoint: provider.endpoint || template?.endpoint || "default",
-          durationMs: 0, // Duration not tracked for analysis requests
+          durationMs,
           status: "success" as const,
           usage: response.usage,
           cost:
@@ -417,7 +423,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           provider: provider.provider,
           model: modelId,
           endpoint: provider.endpoint || template?.endpoint || "default",
-          durationMs: 0,
+          durationMs,
           status: "error" as const,
           error: {
             code: errorCode,
@@ -1831,10 +1837,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {currentConversation.messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-20">
-            <p className="text-lg mb-2">Start a legal conversation</p>
+            <p className="text-lg mb-2">Start a conversation</p>
             <p className="text-sm">
-              Atticus will automatically detect the practice area and provide
-              specialized assistance
+              Atticus will automatically detect the practice & advisory area and
+              provide assistance
             </p>
           </div>
         ) : (
@@ -2284,7 +2290,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a legal or business question..."
+            placeholder="Ask a legal/business question..."
             disabled={isLoading}
             className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
             rows={3}

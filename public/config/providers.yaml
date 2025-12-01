@@ -1,5 +1,5 @@
 version: "1.1.0"
-minAppVersion: "0.9.15"
+minAppVersion: "0.9.16"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -551,3 +551,85 @@ providers:
     ui:
       icon: "🔍"
       order: 9
+  - id: cerebras
+    name: Cerebras
+    displayName: Cerebras AI
+    description: Ultra-fast inference with GPT OSS 120B, Llama, and Qwen models
+    endpoint: https://api.cerebras.ai/v1/chat/completions
+    defaultModel: gpt-oss-120b
+
+    models:
+      - id: gpt-oss-120b
+        name: GPT OSS 120B
+        description: OpenAI's open frontier reasoning model, 3000 tokens/sec
+        maxContextWindow: 128000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
+        inputTokenPrice: 0.35
+        outputTokenPrice: 0.75
+        enabled: true
+
+      - id: llama-3.3-70b
+        name: Llama 3.3 70B
+        description: Latest Llama model, excellent reasoning, 2100 tokens/sec
+        maxContextWindow: 131072
+        defaultMaxTokens: 8192
+        maxMaxTokens: 64000
+        inputTokenPrice: 0.85
+        outputTokenPrice: 1.20
+        enabled: true
+
+      - id: llama3.1-8b
+        name: Llama 3.1 8B
+        description: Fast and efficient, 2200 tokens/sec
+        maxContextWindow: 131072
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
+        inputTokenPrice: 0.10
+        outputTokenPrice: 0.10
+        enabled: true
+
+      - id: qwen-3-32b
+        name: Qwen 3 32B
+        description: Powerful reasoning model, 2600 tokens/sec
+        maxContextWindow: 128000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 40000
+        inputTokenPrice: 0.40
+        outputTokenPrice: 0.80
+        enabled: true
+
+      - id: qwen-3-235b-a22b-instruct-2507
+        name: Qwen 3 235B Instruct
+        description: Largest Qwen model (preview), 1400 tokens/sec
+        maxContextWindow: 128000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
+        inputTokenPrice: 0.60
+        outputTokenPrice: 1.20
+        enabled: true
+
+      - id: zai-glm-4.6
+        name: ZAI GLM 4.6
+        description: Smart coding agents (preview), 1000 tokens/sec
+        maxContextWindow: 128000
+        defaultMaxTokens: 8192
+        maxMaxTokens: 32768
+        inputTokenPrice: 2.25
+        outputTokenPrice: 2.75
+        enabled: true
+
+    capabilities:
+      supportsMultimodal: false
+      supportsRAG: true
+      supportsFunctionCalling: true
+      supportsTemperature: true
+
+    authentication:
+      apiKeyFormat: csk-...
+      apiKeyLabel: Cerebras API Key
+      getApiKeyUrl: https://cloud.cerebras.ai/
+
+    ui:
+      icon: "🧩"
+      order: 10

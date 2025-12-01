@@ -233,7 +233,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.15';
+        return '0.9.16';
     }
 
     /**

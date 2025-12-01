@@ -38,6 +38,14 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
       return sendXAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'mistral':
       return sendMistralMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+    case 'groq':
+      return sendGroqMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+    case 'perplexity':
+      return sendPerplexityMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+    case 'cohere':
+      return sendCohereMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+    case 'cerebras':
+      return sendCerebrasMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     case 'custom':
       return sendCustomMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
     default:
@@ -364,6 +372,139 @@ async function sendMistralMessage(
     },
     body,
     provider: 'mistral',
+  }, openAIParser);
+}
+
+async function sendGroqMessage(
+  provider: SecureProviderConfig,
+  messages: any[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<ChatResponse> {
+  const endpoint = getEndpointOrDefault(
+    provider,
+    'https://api.groq.com/openai/v1/chat/completions'
+  );
+
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+
+  return sendAPIRequest({
+    endpoint,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${provider.apiKey}`,
+    },
+    body,
+    provider: 'groq',
+  }, openAIParser);
+}
+
+async function sendPerplexityMessage(
+  provider: SecureProviderConfig,
+  messages: any[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<ChatResponse> {
+  const endpoint = getEndpointOrDefault(
+    provider,
+    'https://api.perplexity.ai/chat/completions'
+  );
+
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+
+  return sendAPIRequest({
+    endpoint,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${provider.apiKey}`,
+    },
+    body,
+    provider: 'perplexity',
+  }, openAIParser);
+}
+
+async function sendCohereMessage(
+  provider: SecureProviderConfig,
+  messages: any[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<ChatResponse> {
+  const endpoint = provider.endpoint || 'https://api.cohere.ai/v1/chat';
+
+  // Validate endpoint security
+  validateEndpoint(endpoint, endpoint.includes('localhost'));
+
+  // Cohere uses a different message format
+  const chatHistory = messages.slice(0, -1).map(m => ({
+    role: m.role === 'assistant' ? 'CHATBOT' : 'USER',
+    message: m.content,
+  }));
+
+  const lastMessage = messages[messages.length - 1];
+
+  const response = await fetchWithTimeout(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${provider.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: provider.model,
+      message: lastMessage.content,
+      chat_history: chatHistory,
+      preamble: systemPrompt,
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+      max_tokens: maxTokens || 4000,
+    }),
+    timeout: 60000,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw createApiError(
+      'API_ERROR',
+      errorData.message || `Cohere API request failed with status ${response.status}`,
+      { status: response.status, provider: 'cohere' }
+    );
+  }
+
+  const data = await response.json();
+
+  return {
+    content: data.text,
+    usage: {
+      promptTokens: data.meta?.tokens?.input_tokens || 0,
+      completionTokens: data.meta?.tokens?.output_tokens || 0,
+      totalTokens: (data.meta?.tokens?.input_tokens || 0) + (data.meta?.tokens?.output_tokens || 0),
+    },
+  };
+}
+
+async function sendCerebrasMessage(
+  provider: SecureProviderConfig,
+  messages: any[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<ChatResponse> {
+  const endpoint = getEndpointOrDefault(
+    provider,
+    'https://api.cerebras.ai/v1/chat/completions'
+  );
+
+  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+
+  return sendAPIRequest({
+    endpoint,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${provider.apiKey}`,
+    },
+    body,
+    provider: 'cerebras',
   }, openAIParser);
 }
 

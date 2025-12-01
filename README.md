@@ -1,6 +1,6 @@
 # Atticus - In-House AI Counsel
 
-A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, specialized practice area detection, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
+A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, **44 specialized legal practice areas**, **44 MBA-level business advisory areas**, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities spanning the full spectrum of business disciplines. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
 
 > **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
 
@@ -12,7 +12,7 @@ Before using Atticus, please review these critical documents:
 
 | Document                              | Purpose                      | Key Information                                                                 |
 | ------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
-| 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 44 practice areas, jurisdictional analysis                   |
+| 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 44 legal + 44 business areas, jurisdictional analysis        |
 | 🔒 **[PRIVACY.md](PRIVACY.md)**       | Privacy & data protection    | Local-first architecture, third-party data flows, privacy rating: 7.5/10        |
 | ⚠️ **[RISK.md](RISK.md)**             | Risk assessment & mitigation | Legal risks, accuracy concerns, security vulnerabilities, required user actions |
 | 🤖 **[ETHICAL-AI.md](ETHICAL-AI.md)** | Ethical AI principles        | EU AI ethics compliance, bias mitigation, transparency commitments              |
@@ -69,12 +69,12 @@ Before using Atticus, please review these critical documents:
 
 ### 🤖 Multi-Provider AI Support
 
-Access **9 leading AI providers** with **60+ models** through one unified interface:
+Access **10 leading AI providers** with **60+ models** through one unified interface:
 
 | Provider            | Models Available                                                                   | Key Capabilities                                         | Best For                                            |
 | ------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
 | **🤖 OpenAI**       | GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano                                             | Vision, 400K context, Function Calling                   | Next-gen reasoning, complex legal analysis          |
-| **🧠 Anthropic**    | Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.1 Opus                               | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing   |
+| **🧠 Anthropic**    | Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.5 Opus                               | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing   |
 | **🔷 Google**       | Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite                            | Vision, 1M token context, Function Calling               | Massive context, multimodal analysis                |
 | **☁️ Azure OpenAI** | GPT-4o, GPT-4o mini, GPT-4                                                         | Vision, Function Calling, Enterprise SLA                 | Enterprise deployment, compliance requirements      |
 | **𝕏 xAI**           | Grok 4, Grok 4 Fast Reasoning, Grok 4 Fast Non-Reasoning                           | Vision, 2M token context, Real-time knowledge            | Current events, real-time analysis, massive context |
@@ -82,6 +82,7 @@ Access **9 leading AI providers** with **60+ models** through one unified interf
 | **🧬 Cohere**       | Command R+, Command R, Command, Command Light                                      | RAG-optimized, 128K context, Function Calling            | Enterprise search, legal research, citations        |
 | **⚡ Groq**         | Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B               | Ultra-fast inference (500+ tokens/sec), Function Calling | Speed-critical tasks, rapid prototyping             |
 | **🔍 Perplexity**   | Sonar Large (Online), Sonar Small (Online), Sonar Large (Chat), Sonar Small (Chat) | Web search, Citations, 128K context                      | Legal research, current case law, fact-checking     |
+| **🧠 Cerebras**     | GPT OSS 120B, Llama 3.3 70B, Llama 3.1 8B, Qwen 3 32B, Qwen 3 235B, ZAI GLM 4.6    | Extreme speed (1000-3000 tokens/sec), 128K context       | Ultra-fast inference, high-throughput tasks         |
 
 **💡 Pro Tip**: Select multiple models simultaneously to cross-validate legal analysis and reduce hallucinations!
 
@@ -149,7 +150,16 @@ Access **9 leading AI providers** with **60+ models** through one unified interf
 - **Sonar Large (Chat)** - Offline reasoning, no web search
 - **Sonar Small (Chat)** - Fast offline chat model
 
-**Total: 37 models** across 9 providers (Updated November 2025)
+### Cerebras AI (6 models)
+
+- **GPT OSS 120B** - Large open-source GPT model, ultra-fast inference (1000 tokens/sec) ⭐ _Default_
+- **Llama 3.3 70B** - Latest Llama with exceptional speed (2000 tokens/sec)
+- **Llama 3.1 8B** - Efficient Llama model with extreme speed (3000 tokens/sec)
+- **Qwen 3 32B** - Chinese-English bilingual model with fast inference (2000 tokens/sec)
+- **Qwen 3 235B** - Largest Qwen model with high capability (1000 tokens/sec)
+- **ZAI GLM 4.6** - Advanced GLM model optimized for speed (1500 tokens/sec)
+
+**Total: 43 models** across 10 providers (Updated November 2025)
 
 </details>
 
@@ -376,64 +386,87 @@ Each area includes:
 
 ### 💼 Business Advisory Areas
 
-Automatically detects **11 specialized business advisory areas** with **1,200+ keywords** for comprehensive strategic guidance:
+Automatically detects **44 specialized business advisory areas** with **2,400+ keywords** for comprehensive strategic guidance across the full MBA spectrum:
 
 <details>
-<summary><strong>📊 View All 11 Advisory Areas</strong></summary>
+<summary><strong>📊 View All 44 Advisory Areas</strong></summary>
 
-| Area                                | Focus                                               | Frameworks & Tools                                                         | Keywords (Sample)                                                                             |
-| ----------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Strategic Planning & Strategy**   | Vision, competitive positioning, growth strategy    | Porter's Five Forces, Blue Ocean Strategy, SWOT, BCG Matrix, Ansoff Matrix | strategic plan, competitive analysis, market positioning, growth strategy, vision statement   |
-| **Financial Advisory**              | Capital raising, M&A, valuation, financial modeling | DCF valuation, LBO modeling, 409A valuation, WACC, cap table               | venture capital, Series A funding, financial model, cash flow projection, burn rate           |
-| **Marketing & Brand**               | Go-to-market, positioning, growth marketing         | STP framework, Marketing Mix (4Ps), Brand Pyramid, AARRR metrics           | product-market fit, customer acquisition, CAC, LTV, brand positioning, content marketing      |
-| **Operations Management**           | Process optimization, supply chain, quality         | Lean Manufacturing, Six Sigma, Kaizen, Theory of Constraints, Kanban       | operational efficiency, process improvement, supply chain, inventory management, COGS         |
-| **Human Capital & Org Development** | Talent strategy, culture, compensation              | OKRs, 9-Box Grid, Competency Models, Kirkpatrick Model                     | talent acquisition, organizational design, performance management, equity compensation        |
-| **Digital Transformation**          | Tech strategy, cloud, AI/ML, cybersecurity          | Technology Adoption Curve, Cloud Migration Models, DevOps, Agile           | cloud migration, API strategy, microservices, machine learning, cybersecurity framework       |
-| **Risk Management**                 | Enterprise risk, compliance, business continuity    | COSO ERM, ISO 31000, NIST CSF, BCP/DR frameworks                           | risk assessment, compliance program, business continuity, incident response, fraud prevention |
-| **Sustainability & ESG**            | Environmental, social, governance, reporting        | GRI Standards, SASB, TCFD, UN SDGs, Materiality Assessment                 | ESG reporting, carbon footprint, sustainability strategy, stakeholder engagement, B Corp      |
-| **M&A Advisory**                    | Deal sourcing, due diligence, integration           | PMI frameworks, Synergy Analysis, IMO structure, Day 1 Playbook            | merger integration, due diligence, synergy realization, cultural integration, earnout         |
-| **Government Grants**               | R&D credits, SBIR/STTR, non-dilutive funding        | SR&ED (Canada), SBIR/STTR (US), Horizon Europe (EU), Grant Compliance      | R&D tax credit, innovation funding, grant application, non-dilutive capital, IRAP             |
-| **Product Legal Compliance**        | Privacy, accessibility, regulatory, open source     | Privacy-by-Design, WCAG 2.1, OSS Compliance, GDPR/CCPA, Product Roadmap    | privacy policy, terms of service, WCAG compliance, open source license, HIPAA, GDPR           |
+**Core Business Functions (11 areas):**
+
+| Area                         | Focus                                           | Keywords (Sample)                                                            |
+| ---------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Strategic Planning**       | Vision, competitive positioning, growth         | strategic plan, competitive analysis, market positioning, growth strategy    |
+| **Financial Advisory**       | Capital raising, M&A, valuation, modeling       | venture capital, Series A, financial model, cash flow projection, burn rate  |
+| **Marketing Strategy**       | Go-to-market, positioning, growth marketing     | product-market fit, CAC, LTV, brand positioning, content marketing           |
+| **Operations Management**    | Process optimization, supply chain, quality     | operational efficiency, process improvement, supply chain, inventory         |
+| **Human Capital**            | Talent strategy, culture, compensation          | talent acquisition, organizational design, performance management            |
+| **Digital Transformation**   | Tech strategy, cloud, AI/ML, cybersecurity      | cloud migration, API strategy, microservices, machine learning               |
+| **Risk Management**          | Enterprise risk, compliance, continuity         | risk assessment, compliance program, business continuity, incident response  |
+| **Sustainability & ESG**     | Environmental, social, governance, reporting    | ESG reporting, carbon footprint, sustainability strategy, stakeholder        |
+| **M&A Advisory**             | Deal sourcing, due diligence, integration       | merger integration, due diligence, synergy realization, cultural integration |
+| **Government Grants**        | R&D credits, SBIR/STTR, non-dilutive funding    | R&D tax credit, innovation funding, grant application, IRAP                  |
+| **Product Legal Compliance** | Privacy, accessibility, regulatory, open source | privacy policy, terms of service, WCAG compliance, GDPR                      |
+
+**Growth & Innovation (11 areas):**
+
+| Area                            | Focus                                          | Keywords (Sample)                                                            |
+| ------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Entrepreneurship & Startups** | Venture creation, lean startup, founder        | lean startup, MVP, product-market fit, founder vesting, pitch deck           |
+| **International Business**      | Cross-border strategy, market entry, trade     | international expansion, CUSMA/USMCA, foreign market, localization           |
+| **Business Analytics**          | Data strategy, BI, predictive modeling         | business intelligence, data analytics, KPI dashboard, A/B testing            |
+| **Supply Chain & Logistics**    | End-to-end supply chain, procurement           | supply chain optimization, inventory management, warehousing, 3PL            |
+| **Sales Strategy & RevOps**     | Sales methodology, pipeline, revenue ops       | sales strategy, pipeline management, RevOps, CRM, sales enablement           |
+| **Corporate Governance**        | Board effectiveness, director responsibilities | board of directors, corporate governance, fiduciary duty, audit committee    |
+| **Innovation & R&D**            | Innovation strategy, product development, IP   | innovation management, R&D portfolio, design thinking, patent strategy       |
+| **Customer Experience**         | CX strategy, journey mapping, service design   | customer experience, journey mapping, NPS, customer satisfaction             |
+| **Organizational Design**       | Org structure, change management               | organizational design, change management, transformation, operating model    |
+| **Business Negotiations**       | Negotiation strategy, deal structuring         | negotiation, BATNA, deal structuring, contract negotiation                   |
+| **Crisis Management**           | Crisis response, business continuity           | crisis management, business continuity, disaster recovery, incident response |
+
+**Specialized Functions (22 areas):**
+
+| Area                              | Focus                                         | Keywords (Sample)                                                          |
+| --------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------- |
+| **Brand Strategy**                | Brand positioning, architecture, equity       | brand strategy, brand positioning, brand architecture, brand equity        |
+| **Pricing Strategy**              | Pricing models, optimization, revenue mgmt    | pricing strategy, pricing optimization, revenue management, value-based    |
+| **Product Management**            | Product lifecycle, roadmaps, portfolio        | product management, product roadmap, product-market fit, feature priority  |
+| **Business Process Improvement**  | Lean, Six Sigma, process reengineering        | process improvement, lean, Six Sigma, DMAIC, continuous improvement        |
+| **Corporate Finance & Treasury**  | Capital structure, treasury operations        | corporate finance, treasury management, capital structure, cash management |
+| **Turnaround & Restructuring**    | Financial distress, operational turnaround    | turnaround, restructuring, financial distress, bankruptcy                  |
+| **Competitive Intelligence**      | Competitor monitoring, market intelligence    | competitive intelligence, competitor analysis, market intelligence         |
+| **Business Development**          | Strategic partnerships, alliances, ecosystems | business development, strategic partnerships, channel partnerships         |
+| **Intellectual Property**         | IP portfolio, patent strategy, licensing      | intellectual property, patent strategy, IP portfolio, technology licensing |
+| **Quality Management**            | TQM, quality systems, ISO certifications      | quality management, TQM, ISO 9001, quality assurance                       |
+| **Real Estate & Facilities**      | Workplace strategy, portfolio optimization    | real estate strategy, workplace strategy, facilities management            |
+| **Tax Strategy**                  | Tax optimization, transfer pricing            | tax strategy, tax planning, transfer pricing, international tax            |
+| **Insurance & Risk Transfer**     | Insurance programs, captives, claims          | insurance strategy, risk transfer, captive insurance, claims management    |
+| **Investor Relations**            | IR strategy, equity story, analyst relations  | investor relations, equity story, analyst coverage, shareholder comms      |
+| **Public Affairs**                | Government relations, regulatory advocacy     | public affairs, government relations, lobbying, regulatory advocacy        |
+| **Franchise Development**         | Franchise models, franchisee recruitment      | franchise, franchising, franchise development, franchisee selection        |
+| **Family Business**               | Succession planning, family governance        | family business, succession planning, family governance                    |
+| **Nonprofit & Social Enterprise** | Mission-driven strategy, impact measurement   | nonprofit, social enterprise, impact measurement, fundraising              |
+| **Retail Strategy**               | Retail formats, merchandising, store ops      | retail strategy, merchandising, store operations, omnichannel              |
+| **Healthcare Practice**           | Medical practice operations, value-based care | healthcare management, practice management, value-based care               |
+| **Professional Services**         | Firm economics, leverage models               | professional services, consulting firm, leverage model, partner comp       |
+| **Technology Commercialization**  | Tech transfer, licensing, startup formation   | technology commercialization, tech transfer, licensing, spinout            |
 
 </details>
 
-**🎯 World-Class Advisory Coverage (~10,800 lines)**:
+**🎯 MBA-Level Advisory Coverage (44 Areas)**:
 
-Each advisory area provides **consulting-grade guidance** matching top firms (McKinsey, BCG, Bain, Goldman Sachs, Deloitte):
-
-**Strategic & Planning**:
-
-- 📈 **Strategic Planning** - Porter's Five Forces, Blue Ocean Strategy, SWOT analysis, OKRs, Balanced Scorecard
-- 💵 **Financial Advisory** - Venture capital, growth equity, M&A sell-side, 409A valuations, financial modeling
-- 🎨 **Marketing Strategy** - GTM strategy, product-market fit, CAC/LTV optimization, demand generation, ABM
-
-**Operations & Finance**:
-
-- ⚙️ **Operations Management** - Lean/Six Sigma, process optimization, supply chain, inventory management
-- 👥 **Human Capital** - Talent acquisition, org design, compensation benchmarking, performance management
-- 🌱 **Sustainability & ESG** - GRI/SASB reporting, carbon accounting, stakeholder engagement, materiality
-
-**Technology & Growth**:
-
-- 🤖 **Digital Transformation** - Cloud migration, AI/ML adoption, API strategy, microservices, cybersecurity
-- 🛡️ **Risk Management** - Enterprise risk (COSO ERM), compliance, BCP/DR, fraud prevention, audit readiness
-- 🤝 **M&A Advisory** - Post-merger integration, synergy realization, cultural integration, IT systems integration
-
-**Innovation & Compliance**:
-
-- 🏛️ **Government Grants** - SR&ED (Canada 35-65% credits), SBIR/STTR (US $50K-$10M), Horizon Europe (EU €500K-€15M)
-- 🛡️ **Product Legal** - Privacy-by-design, WCAG accessibility, open source compliance, FinTech/HealthTech regulatory
+Each advisory area provides **consulting-grade guidance** matching top firms (McKinsey, BCG, Bain, Goldman Sachs, Deloitte), covering the full MBA curriculum and beyond.
 
 **Advisory Features**:
 
-- ✅ **10 core competencies** per area (110 total competencies)
-- ✅ **Business frameworks** - McKinsey 7-S, BCG Growth-Share Matrix, Porter's frameworks
-- ✅ **Industry best practices** - Proven methodologies from top consulting firms
-- ✅ **Strategic templates** - Business model canvas, OKRs, financial models, pitch decks
-- ✅ **Implementation guidance** - Step-by-step action plans and timelines
-- ✅ **Metrics & benchmarks** - Industry KPIs, success metrics, performance indicators
-- ✅ **Real-world examples** - Case studies and scenario-based guidance
-- ✅ **1,200+ keyword triggers** - Automatic advisory area detection
+- ✅ **440+ core competencies** (10 per area × 44 areas)
+- ✅ **World-class frameworks** - McKinsey 7-S, BCG Matrix, Porter's Five Forces, Balanced Scorecard, COSO ERM, Lean/Six Sigma
+- ✅ **Industry best practices** - Proven methodologies from top consulting firms and Fortune 500 companies
+- ✅ **Strategic templates** - Business model canvas, OKRs, financial models, pitch decks, GTM plans, strategic roadmaps
+- ✅ **Implementation guidance** - Step-by-step action plans, timelines, success metrics, and performance indicators
+- ✅ **Comprehensive MBA coverage** - Strategy, finance, marketing, operations, HR, technology, specialized functions
+- ✅ **Industry verticals** - Retail, healthcare, professional services, franchise, family business, nonprofit
+- ✅ **Specialized expertise** - IP management, competitive intelligence, quality management, tax strategy, investor relations
+- ✅ **2,400+ keyword triggers** - Automatic advisory area detection across all 44 domains
 
 **Sample Guidance Quality**:
 
@@ -661,10 +694,10 @@ _Atticus automatically detects PII and sensitive information, providing real-tim
 
 ### AI Provider Coverage
 
-- **9 providers** with **60+ models** integrated
-- **Latest models** (as of October 2024): GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro, o1-preview, Llama 3.3
-- **Context windows** up to **2M tokens** (Gemini 1.5 Pro)
-- **Ultra-fast inference** up to **500+ tokens/sec** (Groq)
+- **10 providers** with **60+ models** integrated
+- **Latest models** (as of November 2025): GPT-5.1, Claude 4.5 Sonnet, Gemini 2.5 Pro, Grok 4, Llama 3.3
+- **Context windows** up to **2M tokens** (xAI Grok 4)
+- **Ultra-fast inference** up to **3000 tokens/sec** (Cerebras)
 - **Vision capabilities** across 6 providers
 - **Function calling** support for structured outputs
 
@@ -679,18 +712,20 @@ _Atticus automatically detects PII and sensitive information, providing real-tim
 
 ### Business Advisory Areas
 
-- **11 advisory domains** with consulting-grade guidance
-- **~10,800 lines** of expert advisory content (279% growth from baseline)
-- **1,200+ keyword triggers** for automatic detection
-- **110 core competencies** across all advisory areas
-- **World-class frameworks**: McKinsey, BCG, Bain, Goldman Sachs methodologies
+- **44 advisory domains** with consulting-grade guidance
+- **~18,000 lines** of expert advisory content (quadrupled from baseline)
+- **2,400+ keyword triggers** for automatic detection
+- **440 core competencies** across all advisory areas (10 per area)
+- **World-class frameworks**: McKinsey, BCG, Bain, Goldman Sachs, Deloitte methodologies
+- **Full MBA coverage**: Strategy, finance, marketing, operations, HR, technology, specialized functions
+- **Industry verticals**: Retail, healthcare, professional services, franchise, family business, nonprofit
 
 ### Knowledge Base Size
 
 - **Legal practice areas**: ~2,900 lines (practices.yaml)
-- **Business advisory areas**: ~10,800 lines (advisory.yaml)
-- **Total expertise**: **13,700+ lines** of structured guidance
-- **Combined keywords**: **3,200+ triggers** for intelligent detection
+- **Business advisory areas**: ~18,000 lines (advisory.yaml)
+- **Total expertise**: **20,900+ lines** of structured guidance
+- **Combined keywords**: **5,900+ triggers** for intelligent detection
 
 ### Multi-Jurisdictional Analysis
 
@@ -751,15 +786,16 @@ Atticus uses a **template-based provider system** with 9 pre-configured provider
 
    **Providers Tab** - Configure AI models:
 
-   - OpenAI (GPT-4 Turbo, GPT-4, GPT-3.5)
-   - Anthropic (Claude 3.5 Sonnet, Opus, Sonnet, Haiku)
-   - Google (Gemini 1.5 Pro, Flash)
-   - Azure OpenAI
-   - xAI (Grok 2, Grok Vision)
-   - Mistral AI (Large, Medium, Mixtral)
-   - Cohere (Command R+, Command)
-   - Perplexity (Sonar Large, Sonar)
-   - Groq (Llama 3.1, Mixtral, Gemma 2)
+   - OpenAI (GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano)
+   - Anthropic (Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.5 Opus)
+   - Google (Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
+   - Azure OpenAI (GPT-4o, GPT-4o mini, GPT-4)
+   - xAI (Grok 4, Grok 4 Fast Reasoning, Grok 4 Fast Non-Reasoning)
+   - Mistral AI (Mistral Large 2, Mistral Medium, Mistral Small, Mixtral 8x22B, Mixtral 8x7B)
+   - Cohere (Command R+, Command R, Command, Command Light)
+   - Groq (Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B)
+   - Perplexity (Sonar Large Online, Sonar Small Online, Sonar Large Chat, Sonar Small Chat)
+   - Cerebras (GPT OSS 120B, Llama 3.3 70B, Llama 3.1 8B, Qwen 3 32B, Qwen 3 235B, ZAI GLM 4.6)
 
    **Practice Areas Tab** - View all 44 legal practice areas:
 
@@ -826,6 +862,7 @@ You'll need to obtain API keys from the providers you want to use:
 - **Cohere**: <https://dashboard.cohere.com/api-keys>
 - **Perplexity**: <https://www.perplexity.ai/settings/api>
 - **Groq**: <https://console.groq.com/keys>
+- **Cerebras**: <https://cloud.cerebras.ai/>
 
 **Security Notes**:
 
@@ -896,19 +933,62 @@ Atticus uses keyword detection to identify both legal practice areas and busines
 - **Startup Law**: founder agreement, vesting, SAFE note, 83(b) election, cap table
 - **Venture Capital**: term sheet, liquidation preference, anti-dilution, Series A
 
-### Business Advisory Areas
+### Business Advisory Keywords
 
-- **Strategic Planning**: competitive analysis, SWOT, business model canvas, strategic roadmap
-- **Financial Advisory**: valuation, financial modeling, capital structure, M&A advisory
-- **Marketing Strategy**: go-to-market, brand positioning, customer acquisition, growth marketing
-- **Operations**: lean manufacturing, Six Sigma, supply chain optimization, KPIs
-- **HR & Organizational**: talent acquisition, performance management, organizational design, culture
-- **Digital Transformation**: cloud migration, AI/ML adoption, digital strategy, innovation
-- **Risk Management**: enterprise risk, business continuity, compliance frameworks, resilience
-- **Sustainability**: ESG reporting, carbon footprint, sustainable operations, impact measurement
-- **Government Grants**: SR&ED tax credits, SBIR grants, Horizon Europe, innovation funding
+**Core Business (11 areas)**:
 
-**Total Coverage**: 44 legal areas + 11 advisory areas = **55 specialized domains** with **4,500+ detection keywords**
+- **Strategic Planning**: competitive analysis, SWOT, business model canvas, strategic roadmap, Porter's Five Forces
+- **Financial Advisory**: valuation, financial modeling, capital structure, M&A advisory, 409A valuation
+- **Marketing Strategy**: go-to-market, brand positioning, customer acquisition, growth marketing, CAC/LTV
+- **Operations**: lean manufacturing, Six Sigma, supply chain optimization, KPIs, process improvement
+- **HR & Organizational**: talent acquisition, performance management, organizational design, culture, OKRs
+- **Digital Transformation**: cloud migration, AI/ML adoption, digital strategy, innovation, microservices
+- **Risk Management**: enterprise risk, business continuity, compliance frameworks, resilience, COSO ERM
+- **Sustainability**: ESG reporting, carbon footprint, sustainable operations, impact measurement, GRI
+- **M&A Advisory**: post-merger integration, due diligence, synergy realization, cultural integration
+- **Government Grants**: SR&ED tax credits, SBIR grants, Horizon Europe, innovation funding, R&D credits
+- **Product Legal**: privacy-by-design, WCAG accessibility, GDPR compliance, open source licensing
+
+**Growth & Innovation (11 areas)**:
+
+- **Entrepreneurship**: lean startup, MVP, product-market fit, founder vesting, pitch deck, seed funding
+- **International**: market entry, CUSMA/USMCA, foreign market, localization, cross-border trade
+- **Analytics**: business intelligence, data analytics, KPI dashboard, A/B testing, predictive modeling
+- **Supply Chain**: supply chain optimization, inventory management, warehousing, 3PL, logistics
+- **Sales & RevOps**: pipeline management, RevOps, CRM, sales enablement, MEDDIC, sales methodology
+- **Governance**: board of directors, fiduciary duty, audit committee, D&O insurance, corporate governance
+- **Innovation & R&D**: innovation management, R&D portfolio, design thinking, patent strategy
+- **Customer Experience**: journey mapping, NPS, customer satisfaction, service design, CX strategy
+- **Org Design**: organizational design, change management, transformation, operating model
+- **Negotiations**: BATNA, deal structuring, contract negotiation, value creation, negotiation tactics
+- **Crisis**: crisis management, business continuity, disaster recovery, incident response
+
+**Specialized Functions (22 areas)**:
+
+- **Brand**: brand positioning, brand architecture, brand equity, rebranding, brand strategy
+- **Pricing**: pricing optimization, revenue management, value-based pricing, price elasticity
+- **Product**: product roadmap, product-market fit, product lifecycle, feature prioritization
+- **Process**: lean, Six Sigma, DMAIC, continuous improvement, kaizen, process reengineering
+- **Treasury**: capital structure, cash management, hedging, treasury operations, corporate finance
+- **Turnaround**: restructuring, financial distress, bankruptcy, debt restructuring, turnaround
+- **CI**: competitive intelligence, competitor analysis, market intelligence, war gaming
+- **BD**: business development, strategic partnerships, channel partnerships, alliance management
+- **IP**: patent strategy, IP portfolio, technology licensing, patent filing, IP commercialization
+- **Quality**: TQM, ISO 9001, quality assurance, Six Sigma quality, quality management systems
+- **Real Estate**: workplace strategy, facilities management, lease negotiation, corporate real estate
+- **Tax**: tax planning, transfer pricing, international tax, R&D tax credits, tax optimization
+- **Insurance**: risk transfer, captive insurance, claims management, D&O insurance, risk financing
+- **IR**: equity story, analyst coverage, shareholder communications, investor relations strategy
+- **Public Affairs**: government relations, lobbying, regulatory advocacy, policy positions
+- **Franchise**: franchising, franchise development, franchisee selection, royalty structure
+- **Family**: succession planning, family governance, generational transition, family business
+- **Nonprofit**: impact measurement, fundraising, grant writing, social enterprise, mission-driven
+- **Retail**: merchandising, store operations, omnichannel, same-store sales, retail analytics
+- **Healthcare**: practice management, value-based care, revenue cycle, EHR, HIPAA compliance
+- **Prof Services**: consulting firm, leverage model, partner compensation, utilization, firm economics
+- **Tech Transfer**: technology commercialization, licensing, spinout, proof of concept, IP licensing
+
+**Total Coverage**: 44 legal areas + 44 advisory areas = **88 specialized domains** with **8,400+ detection keywords**
 
 ## Architecture
 

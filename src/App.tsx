@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import Settings from "./components/Settings";
 import { Scale, Settings as SettingsIcon } from "lucide-react";
+import packageJson from "../package.json";
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
@@ -85,9 +86,12 @@ function App() {
 
         {/* Global Footer Disclaimer */}
         <footer className="bg-gray-800 border-t border-gray-700 px-6 py-2 flex-shrink-0">
-          <div className="text-xs text-gray-500 text-center">
-            Atticus is an AI assistant. Always consult with a licensed attorney
-            for legal advice.
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500 text-center flex-1">
+              Atticus is an AI assistant. Always consult with a licensed
+              attorney for legal advice.
+            </div>
+            <div className="text-xs text-gray-600">v{packageJson.version}</div>
           </div>
         </footer>
       </div>

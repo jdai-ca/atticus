@@ -73,7 +73,8 @@
                         "mistral",
                         "cohere",
                         "groq",
-                        "perplexity"
+                        "perplexity",
+                        "cerebras"
                     ],
                     "description": "Unique provider identifier"
                 },

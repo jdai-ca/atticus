@@ -11,6 +11,7 @@ import {
 } from "../types";
 import { JURISDICTIONS } from "../config/jurisdictions";
 import { piiScanner } from "../services/piiScanner";
+import packageJson from "../../package.json";
 
 // Helper component for area cards with dynamic border colors
 function AreaCard({
@@ -123,7 +124,7 @@ export default function Settings({ onClose }: SettingsProps) {
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.15",
+      minAppVersion: "0.9.16",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -326,7 +327,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.15
+minAppVersion: 0.9.16
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -1424,7 +1425,8 @@ multiple AI responses using an independent model.`}
               {/* Copyright Notice */}
               <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-6 text-center">
                 <p className="text-sm text-gray-400">
-                  Copyright © 2025, John Kost, All Rights Reserved
+                  Copyright © 2025, John Kost, All Rights Reserved | v
+                  {packageJson.version}
                 </p>
               </div>
 
@@ -1478,11 +1480,16 @@ multiple AI responses using an independent model.`}
                   <h3 className="text-xl font-bold text-white mb-3">
                     ⚡ Comprehensive Capabilities
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                        Legal Practice Areas (44)
-                      </h4>
+                  <div className="grid grid-cols-2 gap-6 mb-4">
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-300">
+                          Legal Practice Areas
+                        </h4>
+                        <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+                          44
+                        </span>
+                      </div>
                       <ul className="text-xs text-gray-400 space-y-1">
                         <li>• Corporate & Business Law</li>
                         <li>• Intellectual Property</li>
@@ -1494,20 +1501,38 @@ multiple AI responses using an independent model.`}
                         <li>• And 37 more specialized areas</li>
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                        Business Advisory (11)
-                      </h4>
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-300">
+                          Business Advisory Areas
+                        </h4>
+                        <span className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded">
+                          44
+                        </span>
+                      </div>
                       <ul className="text-xs text-gray-400 space-y-1">
-                        <li>• Strategic Planning</li>
-                        <li>• Financial Advisory</li>
-                        <li>• Marketing Strategy</li>
-                        <li>• Government Grants & Funding</li>
+                        <li>• Strategic Planning & Business Strategy</li>
+                        <li>• Financial Advisory & Corporate Finance</li>
+                        <li>• Marketing Strategy & Brand Development</li>
+                        <li>• Government Relations & Public Policy</li>
                         <li>• Product Legal Compliance</li>
-                        <li>• M&A & Exit Strategies</li>
-                        <li>• Digital Transformation</li>
-                        <li>• And 4 more advisory areas</li>
+                        <li>• M&A Advisory & Exit Planning</li>
+                        <li>• Digital Transformation & Technology</li>
+                        <li>• And 37 more advisory areas</li>
                       </ul>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg p-3 border border-blue-700/30">
+                    <div className="flex items-center justify-center gap-4 text-xs text-gray-300">
+                      <span className="font-semibold">
+                        🎯 Total Expertise Coverage:
+                      </span>
+                      <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-3 py-1 rounded">
+                        88 Specialized Areas
+                      </span>
+                      <span className="text-gray-400">
+                        Dual Practice + Advisory Mode
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1924,8 +1949,8 @@ multiple AI responses using an independent model.`}
                     sensitive queries
                   </li>
                   <li>
-                    Atticus never collects, stores, or has access to your
-                    conversation data
+                    Atticus developers never collect, store, or have access to
+                    your data
                   </li>
                 </ul>
               </div>
