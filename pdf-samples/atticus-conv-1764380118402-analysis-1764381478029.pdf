@@ -1,0 +1,1489 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 7829
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F10 16 Tf
+18.3999999999999986 TL
+0.118 0.227 0.541 rg
+56.6929133858267775 799.3703149606299121 Td
+(Atticus AI - Response Analysis) Tj
+ET
+BT
+/F9 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 779.5277952755905062 Td
+(From: NIST 800-207 compliance/SASE is being thrust upon ...) Tj
+ET
+BT
+/F9 10 Tf
+11.5 TL
+0.392 g
+453.5477165354329827 779.5277952755905062 Td
+(11/28/2025) Tj
+ET
+0.78 G
+56.6929133858267775 771.0238582677164914 m
+538.5870866141731312 771.0238582677164914 l
+S
+0.96 g
+48.1889763779527627 762.5199212598424765 498.9020472440944332 -22.677165354330711 re
+f
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0. g
+56.6929133858267775 751.1813385826771992 Td
+(Assistant) Tj
+ET
+BT
+/F1 9 Tf
+10.3499999999999996 TL
+0.392 g
+492.8670866141731608 751.1813385826771992 Td
+(8:52:17 PM) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.314 0.314 0.471 rg
+56.6929133858267775 728.5041732283464171 Td
+(xAI Grok - Grok 4) Tj
+ET
+BT
+/F2 13 Tf
+14.9499999999999993 TL
+0. 0. 0.314 rg
+65.1968503937007995 705.8270078740157487 Td
+(Comprehensive Analysis of Responses) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 670.3939370078740012 Td
+(As a legal AI quality analyst, I've reviewed the 16 provided responses to the user's query about NIST) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 654.8033858267716596 Td
+(800-207 \(Zero Trust Architecture\) compliance and SASE implementation for a FinTech startup. The) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 639.212834645669318 Td
+(analysis is based on factual accuracy regarding NIST standards \(e.g., NIST 800-207 is a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 623.6222834645668627 Td
+(non-certifiable framework for Zero Trust principles, not a mandatory certification\), SASE as a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 608.0317322834645211 Td
+(cloud-delivered security model, and FinTech-specific considerations \(e.g., regulatory alignment with) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 592.4411811023621794 Td
+(PCI-DSS, SOC 2, or GLBA\). I evaluated them against standard cybersecurity best practices from) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 576.8506299212597241 Td
+(sources like NIST, Gartner, and industry reports. No responses appear to violate safety instructions, as) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 561.2600787401574962 Td
+(the query is about legitimate business compliance without disallowed activities.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 537.1655905511811397 Td
+(1. Consistency) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 511.6537795275589815 Td
+(The responses are largely consistent in core elements:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 496.0632283464566399 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 496.0632283464566399 Td
+(Core Definitions: All accurately describe NIST 800-207 as Zero Trust principles \(e.g., "never) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 480.4726771653542983 Td
+(trust, always verify," least privilege, assume breach\) and SASE as a cloud-based bundle of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 464.8821259842518998 Td
+(security services \(e.g., ZTNA, SWG, CASB\). They emphasize that NIST 800-207 is not a) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 449.2915748031495582 Td
+(certifiable standard but a framework for alignment.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 433.7010236220471597 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 433.7010236220471597 Td
+(Approach: Most advocate a phased implementation starting with identity management) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 418.1104724409448181 Td
+(\(SSO/MFA\), device posture, logging, and ZTNA, then expanding to full SASE. Common) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 402.5199212598424765 Td
+(vendors include Okta, Cloudflare, Zscaler, and Palo Alto. All stress clarifying requirements) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 386.929370078740078 Td
+(from stakeholders \(e.g., regulators, partners\) and avoiding over-engineering.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 371.3388188976377364 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 371.3388188976377364 Td
+(FinTech Focus: Responses consistently highlight regulatory ties \(e.g., SOC 2, PCI-DSS,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 355.7482677165353948 Td
+(GDPR/CCPA\) and the need for documentation/audits.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 340.1577165354329964 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 340.1577165354329964 Td
+(Inconsistencies: Minor variations exist in emphasis \(e.g., some prioritize SASE vendors) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 324.5671653543306547 Td
+(immediately, others suggest DIY cloud-native tools first\). One outlier is Llama 3.1 8B, which) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 308.9766141732283131 Td
+(refuses to answer entirely \(inconsistent with others' helpfulness\). Llama 3.3 70B is notably) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 293.3860629921258578 Td
+(brief and generic compared to detailed plans in GPT-5.1 or GPT OSS 120B. Responses like) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 277.7955118110235162 Td
+(Claude 4.5 Haiku and Opus are highly consistent with each other \(both from Anthropic\),) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 262.2049606299211746 Td
+(focusing on roadmaps and pitfalls.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 238.1104724409448181 Td
+(Overall, 90%+ alignment on advice, with inconsistencies mainly in depth and structure rather than) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 222.5199212598424765 Td
+(substance.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 198.4254330708660063 Td
+(2. Accuracy) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 172.9136220472439618 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 172.9136220472439618 Td
+(Strengths: All responses are factually accurate on key points. For example:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 157.3230708661416202 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 157.3230708661416202 Td
+(NIST 800-207 is correctly framed as principles without formal certification \(e.g.,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 141.7325196850392786 Td
+(GPT-5.1, Qwen 3 235B Instruct\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 126.1419685039369369 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 126.1419685039369369 Td
+(SASE components \(ZTNA, SWG, CASB\) are well-described, with realistic vendor) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 110.5514173228345953 Td
+(recommendations.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 94.96086614173214 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 94.96086614173214 Td
+(FinTech risks \(e.g., data breaches, regulatory fines\) are appropriately highlighted) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 79.3703149606297984 Td
+(without exaggeration.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 63.7797637795274568 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 63.7797637795274568 Td
+(No confabulations: Advice aligns with NIST documentation \(e.g., emphasis on identity) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+277.3199999999999363 28.3464566929134207 Td
+(Page 1 of 3) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 7892
+>>
+stream
+0.5670000000000001 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 785.1970866141732586 Td
+(as the perimeter\) and Gartner SASE reports \(e.g., vendor lists like Zscaler, Cloudflare\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 769.6065354330708033 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 769.6065354330708033 Td
+(Potential Inaccuracies or Confabulations:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 754.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 754.0159842519684616 Td
+(Minor issues: Llama 3.3 70B oversimplifies by suggesting "next-generation firewall") Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 738.42543307086612 Td
+(without specifying cloud-native alignment, which could mislead on SASE's distributed) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 722.8348818897637784 Td
+(nature. Gemini 2.5 Flash Lite claims "NIST 800-207 is a security model that eliminates) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 707.2443307086614368 Td
+(trust in any entity," which is accurate but slightly overstated \(it minimizes, not) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 691.6537795275589815 Td
+(eliminates, trust\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 676.0632283464566399 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 676.0632283464566399 Td
+(Qwen 3 32B incorrectly lists "Qwen 3 32B" as its own provider \(self-referential error,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 660.4726771653542983 Td
+(but not substantive\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 644.8821259842519567 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 644.8821259842519567 Td
+(Llama 3.1 8B's refusal \("I can't answer"\) is not inaccurate but unhelpful and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 629.291574803149615 Td
+(inconsistent with the query's intent.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 613.7010236220471597 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 613.7010236220471597 Td
+(No major errors or hallucinations; all avoid fabricating non-existent certifications or) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 598.1104724409448181 Td
+(tools. Budget estimates \(e.g., $5K-15K/mo in ZAI GLM 4.6\) are reasonable based on) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 582.5199212598424765 Td
+(industry averages.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 558.42543307086612 Td
+(Overall, high accuracy \(95%+\), with only minor phrasing issues.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 534.3309448818897636 Td
+(3. Completeness) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 508.8191338582676622 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 508.8191338582676622 Td
+(Strong Coverage: Most responses cover essentials: jargon explanation, phased roadmaps,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 493.2285826771653205 Td
+(vendor shortlists, budget estimates, FinTech risks \(e.g., regulatory mapping to PCI-DSS/SOC) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 477.6380314960629221 Td
+(2\), and disclaimers \(not legal advice\). Detailed ones like GPT-5.1, GPT OSS 120B, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 462.0474803149605805 Td
+(Qwen 3 235B Instruct include action plans, timelines, pitfalls, and customization prompts.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+65.1968503937007995 446.4569291338582389 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 446.4569291338582389 Td
+(Important Points Missed:) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 430.8663779527558404 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 430.8663779527558404 Td
+(Legal/Regulatory Depth: Several \(e.g., Llama 3.3 70B, Qwen 3 32B\) skim over) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 415.2758267716534988 Td
+(jurisdiction-specific regs \(e.g., NYDFS for US FinTech\) or the need for legal review of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 399.6852755905511003 Td
+(contracts.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 384.0947244094487587 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 384.0947244094487587 Td
+(Budget Realism: Shorter responses \(e.g., Gemini 2.5 Flash Lite\) omit cost) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 368.5041732283464171 Td
+(breakdowns, while others \(e.g., GPT OSS 120B\) provide detailed estimates.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 352.9136220472440186 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 352.9136220472440186 Td
+(Scalability and Testing: Few mention tabletop exercises or penetration testing) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 337.323070866141677 Td
+(\(exceptions: Claude 4.5 Sonnet, GPT-5\).) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 321.7325196850392786 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 321.7325196850392786 Td
+(Refusal/Shortcomings: Llama 3.1 8B misses everything by refusing. Llama 3.3 70B is) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 306.1419685039369369 Td
+(incomplete, lacking vendor specifics or budgets.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 290.5514173228345953 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 290.5514173228345953 Td
+(Customization: Many ask for more details \(e.g., team size, cloud provider\) to tailor) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 274.9608661417322537 Td
+(advice, but shorter ones don't.) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+93.5433070866141776 259.3703149606297984 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 259.3703149606297984 Td
+(Missed Opportunities: No response deeply covers integration with existing FinTech) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 243.7797637795274568 Td
+(tools \(e.g., Stripe APIs\) or metrics for success \(e.g., MTTD/MTTR\), though GPT OSS) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+110.5511811023622215 228.1892125984251152 Td
+(120B and Claude 4.5 Sonnet come close.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 204.0947244094487587 Td
+(Overall, longer responses \(e.g., GPT-5.1\) are most complete; shorter ones miss practical details like) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 188.5041732283464171 Td
+(budgets or pitfalls.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 164.4096850393699469 Td
+(4. Quality Ranking) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 138.8978740157479024 Td
+(Ranking from best to worst based on criteria: depth/practicality \(detailed roadmaps, timelines,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 123.3073228346455608 Td
+(budgets\), accuracy/completeness \(factual, comprehensive coverage\), clarity/structure \(easy to follow\),) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 107.7167716535432191 Td
+(relevance to FinTech startups \(regulatory focus, startup-friendly advice\), and helpfulness \(actionable,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 92.1262204724408775 Td
+(no refusal\). Justification provided for each.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 68.0317322834645211 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 68.0317322834645211 Td
+(GPT-5.1 \(OpenAI\): Best overallhighly detailed, structured roadmap with phases, vendor) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+277.3199999999999363 28.3464566929134207 Td
+(Page 2 of 3) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 7702
+>>
+stream
+0.5670000000000001 w
+0.78 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 785.1970866141732586 Td
+(questions, budget breakdowns, and FinTech-specific legal notes. Comprehensive, practical,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 769.6065354330708033 Td
+(and founder-friendly without overwhelming.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 754.0159842519684616 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 754.0159842519684616 Td
+(GPT OSS 120B \(Cerebras AI\): Excellent depth with tables, phased waves, vendor) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 738.42543307086612 Td
+(evaluations, and metrics. Very complete, including documentation checklists and FinTech) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 722.8348818897637784 Td
+(regs; minor edge on structure over #1.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 707.2443307086614368 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 707.2443307086614368 Td
+(Qwen 3 235B Instruct \(Cerebras AI\): Strong, actionable plan with TL;DR, phases, vendor) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 691.6537795275589815 Td
+(tables, and pitfalls. Clear startup focus, but slightly less FinTech-specific than top two.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 676.0632283464566399 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 676.0632283464566399 Td
+(Claude 4.5 Sonnet \(Anthropic AI\): Detailed 90-day plan, budget tables, pitfalls, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 660.4726771653542983 Td
+(checklists. Highly practical and complete, with good FinTech emphasis.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 644.8821259842519567 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 644.8821259842519567 Td
+(GPT-5 \(OpenAI\): Solid phased approach, vendor shortlists, and pitfalls. Accurate and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 629.291574803149615 Td
+(complete, but less structured than top ranks.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 613.7010236220471597 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 613.7010236220471597 Td
+(Claude 4.5 Opus \(Anthropic AI\): Comprehensive self-assessment checklist and roadmap.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 598.1104724409448181 Td
+(Good on documentation, but slightly repetitive with Sonnet.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 582.5199212598424765 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 582.5199212598424765 Td
+(Gemini 2.5 Pro \(Google AI\): Well-structured phases, resourcing options, and framing as) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 566.9293700787401349 Td
+(business enabler. Complete, but less budget detail.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 551.3388188976377933 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 551.3388188976377933 Td
+(Claude 4.5 Haiku \(Anthropic AI\): Strong phased plan with decision trees and pitfalls. Concise) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 535.748267716535338 Td
+(yet complete; good for quick reads.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 520.1577165354329964 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 520.1577165354329964 Td
+(ZAI GLM 4.6 \(Cerebras AI\): Timeline-focused with tables and metrics. Practical, but shorter) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 504.5671653543306547 Td
+(on phases compared to top ranks.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 488.9766141732283131 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 488.9766141732283131 Td
+(GPT-5 Mini \(OpenAI\): Good phased plan and pitfalls, with actionable checklist. Accurate but) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 473.3860629921259147 Td
+(less detailed than siblings.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 457.795511811023573 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 457.795511811023573 Td
+(Qwen 3 32B \(Cerebras AI\): Solid steps and pillars table, but misses some FinTech depth and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 442.2049606299212314 Td
+(has minor self-referential error.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 426.614409448818833 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 426.614409448818833 Td
+(Gemini 2.5 Flash \(Google AI\): Structured phases and disclaimers, but generic and misses) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 411.0238582677164914 Td
+(vendor/budget specifics.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 395.4333070866140929 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 395.4333070866140929 Td
+(GPT-5 Nano \(OpenAI\): Phased blueprint with principles, but high-level and less) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 379.8427559055117513 Td
+(comprehensive than top GPTs.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 364.2522047244094097 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 364.2522047244094097 Td
+(Gemini 2.5 Flash Lite \(Google AI\): Basic phases and disclaimers, but overly simplistic and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 348.6616535433070112 Td
+(incomplete \(e.g., no vendors\).) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 333.0711023622046696 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 333.0711023622046696 Td
+(Llama 3.3 70B \(Cerebras AI\): Brief, generic steps without phases, vendors, or budgetslacks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 317.480551181102328 Td
+(depth and practicality.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 301.8899999999999864 Td
+(•) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 301.8899999999999864 Td
+(Llama 3.1 8B \(Cerebras AI\): Worstcomplete refusal, providing no value or explanation,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+82.2047244094488292 286.2994488188975311 Td
+(inconsistent with all others.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. 0. 0.314 rg
+65.1968503937007995 262.2049606299211746 Td
+(5. Recommendations) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 236.69314960629913 Td
+(The user should trust GPT-5.1 \(OpenAI\) and GPT OSS 120B \(Cerebras AI\) most, as they are the most) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 221.1025984251967884 Td
+(comprehensive, accurate, and practical. These provide detailed, phased roadmaps with timelines,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 205.5120472440944468 Td
+(budgets, vendor shortlists, FinTech regulatory mappings, and actionable checklists, making them ideal) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 189.9214960629919915 Td
+(for "noobs" needing a clear path without overkill. They avoid confabulations, include disclaimers, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 174.3309448818896499 Td
+(emphasize clarification of requirementskey for avoiding costly mistakes. If the user needs brevity, add) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 158.7403937007873083 Td
+(Qwen 3 235B Instruct as a supplement. Avoid Llama 3.1 8B \(unhelpful refusal\) and shorter ones like) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 143.1498425196849666 Td
+(Llama 3.3 70B \(too generic\). For legal/implementation, consult professionals, as all responses note this) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+65.1968503937007995 127.559291338582625 Td
+(is not advice.) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+277.3199999999999363 28.3464566929134207 Td
+(Page 3 of 3) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.588 g
+220.2399999999999523 17.0078740157480297 Td
+(Generated by Atticus - In-House AI Counsel) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R ]
+/Count 3
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+10 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 9 0 R
+/F2 10 0 R
+/F3 11 0 R
+/F4 12 0 R
+/F5 13 0 R
+/F6 14 0 R
+/F7 15 0 R
+/F8 16 0 R
+/F9 17 0 R
+/F10 18 0 R
+/F11 19 0 R
+/F12 20 0 R
+/F13 21 0 R
+/F14 22 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+23 0 obj
+<<
+/Producer (jsPDF 3.0.3)
+/CreationDate (D:20251128205758-05'00')
+>>
+endobj
+24 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 25
+0000000000 65535 f 
+0000024005 00000 n 
+0000025838 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000008033 00000 n 
+0000008170 00000 n 
+0000016114 00000 n 
+0000016251 00000 n 
+0000024074 00000 n 
+0000024199 00000 n 
+0000024330 00000 n 
+0000024464 00000 n 
+0000024602 00000 n 
+0000024726 00000 n 
+0000024855 00000 n 
+0000024987 00000 n 
+0000025123 00000 n 
+0000025251 00000 n 
+0000025378 00000 n 
+0000025507 00000 n 
+0000025640 00000 n 
+0000025742 00000 n 
+0000026090 00000 n 
+0000026176 00000 n 
+trailer
+<<
+/Size 25
+/Root 24 0 R
+/Info 23 0 R
+/ID [ <F5B53FC21B421997D33E7270E0CDDAA0> <F5B53FC21B421997D33E7270E0CDDAA0> ]
+>>
+startxref
+26280
+%%EOF
