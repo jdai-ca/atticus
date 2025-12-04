@@ -240,7 +240,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.16',
+            minAppVersion: '0.9.17',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

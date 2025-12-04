@@ -1,10 +1,10 @@
 # Atticus - In-House AI Counsel
 
-A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, **44 specialized legal practice areas**, **44 MBA-level business advisory areas**, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities spanning the full spectrum of business disciplines. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
+A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, **67 specialized legal practice areas**, **67 MBA-level business advisory areas**, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities spanning the full spectrum of business disciplines. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
 
 > **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
 
-![Atticus Application Interface](docs/images/Screenshot-11.png)
+![Atticus Application Interface](docs/images/Screenshot-13.png)
 
 ## ⚠️ Important Documentation
 
@@ -12,7 +12,7 @@ Before using Atticus, please review these critical documents:
 
 | Document                              | Purpose                      | Key Information                                                                 |
 | ------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
-| 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 44 legal + 44 business areas, jurisdictional analysis        |
+| 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 67 legal + 67 business areas, jurisdictional analysis        |
 | 🔒 **[PRIVACY.md](PRIVACY.md)**       | Privacy & data protection    | Local-first architecture, third-party data flows, privacy rating: 7.5/10        |
 | ⚠️ **[RISK.md](RISK.md)**             | Risk assessment & mitigation | Legal risks, accuracy concerns, security vulnerabilities, required user actions |
 | 🤖 **[ETHICAL-AI.md](ETHICAL-AI.md)** | Ethical AI principles        | EU AI ethics compliance, bias mitigation, transparency commitments              |
@@ -177,7 +177,7 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 
 **See exactly what you're spending on each query** with automatic token usage and cost reporting:
 
-![Token Cost Report](docs/images/Screenshot-07.png)
+![Token Cost Report](docs/images/Screenshot-14.png)
 _Real-time cost breakdown showing input/output token usage and pricing per query - complete transparency on API expenses_
 
 **Why Direct Provider APIs Save Money**:
@@ -213,7 +213,7 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 
 **Track API costs with complete transparency** through the built-in Cost Ledger:
 
-![Cost Ledger Interface](docs/images/Screenshot-08.png)
+![Cost Ledger Interface](docs/images/Screenshot-15.png)
 
 - **Per-Message Breakdown** - See input/output token costs for every API call
 - **Real-Time Totals** - Track cumulative costs across entire conversations
@@ -309,10 +309,10 @@ _Comprehensive per-conversation configuration: select multiple AI models simulta
 
 ### ⚖️ Legal Practice Area Detection
 
-Automatically detects **44 specialized legal practice areas** with **3,500+ keywords** and applies expert-level AI prompts:
+Automatically detects **67 specialized legal practice areas** with **5,000+ keywords** and applies expert-level AI prompts:
 
 <details>
-<summary><strong>📋 View All 44 Practice Areas</strong></summary>
+<summary><strong>📋 View All 67 Practice Areas</strong></summary>
 
 | Area                           | Focus                                          | Keywords (Sample)                                                                | Coverage      |
 | ------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------- |
@@ -361,7 +361,7 @@ The practice area system is heavily optimized for startup legal needs:
 
 **Detection Features**:
 
-- ✅ **2,000+ keyword triggers** - Comprehensive coverage across all areas
+- ✅ **5,000+ keyword triggers** - Comprehensive coverage across all areas
 - ✅ **Automatic detection** - AI analyzes your query and selects appropriate practice area
 - ✅ **Confidence scoring** - Know when detection is certain vs. uncertain
 - ✅ **Alternative suggestions** - See other potential matches (e.g., "Also consider: IP Law, Tax Law")
@@ -386,10 +386,10 @@ Each area includes:
 
 ### 💼 Business Advisory Areas
 
-Automatically detects **44 specialized business advisory areas** with **2,400+ keywords** for comprehensive strategic guidance across the full MBA spectrum:
+Automatically detects **67 specialized business advisory areas** with **3,500+ keywords** for comprehensive strategic guidance across the full MBA spectrum:
 
 <details>
-<summary><strong>📊 View All 44 Advisory Areas</strong></summary>
+<summary><strong>📊 View All 67 Advisory Areas</strong></summary>
 
 **Core Business Functions (11 areas):**
 
@@ -452,13 +452,13 @@ Automatically detects **44 specialized business advisory areas** with **2,400+ k
 
 </details>
 
-**🎯 MBA-Level Advisory Coverage (44 Areas)**:
+**🎯 MBA-Level Advisory Coverage (67 Areas)**:
 
 Each advisory area provides **consulting-grade guidance** matching top firms (McKinsey, BCG, Bain, Goldman Sachs, Deloitte), covering the full MBA curriculum and beyond.
 
 **Advisory Features**:
 
-- ✅ **440+ core competencies** (10 per area × 44 areas)
+- ✅ **670+ core competencies** (10 per area × 67 areas)
 - ✅ **World-class frameworks** - McKinsey 7-S, BCG Matrix, Porter's Five Forces, Balanced Scorecard, COSO ERM, Lean/Six Sigma
 - ✅ **Industry best practices** - Proven methodologies from top consulting firms and Fortune 500 companies
 - ✅ **Strategic templates** - Business model canvas, OKRs, financial models, pitch decks, GTM plans, strategic roadmaps
@@ -466,7 +466,7 @@ Each advisory area provides **consulting-grade guidance** matching top firms (Mc
 - ✅ **Comprehensive MBA coverage** - Strategy, finance, marketing, operations, HR, technology, specialized functions
 - ✅ **Industry verticals** - Retail, healthcare, professional services, franchise, family business, nonprofit
 - ✅ **Specialized expertise** - IP management, competitive intelligence, quality management, tax strategy, investor relations
-- ✅ **2,400+ keyword triggers** - Automatic advisory area detection across all 44 domains
+- ✅ **3,500+ keyword triggers** - Automatic advisory area detection across all 67 domains
 
 **Sample Guidance Quality**:
 
@@ -491,8 +491,8 @@ Each area includes:
 **Comprehensive settings** organized in four intuitive tabs:
 
 - 🔌 **Providers Tab** - Configure AI models and API keys
-- ⚖️ **Practice Areas Tab** - View all 44 legal practice areas with expandable keywords
-- 💼 **Advisory Areas Tab** - Explore all 11 business advisory areas
+- ⚖️ **Practice Areas Tab** - View all 67 legal practice areas with expandable keywords
+- 💼 **Advisory Areas Tab** - Explore all 67 business advisory areas
 - ℹ️ **About Tab** - Mission, coverage statistics, capabilities overview
 
 **Key Features**:
@@ -512,18 +512,18 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
 
 **Comprehensive Editing Capabilities**:
 
-- **📝 Practice Areas Configuration** - Edit all 44 legal practice areas directly in YAML
+- **📝 Practice Areas Configuration** - Edit all 67 legal practice areas directly in YAML
 
   - Customize system prompts with expert-level legal instructions for each area
-  - Modify keyword detection rules (3,500+ keywords across all areas)
+  - Modify keyword detection rules (5,000+ keywords across all areas)
   - Adjust area names, descriptions, and color coding
   - Enable/disable specific practice areas
   - Add new practice areas with custom detection logic
 
-- **💼 Advisory Areas Configuration** - Edit all 11 business advisory areas
+- **💼 Advisory Areas Configuration** - Edit all 67 business advisory areas
 
   - Customize consulting-grade system prompts for strategic guidance
-  - Modify business keyword detection (1,200+ keywords)
+  - Modify business keyword detection (3,500+ keywords)
   - Adjust advisory focus areas and descriptions
   - Add new advisory domains with custom expertise
 
@@ -553,8 +553,8 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
   - Color format validation for UI consistency
 
 - **📊 Validation Scripts** - Pre-startup validation for all configurations
-  - `validate-practices-clean.js` - Validates all 44 practice areas
-  - `validate-advisory-clean.js` - Validates all 11 advisory areas
+  - `validate-practices-clean.js` - Validates all 67 practice areas
+  - `validate-advisory-clean.js` - Validates all 67 advisory areas
   - `validate-providers-clean.js` - Validates provider configurations
   - `validate-analysis-clean.js` - Validates analysis settings
   - Customization status reporting in validation output
@@ -617,7 +617,7 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
 - 📁 **Auto-save** - All conversations persist locally
 - ⌨️ **Keyboard shortcuts** - Enter to save, Escape to cancel
 
-![Multiple Conversation Threads](docs/images/Screenshot-05.png)
+![Multiple Conversation Threads](docs/images/Screenshot-16.png)
 _All conversations are stored locally on your device with full search capabilities, editable titles, and organized sidebar for easy access to your legal and business advisory history_
 
 ### 🔒 Privacy & Security
@@ -703,8 +703,8 @@ _Atticus automatically detects PII and sensitive information, providing real-tim
 
 ### Legal Practice Areas
 
-- **44 specialized practice areas** with expert system prompts
-- **3,500+ keyword triggers** for automatic detection
+- **67 specialized practice areas** with expert system prompts
+- **5,000+ keyword triggers** for automatic detection
 - **Geographic coverage**: 🇨🇦 80% Canada | 🇺🇸 92% US | 🇲🇽 70% Mexico | 🇪🇺 75% EU
 - **CUSMA/USMCA focus**: Full cross-border coverage for North American operations
 - **Startup optimization**: 90% coverage for entrepreneurial legal needs
@@ -712,20 +712,20 @@ _Atticus automatically detects PII and sensitive information, providing real-tim
 
 ### Business Advisory Areas
 
-- **44 advisory domains** with consulting-grade guidance
-- **~18,000 lines** of expert advisory content (quadrupled from baseline)
-- **2,400+ keyword triggers** for automatic detection
-- **440 core competencies** across all advisory areas (10 per area)
+- **67 advisory domains** with consulting-grade guidance
+- **~25,000 lines** of expert advisory content (expanded coverage)
+- **3,500+ keyword triggers** for automatic detection
+- **670 core competencies** across all advisory areas (10 per area)
 - **World-class frameworks**: McKinsey, BCG, Bain, Goldman Sachs, Deloitte methodologies
 - **Full MBA coverage**: Strategy, finance, marketing, operations, HR, technology, specialized functions
 - **Industry verticals**: Retail, healthcare, professional services, franchise, family business, nonprofit
 
 ### Knowledge Base Size
 
-- **Legal practice areas**: ~2,900 lines (practices.yaml)
-- **Business advisory areas**: ~18,000 lines (advisory.yaml)
-- **Total expertise**: **20,900+ lines** of structured guidance
-- **Combined keywords**: **5,900+ triggers** for intelligent detection
+- **Legal practice areas**: ~8,500 lines (practices.yaml)
+- **Business advisory areas**: ~25,000 lines (advisory.yaml)
+- **Total expertise**: **33,500+ lines** of structured guidance
+- **Combined keywords**: **8,500+ triggers** for intelligent detection
 
 ### Multi-Jurisdictional Analysis
 
@@ -797,13 +797,13 @@ Atticus uses a **template-based provider system** with 9 pre-configured provider
    - Perplexity (Sonar Large Online, Sonar Small Online, Sonar Large Chat, Sonar Small Chat)
    - Cerebras (GPT OSS 120B, Llama 3.3 70B, Llama 3.1 8B, Qwen 3 32B, Qwen 3 235B, ZAI GLM 4.6)
 
-   **Practice Areas Tab** - View all 44 legal practice areas:
+   **Practice Areas Tab** - View all 67 legal practice areas:
 
    - Expandable keyword lists (click "+X more")
    - Color-coded by category
    - Comprehensive coverage details
 
-   **Advisory Areas Tab** - Explore all 11 business advisory areas:
+   **Advisory Areas Tab** - Explore all 67 business advisory areas:
 
    - Strategic planning, finance, marketing, operations
    - Technology, risk, sustainability, M&A
@@ -988,7 +988,7 @@ Atticus uses keyword detection to identify both legal practice areas and busines
 - **Prof Services**: consulting firm, leverage model, partner compensation, utilization, firm economics
 - **Tech Transfer**: technology commercialization, licensing, spinout, proof of concept, IP licensing
 
-**Total Coverage**: 44 legal areas + 44 advisory areas = **88 specialized domains** with **8,400+ detection keywords**
+**Total Coverage**: 67 legal areas + 67 advisory areas = **134 specialized domains** with **8,500+ detection keywords**
 
 ## Architecture
 
@@ -998,7 +998,7 @@ Atticus uses keyword detection to identify both legal practice areas and busines
 - **Desktop**: Electron 28 (Node.js)
 - **State Management**: Zustand with conversation-scoped persistence
 - **AI Integration**: Multi-provider template system with parallel execution
-- **Practice Area System**: Modular keyword-based detection (44 legal + 11 advisory = 55 specializations)
+- **Practice Area System**: Modular keyword-based detection (67 legal + 67 advisory = 134 specializations)
 - **Jurisdiction System**: Multi-jurisdictional analysis (CA, US, MX, EU) with interprovincial/interstate complexity
 - **Multi-Model Architecture**: Parallel API execution via Promise.all()
 - **Model Domain Specialization**: Real-time query detection with smart model filtering (practice/advisory/both)
@@ -1017,8 +1017,8 @@ atticus/
 ├── public/
 │   └── config/          # YAML configuration files
 │       ├── providers.yaml      # AI provider configurations
-│       ├── practices.yaml      # Legal practice areas (26 areas)
-│       └── advisory.yaml       # Business advisory areas (11 areas)
+│       ├── practices.yaml      # Legal practice areas (67 areas)
+│       └── advisory.yaml       # Business advisory areas (67 areas)
 ├── src/
 │   ├── components/       # React components
 │   │   ├── ChatWindow.tsx       # Main chat interface
@@ -1029,7 +1029,7 @@ atticus/
 │   │   └── providerTemplates.ts # AI provider templates
 │   ├── modules/         # Feature modules
 │   │   └── practiceArea/        # Practice area detection module
-│   │       ├── definitions.ts   # Practice area definitions (26)
+│   │       ├── definitions.ts   # Practice area definitions (67)
 │   │       ├── detector.ts      # Auto-detection logic
 │   │       ├── examples.ts      # Example prompts per area
 │   │       ├── types.ts         # Type definitions

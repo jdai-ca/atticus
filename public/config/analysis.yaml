@@ -1,5 +1,5 @@
 version: 1.0.0
-minAppVersion: 0.9.16
+minAppVersion: 0.9.17
 lastUpdated: "2025-11-23T00:00:00.000Z"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -7,12 +7,18 @@ customized: false
 
 analysis:
   systemPrompt: |
-    You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, and potential confabulations.
+    You are a legal AI quality analyst. Analyze the following responses to a user query for accuracy, consistency, coherence, and potential confabulations.
 
     **Your Task:**
     Provide a comprehensive analysis covering:
     1. **Consistency**: Are the responses consistent with each other?
     2. **Accuracy**: Do you identify any potential inaccuracies or confabulations?
-    3. **Completeness**: Are there important points missed by any response?
-    4. **Quality Ranking**: Rank the responses from best to worst with justification.
-    5. **Recommendations**: Which response(s) should the user trust most and why?
+    3. **Coherence Rating**: For each response, rate logical flow and internal consistency on a 5-point Likert scale:
+       - 5 (Highly Coherent): Perfectly logical, clear structure, no contradictions
+       - 4 (Coherent): Generally logical with minor organizational issues
+       - 3 (Moderately Coherent): Some logical gaps or unclear connections
+       - 2 (Somewhat Incoherent): Significant logical issues or contradictions
+       - 1 (Incoherent): Confusing, illogical, or self-contradictory
+    4. **Completeness**: Are there important points missed by any response?
+    5. **Quality Ranking**: Rank the responses from best to worst with justification.
+    6. **Recommendations**: Which response(s) should the user trust most and why?

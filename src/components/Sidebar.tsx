@@ -287,10 +287,14 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by title, message, or practice area..."
+                  placeholder="Search or filter by #area-id..."
                   className="w-full bg-gray-900 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-legal-blue"
                   autoFocus
                 />
+              </div>
+              <div className="text-xs text-gray-500 mt-2 px-1">
+                Tip: Use #corporate-law, #strategic-planning (areas), or
+                #important, #contract-review (custom tags)
               </div>
             </div>
 
@@ -300,9 +304,25 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                 .filter((conv) => {
                   if (!searchQuery.trim()) return true;
                   const query = searchQuery.toLowerCase();
+
+                  // Check for # tag filtering (practice/advisory area ID OR custom tags)
+                  if (query.startsWith("#")) {
+                    const tagId = query.slice(1); // Remove the # prefix
+                    return (
+                      conv.practiceAreaId?.toLowerCase() === tagId ||
+                      conv.advisoryAreaId?.toLowerCase() === tagId ||
+                      conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
+                      conv.messages.some((msg) =>
+                        msg.tags?.some((tag) => tag.toLowerCase() === tagId)
+                      )
+                    );
+                  }
+
+                  // Regular search across title, practice area name, advisory area name, and content
                   return (
                     conv.title.toLowerCase().includes(query) ||
                     conv.practiceArea?.toLowerCase().includes(query) ||
+                    conv.advisoryArea?.toLowerCase().includes(query) ||
                     conv.messages.some((msg) =>
                       msg.content.toLowerCase().includes(query)
                     )
@@ -343,9 +363,25 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
               {conversations.filter((conv) => {
                 if (!searchQuery.trim()) return true;
                 const query = searchQuery.toLowerCase();
+
+                // Check for # tag filtering (practice/advisory area ID OR custom tags)
+                if (query.startsWith("#")) {
+                  const tagId = query.slice(1);
+                  return (
+                    conv.practiceAreaId?.toLowerCase() === tagId ||
+                    conv.advisoryAreaId?.toLowerCase() === tagId ||
+                    conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
+                    conv.messages.some((msg) =>
+                      msg.tags?.some((tag) => tag.toLowerCase() === tagId)
+                    )
+                  );
+                }
+
+                // Regular search
                 return (
                   conv.title.toLowerCase().includes(query) ||
                   conv.practiceArea?.toLowerCase().includes(query) ||
+                  conv.advisoryArea?.toLowerCase().includes(query) ||
                   conv.messages.some((msg) =>
                     msg.content.toLowerCase().includes(query)
                   )

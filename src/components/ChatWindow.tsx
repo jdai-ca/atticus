@@ -103,6 +103,12 @@ export default function ChatWindow() {
   const [tagDialogClusterEnd, setTagDialogClusterEnd] = useState<number>(0);
   const [newTagInput, setNewTagInput] = useState<string>("");
 
+  // Inline tag input state
+  const [inlineTagMessageId, setInlineTagMessageId] = useState<string | null>(
+    null
+  );
+  const [inlineTagInput, setInlineTagInput] = useState<string>("");
+
   // Analysis Dialog state
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [analysisClusterStart, setAnalysisClusterStart] = useState<number>(0);
@@ -182,6 +188,38 @@ export default function ChatWindow() {
     if (tag && !getAllExistingTags().includes(tag)) {
       handleTagToggle(tag);
       setNewTagInput("");
+    }
+  };
+
+  // Handle adding inline tag to a specific message
+  const handleAddInlineTag = (messageId: string) => {
+    const tag = inlineTagInput.trim().toLowerCase().replace(/^#+/, ""); // Remove leading # if present
+    if (tag) {
+      const message = currentConversation?.messages.find(
+        (m) => m.id === messageId
+      );
+      if (message) {
+        const existingTags = message.tags || [];
+        if (!existingTags.includes(tag)) {
+          useStore.getState().updateMessage(messageId, {
+            tags: [...existingTags, tag],
+          });
+        }
+      }
+      setInlineTagInput("");
+      setInlineTagMessageId(null);
+    }
+  };
+
+  // Handle removing a tag from a specific message
+  const handleRemoveInlineTag = (messageId: string, tagToRemove: string) => {
+    const message = currentConversation?.messages.find(
+      (m) => m.id === messageId
+    );
+    if (message && message.tags) {
+      useStore.getState().updateMessage(messageId, {
+        tags: message.tags.filter((t) => t !== tagToRemove),
+      });
     }
   };
 
@@ -1984,6 +2022,119 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
                     <div className="markdown-content">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+
+                    {/* Inline Tag Management */}
+                    <div className="mt-3 pt-3 border-t border-gray-700/50">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Existing tags with remove button */}
+                        {message.tags &&
+                          message.tags.length > 0 &&
+                          message.tags.map((tag) => (
+                            <div
+                              key={tag}
+                              className="group flex items-center gap-1 px-2 py-1 rounded bg-gray-700/50 border border-gray-600 hover:border-gray-500 transition-colors"
+                            >
+                              <span className="text-xs text-gray-300">
+                                #{tag}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleRemoveInlineTag(message.id, tag)
+                                }
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400"
+                                title="Remove tag"
+                              >
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+
+                        {/* Add tag button/input */}
+                        {inlineTagMessageId === message.id ? (
+                          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                            <div className="relative flex-1">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+                                #
+                              </span>
+                              <input
+                                type="text"
+                                value={inlineTagInput}
+                                onChange={(e) =>
+                                  setInlineTagInput(e.target.value)
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleAddInlineTag(message.id);
+                                  } else if (e.key === "Escape") {
+                                    setInlineTagMessageId(null);
+                                    setInlineTagInput("");
+                                  }
+                                }}
+                                onBlur={() => {
+                                  if (!inlineTagInput.trim()) {
+                                    setInlineTagMessageId(null);
+                                  }
+                                }}
+                                placeholder="tag-name"
+                                autoFocus
+                                className="w-full bg-gray-700 text-white text-xs rounded pl-5 pr-2 py-1 focus:outline-none focus:ring-1 focus:ring-legal-blue"
+                              />
+                            </div>
+                            <button
+                              onClick={() => handleAddInlineTag(message.id)}
+                              disabled={!inlineTagInput.trim()}
+                              className="px-2 py-1 bg-legal-blue hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-xs rounded transition-colors"
+                            >
+                              Add
+                            </button>
+                            <button
+                              onClick={() => {
+                                setInlineTagMessageId(null);
+                                setInlineTagInput("");
+                              }}
+                              className="text-gray-400 hover:text-white transition-colors"
+                              title="Cancel"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setInlineTagMessageId(message.id)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded border border-dashed border-gray-600 hover:border-gray-500 transition-colors"
+                            title="Add tag to this message"
+                          >
+                            <span>🏷️</span>
+                            <span>Add tag</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Cost Report - show token usage and cost for assistant messages */}

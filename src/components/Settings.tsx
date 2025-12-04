@@ -124,7 +124,7 @@ export default function Settings({ onClose }: SettingsProps) {
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.16",
+      minAppVersion: "0.9.17",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -221,6 +221,7 @@ export default function Settings({ onClose }: SettingsProps) {
     type: "practices" | "advisory" | "analysis"
   ) => {
     try {
+      console.log(`[Settings] Loading ${type} configuration...`);
       setYamlLoadError(null);
       const filename =
         type === "practices"
@@ -228,9 +229,26 @@ export default function Settings({ onClose }: SettingsProps) {
           : type === "advisory"
           ? "advisory.yaml"
           : "analysis.yaml";
+
+      // Check if electronAPI is available
+      if (!(globalThis as any).electronAPI?.loadBundledConfig) {
+        const errorMsg =
+          "Electron API not available. Please restart the application.";
+        console.error(`[Settings] ${errorMsg}`);
+        setYamlLoadError(errorMsg);
+        return;
+      }
+
       const result = await (globalThis as any).electronAPI.loadBundledConfig(
         filename
       );
+
+      console.log(`[Settings] Load result for ${filename}:`, {
+        success: result.success,
+        hasData: !!result.data,
+        dataLength: result.data?.length,
+        error: result.error,
+      });
 
       if (result.success) {
         setEditingYamlType(type);
@@ -238,27 +256,44 @@ export default function Settings({ onClose }: SettingsProps) {
         if (type === "analysis") {
           // Parse analysis.yaml
           const parsed = yaml.load(result.data) as any;
-          if (parsed?.analysis?.systemPrompt) {
-            setAnalysisPrompt(parsed.analysis.systemPrompt);
+          console.log(`[Settings] Parsed analysis.yaml:`, {
+            hasAnalysis: !!parsed?.analysis,
+            hasSystemPrompt: !!parsed?.analysis?.systemPrompt,
+            promptLength: parsed?.analysis?.systemPrompt?.length || 0,
+          });
+
+          if (parsed?.analysis) {
+            // Allow empty prompts - user might want to add one
+            setAnalysisPrompt(parsed.analysis.systemPrompt || "");
             setShowYamlEditor(true);
+            console.log(`[Settings] Analysis editor opened successfully`);
           } else {
-            setYamlLoadError("Invalid analysis.yaml structure");
+            const errorMsg =
+              "Invalid analysis.yaml structure - missing 'analysis' section";
+            console.error(`[Settings] ${errorMsg}`, parsed);
+            setYamlLoadError(errorMsg);
           }
         } else {
           // Parse practices/advisory using js-yaml
           const areas = parseYamlToAreas(result.data);
           setParsedAreas(areas);
           setShowYamlEditor(true);
+          console.log(
+            `[Settings] ${type} editor opened with ${areas.length} areas`
+          );
         }
       } else {
-        setYamlLoadError(
-          result.error?.message || "Failed to load configuration file"
-        );
+        const errorMsg =
+          result.error?.message || "Failed to load configuration file";
+        console.error(`[Settings] Failed to load ${filename}:`, result.error);
+        setYamlLoadError(errorMsg);
       }
     } catch (error) {
-      setYamlLoadError(
-        `Failed to load ${type}.yaml: ${(error as Error).message}`
-      );
+      const errorMsg = `Failed to load ${type}.yaml: ${
+        (error as Error).message
+      }`;
+      console.error(`[Settings] Exception loading ${type}:`, error);
+      setYamlLoadError(errorMsg);
     }
   };
 
@@ -327,7 +362,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.16
+minAppVersion: 0.9.17
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -1281,6 +1316,27 @@ ${analysisPrompt
 
           {activeTab === "analysis" && (
             <div>
+              {/* Error Display */}
+              {yamlLoadError && (
+                <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <span className="text-red-400 text-xl">⚠️</span>
+                    <div>
+                      <h4 className="text-red-400 font-semibold mb-1">
+                        Configuration Load Error
+                      </h4>
+                      <p className="text-red-300 text-sm">{yamlLoadError}</p>
+                      <button
+                        onClick={() => setYamlLoadError(null)}
+                        className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-6">
                 <h3 className="text-2xl font-bold text-white mb-4">
                   🔍 Response Analysis Configuration
@@ -1487,7 +1543,7 @@ multiple AI responses using an independent model.`}
                           Legal Practice Areas
                         </h4>
                         <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
-                          44
+                          67
                         </span>
                       </div>
                       <ul className="text-xs text-gray-400 space-y-1">
@@ -1498,7 +1554,7 @@ multiple AI responses using an independent model.`}
                         <li>• Venture Capital Finance</li>
                         <li>• Cross-Border Operations</li>
                         <li>• Privacy & Data Protection</li>
-                        <li>• And 37 more specialized areas</li>
+                        <li>• And 60 more specialized areas</li>
                       </ul>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
@@ -1507,7 +1563,7 @@ multiple AI responses using an independent model.`}
                           Business Advisory Areas
                         </h4>
                         <span className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded">
-                          44
+                          67
                         </span>
                       </div>
                       <ul className="text-xs text-gray-400 space-y-1">
@@ -1518,7 +1574,7 @@ multiple AI responses using an independent model.`}
                         <li>• Product Legal Compliance</li>
                         <li>• M&A Advisory & Exit Planning</li>
                         <li>• Digital Transformation & Technology</li>
-                        <li>• And 37 more advisory areas</li>
+                        <li>• And 60 more advisory areas</li>
                       </ul>
                     </div>
                   </div>
@@ -1528,7 +1584,7 @@ multiple AI responses using an independent model.`}
                         🎯 Total Expertise Coverage:
                       </span>
                       <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-3 py-1 rounded">
-                        88 Specialized Areas
+                        134 Specialized Areas
                       </span>
                       <span className="text-gray-400">
                         Dual Practice + Advisory Mode
