@@ -19,6 +19,18 @@ export interface ElectronAPI {
   savePDF: (data: { filename: string; data: string }) => Promise<OperationResult>;
   loadBundledConfig: (configName: string) => Promise<OperationResult<string>>;
   secureChatRequest: (request: SecureChatRequest) => Promise<OperationResult<ChatResponse>>;
+  convertPdfToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertWordToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertExcelToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
+  convertMarkdownToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertCsvToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
+  convertTextToImages: (base64Data: string, fileName: string, extension: string) => Promise<OperationResult<string[]>>;
+  convertPowerPointToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertRtfToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertTiffToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertHeicToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  convertEmailToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
+  convertEpubToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
 }
 
 export interface FileUploadResult {
@@ -149,6 +161,9 @@ export interface APITrace {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    // Anthropic-specific: cached tokens (if applicable)
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
   };
   cost?: {
     inputCost: number; // Cost in USD for input tokens
@@ -156,6 +171,9 @@ export interface APITrace {
     totalCost: number; // Total cost in USD
     inputTokenPrice?: number; // Price per 1M input tokens
     outputTokenPrice?: number; // Price per 1M output tokens
+    // Anthropic-specific: separate costs for cached tokens
+    cacheCreationCost?: number; // Cost for cache creation tokens
+    cacheReadCost?: number; // Cost for cache read tokens
   };
 }
 
@@ -175,6 +193,7 @@ export interface Message {
   };
   apiTrace?: APITrace; // API call trace for debugging
   tags?: string[]; // Tags for categorization and search (e.g., 'interesting', 'important', 'wisdom')
+  metadata?: { isAnalysis?: boolean;[key: string]: any }; // Metadata for special message types
 }
 
 export interface Attachment {
@@ -268,5 +287,8 @@ export interface ChatResponse {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    // Anthropic-specific: cached tokens (if applicable)
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
   };
 }

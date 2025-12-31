@@ -54,7 +54,6 @@
                 "name",
                 "displayName",
                 "description",
-                "endpoint",
                 "defaultModel",
                 "models",
                 "capabilities",

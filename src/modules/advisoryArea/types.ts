@@ -67,4 +67,38 @@ export interface DetectionSettings {
 
     /** Whether to use context-aware phrase matching */
     useContextPhrases: boolean;
+
+    /** Whether to use synonym matching */
+    useSynonyms?: boolean;
+
+    /** Whether to allow multiple areas to be detected */
+    allowMultipleAreas?: boolean;
+
+    /** Minimum confidence for multiple area detection */
+    multiAreaThreshold?: number;
+}
+
+/**
+ * Keyword synonym mapping
+ */
+export interface KeywordSynonym {
+    /** The canonical term */
+    canonical: string;
+
+    /** List of synonyms */
+    synonyms: string[];
+}
+
+/**
+ * Keyword with optional weight and exclusions
+ */
+export interface WeightedKeyword {
+    /** The keyword text */
+    keyword: string;
+
+    /** Weight multiplier (default 1.0) */
+    weight?: number;
+
+    /** Whether this keyword excludes certain areas */
+    excludes?: string[];
 }

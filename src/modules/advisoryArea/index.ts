@@ -15,8 +15,19 @@ export { AdvisoryAreaManager, advisoryAreaManager } from './AdvisoryAreaManager'
 export {
     detectAdvisoryArea,
     detectAdvisoryAreaWithConfidence,
+    detectMultipleAdvisoryAreas,
     getAllAdvisoryAreas,
     getAdvisoryAreaById,
-    searchAdvisoryAreasByKeyword
+    searchAdvisoryAreasByKeyword,
+    clearKeywordCache,
+    invalidateCacheForArea,
+    addSynonyms,
+    getSynonyms
 } from './detector';
-export type { AdvisoryAreaConfig, AdvisoryAreaDetectionResult, DetectionSettings } from './types';
+export type {
+    AdvisoryAreaConfig,
+    AdvisoryAreaDetectionResult,
+    DetectionSettings,
+    KeywordSynonym,
+    WeightedKeyword
+} from './types';

@@ -230,14 +230,14 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
   if (practiceAreas.length === 0 && !advisoryArea || jurisdictions.length === 0) {
     const firstMessage = conversation.messages.find(m => m.role === 'user');
     if (firstMessage) {
-      if (practiceAreas.length === 0 && (firstMessage.practiceArea || firstMessage.otherPracticeArea)) {
-        practiceAreas = [firstMessage.practiceArea, firstMessage.otherPracticeArea].filter(Boolean) as string[];
+      if (practiceAreas.length === 0 && firstMessage.practiceArea) {
+        practiceAreas = [firstMessage.practiceArea].filter(Boolean) as string[];
       }
       if (!advisoryArea && firstMessage.advisoryArea) {
         advisoryArea = firstMessage.advisoryArea;
       }
-      if (jurisdictions.length === 0 && firstMessage.selectedJurisdictions && firstMessage.selectedJurisdictions.length > 0) {
-        jurisdictions = firstMessage.selectedJurisdictions;
+      if (jurisdictions.length === 0 && firstMessage.metadata?.selectedJurisdictions) {
+        jurisdictions = firstMessage.metadata.selectedJurisdictions;
       }
     }
   }
@@ -379,19 +379,16 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     y += 6;
   }
 
-  // Practice/Advisory area if present (including other area and jurisdiction)
-  if (message.practiceArea || message.otherPracticeArea || message.advisoryArea) {
+  // Practice/Advisory area if present
+  if (message.practiceArea || message.advisoryArea) {
     pdf.setFontSize(8);
     pdf.setTextColor(120, 80, 80);
 
     let areaText = '';
 
-    // Show practice areas if present
-    if (message.practiceArea || message.otherPracticeArea) {
-      const areas = [message.practiceArea, message.otherPracticeArea]
-        .filter(Boolean)
-        .join(' & ');
-      areaText = `Practice Area: ${areas}`;
+    // Show practice area if present
+    if (message.practiceArea) {
+      areaText = `Practice Area: ${message.practiceArea}`;
     }
 
     // Show advisory area if present (can coexist with practice area)
@@ -404,8 +401,8 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     }
 
     // Add jurisdiction if present
-    if (message.selectedJurisdictions && message.selectedJurisdictions.length > 0) {
-      areaText += ` | Jurisdictions: ${message.selectedJurisdictions.join(', ')}`;
+    if (message.metadata?.selectedJurisdictions && message.metadata.selectedJurisdictions.length > 0) {
+      areaText += ` | Jurisdictions: ${message.metadata.selectedJurisdictions.join(', ')}`;
     }
 
     pdf.text(areaText, margin, y);
@@ -950,24 +947,21 @@ export async function exportClusterToPDF(
   if (messages.length > 0) {
     const firstMessage = messages[0];
 
-    // Show practice areas (including other area)
-    if (firstMessage.practiceArea || firstMessage.otherPracticeArea) {
-      const areas = [firstMessage.practiceArea, firstMessage.otherPracticeArea]
-        .filter(Boolean)
-        .join(' & ');
-      pdf.text(`Practice Area: ${areas}`, margin, headerY);
+    // Show practice area
+    if (firstMessage.practiceArea) {
+      pdf.text(`Practice Area: ${firstMessage.practiceArea}`, margin, headerY);
       headerY += 5;
     }
 
     // Show advisory area if no practice area
-    if (!firstMessage.practiceArea && !firstMessage.otherPracticeArea && firstMessage.advisoryArea) {
+    if (!firstMessage.practiceArea && firstMessage.advisoryArea) {
       pdf.text(`Advisory Area: ${firstMessage.advisoryArea}`, margin, headerY);
       headerY += 5;
     }
 
     // Show jurisdictions if specified
-    if (firstMessage.selectedJurisdictions && firstMessage.selectedJurisdictions.length > 0) {
-      pdf.text(`Jurisdictions: ${firstMessage.selectedJurisdictions.join(', ')}`, margin, headerY);
+    if (firstMessage.metadata?.selectedJurisdictions && firstMessage.metadata.selectedJurisdictions.length > 0) {
+      pdf.text(`Jurisdictions: ${firstMessage.metadata.selectedJurisdictions.join(', ')}`, margin, headerY);
       headerY += 5;
     }
   }

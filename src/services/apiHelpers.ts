@@ -243,10 +243,14 @@ export function extractUsage(data: any, provider: string): {
 
     // Anthropic format (check first before OpenAI format)
     if (provider === 'anthropic' && data.usage) {
+        const cacheCreation = data.usage.cache_creation_input_tokens || 0;
+        const cacheRead = data.usage.cache_read_input_tokens || 0;
         return {
             promptTokens: data.usage.input_tokens || 0,
             completionTokens: data.usage.output_tokens || 0,
-            totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0),
+            // Include all token types in total for accurate accounting
+            totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0) +
+                cacheCreation + cacheRead,
         };
     }
 

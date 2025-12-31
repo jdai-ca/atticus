@@ -2,7 +2,6 @@ import { SecureProviderConfig, ChatRequest, SecureChatRequestInternal, ChatRespo
 import {
   fetchWithTimeout,
   validateOpenAIResponse,
-  validateAnthropicResponse,
   validateEndpoint,
   extractUsage,
   createApiError,
@@ -10,12 +9,23 @@ import {
 import {
   sendAPIRequest,
   buildOpenAIRequestBody,
+  buildXAIRequestBody,
   openAIParser,
+  xAIParser,
   getEndpointOrDefault,
 } from './apiRequest';
+import { formatForAnthropic, augmentMessageWithDocuments, formatForGemini, GeminiContent } from './multimodalFormatter';
+import { logger } from './logger';
+import { GoogleGenAI } from '@google/genai/node';
+import { Mistral } from '@mistralai/mistralai';
+import Anthropic from '@anthropic-ai/sdk';
+import { CohereClient } from 'cohere-ai';
 
 export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
+
+  console.log('[API] sendChatMessage called for provider:', provider.provider, provider.id);
+  console.log('[API] Provider config:', JSON.stringify({ id: provider.id, provider: provider.provider, model: provider.model, endpoint: provider.endpoint }));
 
   // Ensure provider has API key (this service should only be used in main process)
   if (!('apiKey' in provider) || !provider.apiKey) {
@@ -24,6 +34,8 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
 
   // Provider is guaranteed to have apiKey at this point
   const secureProvider = provider;
+
+  console.log('[API] Routing to provider:', secureProvider.provider);
 
   switch (secureProvider.provider) {
     case 'openai':
@@ -65,7 +77,7 @@ async function sendOpenAIMessage(
     'https://api.openai.com/v1/chat/completions'
   );
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
   return sendAPIRequest({
     endpoint,
@@ -86,49 +98,70 @@ async function sendAnthropicMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint || 'https://api.anthropic.com/v1/messages';
+  // First, augment messages with document text (before transformation)
+  const augmentedMessages = await Promise.all(messages.map(async msg => {
+    if (msg.role !== 'system') {
+      return await augmentMessageWithDocuments(msg);
+    }
+    return msg;
+  }));
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+  // Then format messages for Anthropic multimodal (handles images, converts PDFs to images)
+  const formattedMessages = await formatForAnthropic(augmentedMessages);
 
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': provider.apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
+  // Initialize Anthropic client
+  const client = new Anthropic({
+    apiKey: provider.apiKey,
+    ...(provider.endpoint ? { baseURL: provider.endpoint } : {}),
+  });
+
+  try {
+    const message = await client.messages.create({
       model: provider.model,
-      messages: messages.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content,
-      })),
+      messages: formattedMessages as Anthropic.MessageParam[],
       system: systemPrompt,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_tokens: maxTokens || 4000,
-    }),
-    timeout: 3600000, // 60 minute timeout for extended thinking
-  });
+    }, {
+      timeout: 3600000 // 60 minute timeout for extended thinking
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const textContent = message.content.find(block => block.type === 'text');
+    if (textContent?.type !== 'text') {
+      throw createApiError(
+        'INVALID_RESPONSE',
+        'Anthropic API returned no text content',
+        { provider: 'anthropic' }
+      );
+    }
+
+    return {
+      content: textContent.text,
+      usage: {
+        promptTokens: message.usage.input_tokens,
+        completionTokens: message.usage.output_tokens,
+        // Calculate total including all token types for accurate accounting
+        totalTokens: message.usage.input_tokens + message.usage.output_tokens +
+          ((message.usage as any).cache_creation_input_tokens || 0) +
+          ((message.usage as any).cache_read_input_tokens || 0),
+        // Include Anthropic cached token fields if present
+        cacheCreationInputTokens: (message.usage as any).cache_creation_input_tokens,
+        cacheReadInputTokens: (message.usage as any).cache_read_input_tokens,
+      },
+    };
+  } catch (error: any) {
     throw createApiError(
       'API_ERROR',
-      errorData.error?.message || `Anthropic API request failed with status ${response.status}`,
-      { status: response.status, provider: 'anthropic' }
+      error.message || 'Anthropic API request failed',
+      { provider: 'anthropic', originalError: error }
     );
   }
-
-  const data = await response.json();
-  validateAnthropicResponse(data);
-
-  return {
-    content: data.content[0].text,
-    usage: extractUsage(data, 'anthropic'),
-  };
 }
 
+/**
+ * Send message to Google Gemini API using official SDK
+ * Supports multimodal content (text, images, documents)
+ */
 async function sendGoogleMessage(
   provider: SecureProviderConfig,
   messages: any[],
@@ -136,55 +169,194 @@ async function sendGoogleMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  // Use OpenAI-compatible endpoint for Google Gemini
-  const baseEndpoint = provider.endpoint || 'https://generativelanguage.googleapis.com/v1beta/openai/';
-  const endpoint = baseEndpoint.endsWith('/')
-    ? `${baseEndpoint}chat/completions`
-    : `${baseEndpoint}/chat/completions`;
+  let formattedMessages: GeminiContent[] = [];
 
-  // Format messages in OpenAI format
-  const formattedMessages = [...messages];
-  if (systemPrompt) {
-    formattedMessages.unshift({
-      role: 'system',
-      content: systemPrompt,
-    });
-  }
+  try {
+    // Validate input
+    if (!messages || messages.length === 0) {
+      throw createApiError('INVALID_REQUEST', 'Messages array cannot be empty');
+    }
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+    // Initialize Gemini SDK client
+    const genAI = new GoogleGenAI({ apiKey: provider.apiKey });
 
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: provider.model,
-      messages: formattedMessages,
-      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
-      max_completion_tokens: maxTokens,
-    }),
-    timeout: 60000, // 60 second timeout
-  });
+    // Step 1: Augment messages with extracted document text (PDF, DOCX, TXT)
+    // This extracts text from document attachments and appends to message content
+    const augmentedMessages = await Promise.all(
+      messages.map(async (msg) => {
+        if (msg.role === 'system') {
+          return msg; // System messages handled separately via systemInstruction
+        }
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw createApiError(
-      'API_ERROR',
-      errorData.error?.message || `Google API request failed with status ${response.status}`,
-      { status: response.status, provider: 'google' }
+        const augmented = await augmentMessageWithDocuments(msg);
+
+        // Log document extraction results
+        if (augmented.content.length > msg.content.length) {
+          logger.info('Document text extracted', '[Gemini API]', {
+            originalLength: msg.content.length,
+            extractedLength: augmented.content.length,
+            attachments: msg.attachments?.length || 0,
+          });
+        }
+
+        return augmented;
+      })
     );
+
+    // Step 2: Format messages for Gemini SDK
+    // Converts to Gemini's {role, parts} format with proper role mapping
+    // Handles both text content and image attachments (inlineData)
+    // Converts PDFs to images for vision analysis
+    const nonSystemMessages = augmentedMessages.filter((m) => m.role !== 'system');
+    formattedMessages = await formatForGemini(nonSystemMessages);
+
+    // CRITICAL: Deep validation before sending to Google API
+    // Google SDK serialization can expose issues not caught during formatting
+    for (let i = 0; i < formattedMessages.length; i++) {
+      const msg = formattedMessages[i];
+      for (let j = 0; j < msg.parts.length; j++) {
+        const part = msg.parts[j];
+
+        // Check for inlineData with missing or empty data field
+        if (part.inlineData) {
+          const hasValidData = part.inlineData.data &&
+            typeof part.inlineData.data === 'string' &&
+            part.inlineData.data.length > 0;
+
+          if (!hasValidData) {
+            logger.error('BLOCKED: Invalid inlineData detected before API call', '[Gemini API]', {
+              messageIndex: i,
+              partIndex: j,
+              mimeType: part.inlineData.mimeType,
+              dataType: typeof part.inlineData.data,
+              dataLength: part.inlineData.data?.length || 0,
+              hasData: !!part.inlineData.data
+            });
+
+            throw createApiError('INVALID_REQUEST',
+              `Invalid image data at message ${i}, part ${j}. Image data is empty or invalid.`,
+              { provider: 'google', model: provider.model }
+            );
+          }
+
+          logger.debug('Validated inlineData part', '[Gemini API]', {
+            messageIndex: i,
+            partIndex: j,
+            mimeType: part.inlineData.mimeType,
+            dataSizeKB: Math.round(part.inlineData.data.length * 0.75 / 1024)
+          });
+        }
+      }
+    }
+
+    logger.info('Sending request to Gemini', '[Gemini API]', {
+      model: provider.model,
+      messageCount: formattedMessages.length,
+      hasSystemPrompt: !!systemPrompt,
+      totalParts: formattedMessages.reduce((sum, m) => sum + m.parts.length, 0),
+      imageParts: formattedMessages.reduce((sum, m) =>
+        sum + m.parts.filter(p => p.inlineData).length, 0
+      )
+    });
+
+    // DEBUG: Log the actual structure being sent (without full image data)
+    logger.debug('Gemini request structure', '[Gemini API]', {
+      contents: formattedMessages.map((msg, i) => ({
+        messageIndex: i,
+        role: msg.role,
+        parts: msg.parts.map((part, j) => ({
+          partIndex: j,
+          hasText: 'text' in part,
+          textLength: part.text?.length || 0,
+          hasInlineData: 'inlineData' in part,
+          inlineDataStructure: part.inlineData ? {
+            hasMimeType: !!part.inlineData.mimeType,
+            mimeType: part.inlineData.mimeType,
+            hasDataField: 'data' in part.inlineData,
+            dataType: typeof part.inlineData.data,
+            dataLength: part.inlineData.data?.length || 0,
+            dataIsNull: part.inlineData.data === null,
+            dataIsUndefined: part.inlineData.data === undefined,
+            dataIsEmptyString: part.inlineData.data === '',
+            dataFirstChars: part.inlineData.data?.substring(0, 20) || 'N/A'
+          } : null
+        }))
+      }))
+    });
+
+    // Step 3: Call Gemini API
+    const result = await genAI.models.generateContent({
+      model: provider.model,
+      contents: formattedMessages,
+      config: {
+        temperature,
+        maxOutputTokens: maxTokens,
+      },
+    });
+
+    // Extract response text
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    if (!text) {
+      logger.warn('Empty response from Gemini', '[Gemini API]', {
+        candidatesCount: result.candidates?.length || 0,
+      });
+    }
+
+    // Extract token usage metadata
+    const usage = result.usageMetadata
+      ? {
+        promptTokens: result.usageMetadata.promptTokenCount || 0,
+        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+        totalTokens: result.usageMetadata.totalTokenCount || 0,
+      }
+      : undefined;
+
+    logger.info('Gemini response received', '[Gemini API]', {
+      responseLength: text.length,
+      usage,
+    });
+
+    return {
+      content: text,
+      usage,
+    };
+  } catch (error: any) {
+    // Log error details for debugging
+    logger.error('Gemini API request failed', '[Gemini API]', {
+      errorMessage: error?.message,
+      errorType: error?.constructor?.name,
+      errorStack: error?.stack?.split('\n').slice(0, 3).join('\n'),
+      model: provider.model,
+      messageCount: formattedMessages.length || 0,
+      // Log if images were included (only if formattedMessages is populated)
+      hasImages: formattedMessages.length > 0
+        ? formattedMessages.some(m => m.parts?.some(p => p.inlineData?.mimeType?.startsWith('image/')))
+        : false
+    });
+
+    // Extract more specific error information from Google SDK
+    const errorDetails: any = {
+      provider: 'google',
+      model: provider.model,
+      originalError: error,
+    };
+
+    // Check for specific Google API error codes
+    if (error?.status) {
+      errorDetails.status = error.status;
+    }
+    if (error?.statusText) {
+      errorDetails.statusText = error.statusText;
+    }
+    if (error?.code) {
+      errorDetails.code = error.code;
+    }
+
+    const errorMessage = error?.message || 'Google Gemini API request failed';
+
+    throw createApiError('API_ERROR', errorMessage, errorDetails);
   }
-
-  const data = await response.json();
-  validateOpenAIResponse(data); // Use OpenAI validation since it's OpenAI-compatible
-
-  return {
-    content: data.choices[0].message.content,
-    usage: extractUsage(data, 'openai'),
-  };
 }
 
 async function sendAzureOpenAIMessage(
@@ -208,7 +380,15 @@ async function sendAzureOpenAIMessage(
   // Validate endpoint security
   validateEndpoint(fullEndpoint, fullEndpoint.includes('localhost'));
 
-  const apiMessages = [...messages];
+  // First, augment messages with document text
+  const augmentedMessages = await Promise.all(messages.map(async msg => {
+    if (msg.role !== 'system') {
+      return await augmentMessageWithDocuments(msg);
+    }
+    return msg;
+  }));
+
+  const apiMessages = [...augmentedMessages];
   if (systemPrompt) {
     apiMessages.unshift({ role: 'system', content: systemPrompt });
   }
@@ -281,6 +461,14 @@ async function sendCustomMessage(
     throw error;
   }
 
+  // First, augment messages with document text
+  const augmentedMessages = await Promise.all(messages.map(async msg => {
+    if (msg.role !== 'system') {
+      return await augmentMessageWithDocuments(msg);
+    }
+    return msg;
+  }));
+
   // Attempt OpenAI-compatible format
   const response = await fetchWithTimeout(provider.endpoint, {
     method: 'POST',
@@ -291,8 +479,8 @@ async function sendCustomMessage(
     body: JSON.stringify({
       model: provider.model,
       messages: systemPrompt
-        ? [{ role: 'system', content: systemPrompt }, ...messages]
-        : messages,
+        ? [{ role: 'system', content: systemPrompt }, ...augmentedMessages]
+        : augmentedMessages,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_completion_tokens: maxTokens,
     }),
@@ -336,7 +524,7 @@ async function sendXAIMessage(
 ): Promise<ChatResponse> {
   const endpoint = getEndpointOrDefault(provider, '', true);
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildXAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
   return sendAPIRequest({
     endpoint,
@@ -347,7 +535,7 @@ async function sendXAIMessage(
     body,
     provider: 'xai',
     timeout: 3600000, // xAI recommends 3600 seconds (60 minutes) for reasoning models
-  }, openAIParser);
+  }, xAIParser);
 }
 
 async function sendMistralMessage(
@@ -357,22 +545,58 @@ async function sendMistralMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = getEndpointOrDefault(
-    provider,
-    'https://api.mistral.ai/v1/chat/completions'
-  );
+  // First, augment messages with document text
+  const augmentedMessages = await Promise.all(messages.map(async msg => {
+    if (msg.role !== 'system') {
+      return await augmentMessageWithDocuments(msg);
+    }
+    return msg;
+  }));
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  // Initialize Mistral client
+  const client = new Mistral({ apiKey: provider.apiKey });
 
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
-    },
-    body,
-    provider: 'mistral',
-  }, openAIParser);
+  // Convert messages to Mistral format
+  const mistralMessages = augmentedMessages
+    .filter(msg => msg.role !== 'system')
+    .map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    }));
+
+  try {
+    const chatResponse = await client.chat.complete({
+      model: provider.model,
+      messages: mistralMessages,
+      ...(systemPrompt ? { systemPrompt } : {}),
+      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+      maxTokens: maxTokens || 4000,
+    });
+
+    const choice = chatResponse.choices?.[0];
+    if (!choice?.message?.content) {
+      throw createApiError(
+        'INVALID_RESPONSE',
+        'Mistral API returned no content',
+        { provider: 'mistral' }
+      );
+    }
+
+    return {
+      content: typeof choice.message.content === 'string' ? choice.message.content : '',
+      usage: {
+        promptTokens: chatResponse.usage?.promptTokens || 0,
+        completionTokens: chatResponse.usage?.completionTokens || 0,
+        totalTokens: chatResponse.usage?.totalTokens || 0,
+      },
+    };
+  } catch (error: any) {
+    throw createApiError(
+      'API_ERROR',
+      error.message || 'Mistral API request failed',
+      { provider: 'mistral', originalError: error }
+    );
+  }
 }
 
 async function sendGroqMessage(
@@ -387,7 +611,7 @@ async function sendGroqMessage(
     'https://api.groq.com/openai/v1/chat/completions'
   );
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
   return sendAPIRequest({
     endpoint,
@@ -412,7 +636,7 @@ async function sendPerplexityMessage(
     'https://api.perplexity.ai/chat/completions'
   );
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
   return sendAPIRequest({
     endpoint,
@@ -432,55 +656,53 @@ async function sendCohereMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = provider.endpoint || 'https://api.cohere.ai/v1/chat';
+  // First, augment messages with document text
+  const augmentedMessages = await Promise.all(messages.map(async msg => {
+    if (msg.role !== 'system') {
+      return await augmentMessageWithDocuments(msg);
+    }
+    return msg;
+  }));
 
-  // Validate endpoint security
-  validateEndpoint(endpoint, endpoint.includes('localhost'));
+  // Initialize Cohere client
+  const client = new CohereClient({
+    token: provider.apiKey,
+    ...(provider.endpoint ? { environment: provider.endpoint } : {}),
+  });
 
   // Cohere uses a different message format
-  const chatHistory = messages.slice(0, -1).map(m => ({
-    role: m.role === 'assistant' ? 'CHATBOT' : 'USER',
+  const chatHistory = augmentedMessages.slice(0, -1).map(m => ({
+    role: m.role === 'assistant' ? ('CHATBOT' as const) : ('USER' as const),
     message: m.content,
   }));
 
-  const lastMessage = messages[messages.length - 1];
+  const lastMessage = augmentedMessages[augmentedMessages.length - 1];
 
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
+  try {
+    const response = await client.chat({
       model: provider.model,
       message: lastMessage.content,
-      chat_history: chatHistory,
+      chatHistory,
       preamble: systemPrompt,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
-      max_tokens: maxTokens || 4000,
-    }),
-    timeout: 60000,
-  });
+      maxTokens: maxTokens || 4000,
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    return {
+      content: response.text,
+      usage: {
+        promptTokens: response.meta?.tokens?.inputTokens || 0,
+        completionTokens: response.meta?.tokens?.outputTokens || 0,
+        totalTokens: (response.meta?.tokens?.inputTokens || 0) + (response.meta?.tokens?.outputTokens || 0),
+      },
+    };
+  } catch (error: any) {
     throw createApiError(
       'API_ERROR',
-      errorData.message || `Cohere API request failed with status ${response.status}`,
-      { status: response.status, provider: 'cohere' }
+      error.message || 'Cohere API request failed',
+      { provider: 'cohere', originalError: error }
     );
   }
-
-  const data = await response.json();
-
-  return {
-    content: data.text,
-    usage: {
-      promptTokens: data.meta?.tokens?.input_tokens || 0,
-      completionTokens: data.meta?.tokens?.output_tokens || 0,
-      totalTokens: (data.meta?.tokens?.input_tokens || 0) + (data.meta?.tokens?.output_tokens || 0),
-    },
-  };
 }
 
 async function sendCerebrasMessage(
@@ -495,7 +717,7 @@ async function sendCerebrasMessage(
     'https://api.cerebras.ai/v1/chat/completions'
   );
 
-  const { body } = buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
 
   return sendAPIRequest({
     endpoint,

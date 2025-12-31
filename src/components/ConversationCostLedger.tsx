@@ -1,6 +1,10 @@
 import { X, DollarSign, TrendingUp, Calendar, Download } from "lucide-react";
 import { Conversation } from "../types";
-import { formatCost, formatTokens } from "../utils/costCalculator";
+import {
+  formatCost,
+  formatTokens,
+  validateCostBreakdown,
+} from "../utils/costCalculator";
 import { DateUtils } from "../utils/dateUtils";
 import jsPDF from "jspdf";
 import packageJson from "../../package.json";
@@ -39,6 +43,16 @@ export default function ConversationCostLedger({
       const tokensPerSecond =
         durationMs > 0 ? (totalTokens / durationMs) * 1000 : 0;
 
+      // Validate cost breakdown consistency
+      const costData = msg.apiTrace!.cost!;
+      const validation = validateCostBreakdown(costData as any);
+      if (!validation.valid) {
+        console.warn(
+          `Cost validation failed for message ${msg.id}: ${validation.error}`,
+          { cost: costData }
+        );
+      }
+
       return {
         messageId: msg.id,
         timestamp: msg.timestamp,
@@ -75,6 +89,18 @@ export default function ConversationCostLedger({
       cost: 0,
     }
   );
+
+  // Validate that total costs sum correctly (within epsilon for floating point)
+  const epsilon = 0.01; // 1 cent tolerance
+  const expectedTotalCost = totals.inputCost + totals.outputCost;
+  const costDiff = Math.abs(totals.cost - expectedTotalCost);
+  if (costDiff > epsilon) {
+    console.warn(
+      `Total cost mismatch: sum=${totals.cost.toFixed(
+        6
+      )}, expected=${expectedTotalCost.toFixed(6)}, diff=${costDiff.toFixed(6)}`
+    );
+  }
 
   // Get cost tier for color coding
   const getCostTier = (cost: number) => {

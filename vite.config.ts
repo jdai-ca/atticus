@@ -17,7 +17,19 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron'],
+              external: (id) => {
+                // Externalize electron and all native SDKs plus their dependencies
+                return id === 'electron' ||
+                  id.startsWith('@google/genai') ||
+                  id.startsWith('@mistralai/mistralai') ||
+                  id.startsWith('@anthropic-ai/sdk') ||
+                  id.startsWith('cohere-ai') ||
+                  id.startsWith('google-auth-library') ||
+                  id.startsWith('zod') ||
+                  id.startsWith('@aws-crypto') ||
+                  id.startsWith('@aws-sdk') ||
+                  id.startsWith('@smithy');
+              },
               output: {
                 format: 'es'
               }
@@ -48,6 +60,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  optimizeDeps: {
+    include: ['pdfjs-dist']
   },
   build: {
     outDir: 'dist'

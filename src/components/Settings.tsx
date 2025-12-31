@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { X, Trash2, Edit3, Settings as SettingsIcon } from "lucide-react";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import {
   ProviderConfig,
   AIProvider,
@@ -124,7 +124,7 @@ export default function Settings({ onClose }: SettingsProps) {
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.17",
+      minAppVersion: "0.9.18",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -362,7 +362,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.17
+minAppVersion: 0.9.18
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."

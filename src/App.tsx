@@ -8,6 +8,7 @@ import packageJson from "../package.json";
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
+  const [openConfigDialog, setOpenConfigDialog] = useState(false);
   const {
     loadConfig,
     loadConversations,
@@ -44,7 +45,10 @@ function App() {
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100">
       {/* Sidebar */}
-      <Sidebar onOpenSettings={() => setShowSettings(true)} />
+      <Sidebar
+        onOpenSettings={() => setShowSettings(true)}
+        onNewConversation={() => setOpenConfigDialog(true)}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
@@ -81,7 +85,10 @@ function App() {
 
         {/* Chat Window */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          <ChatWindow />
+          <ChatWindow
+            openConfigDialog={openConfigDialog}
+            onConfigDialogClose={() => setOpenConfigDialog(false)}
+          />
         </div>
 
         {/* Global Footer Disclaimer */}

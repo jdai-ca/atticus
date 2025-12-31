@@ -12,6 +12,7 @@ import {
     validateOpenAIResponse,
     validateAnthropicResponse,
 } from './apiHelpers';
+import { formatForOpenAI, formatForXAI, augmentMessageWithDocuments } from './multimodalFormatter';
 
 export interface APIRequestConfig {
     endpoint: string;
@@ -69,15 +70,26 @@ export async function sendAPIRequest(
 
 /**
  * Build standard OpenAI-compatible request body
+ * Supports multimodal messages with image attachments
  */
-export function buildOpenAIRequestBody(
+export async function buildOpenAIRequestBody(
     provider: SecureProviderConfig,
     messages: any[],
     systemPrompt?: string,
     temperature?: number,
     maxTokens?: number
-): { messages: any[], body: unknown } {
-    const apiMessages = [...messages];
+): Promise<{ messages: any[], body: unknown }> {
+    // First, augment messages with document text (before transformation)
+    const augmentedMessages = await Promise.all(messages.map(async msg => {
+        if (msg.role !== 'system') {
+            return await augmentMessageWithDocuments(msg);
+        }
+        return msg;
+    }));
+
+    // Then format messages for multimodal (handles attachments, converts PDFs to images)
+    let apiMessages = await formatForOpenAI(augmentedMessages);
+
     if (systemPrompt) {
         apiMessages.unshift({ role: 'system', content: systemPrompt });
     }
@@ -85,10 +97,7 @@ export function buildOpenAIRequestBody(
     // Build body
     const body: any = {
         model: provider.model,
-        messages: apiMessages.map(m => ({
-            role: m.role,
-            content: m.content,
-        })),
+        messages: apiMessages,
         max_completion_tokens: maxTokens,
     };
 
@@ -110,6 +119,59 @@ export const openAIParser: ResponseParser = {
     validate: validateOpenAIResponse,
     extractContent: (data) => data.choices[0].message.content,
     providerType: 'openai',
+};
+
+/**
+ * Build standard xAI-compatible request body
+ * xAI uses OpenAI format with required 'detail' parameter for images
+ */
+export async function buildXAIRequestBody(
+    provider: SecureProviderConfig,
+    messages: any[],
+    systemPrompt?: string,
+    temperature?: number,
+    maxTokens?: number
+): Promise<{ messages: any[], body: unknown }> {
+    // First, augment messages with document text (before transformation)
+    const augmentedMessages = await Promise.all(messages.map(async msg => {
+        if (msg.role !== 'system') {
+            return await augmentMessageWithDocuments(msg);
+        }
+        return msg;
+    }));
+
+    // Format messages for xAI multimodal (handles attachments, converts PDFs to images)
+    let apiMessages = await formatForXAI(augmentedMessages);
+
+    if (systemPrompt) {
+        apiMessages.unshift({ role: 'system', content: systemPrompt });
+    }
+
+    // Build body
+    const body: any = {
+        model: provider.model,
+        messages: apiMessages,
+        max_completion_tokens: maxTokens,
+    };
+
+    // Only include temperature if provider supports it
+    if (provider.supportsTemperature && temperature !== undefined) {
+        body.temperature = temperature;
+    }
+
+    return {
+        messages: apiMessages,
+        body,
+    };
+}
+
+/**
+ * Parser for xAI responses (uses OpenAI format)
+ */
+export const xAIParser: ResponseParser = {
+    validate: validateOpenAIResponse,
+    extractContent: (data) => data.choices[0].message.content,
+    providerType: 'xai',
 };
 
 /**

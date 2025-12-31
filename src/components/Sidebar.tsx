@@ -15,9 +15,13 @@ import { Conversation } from "../types";
 
 interface SidebarProps {
   readonly onOpenSettings: () => void;
+  readonly onNewConversation: () => void;
 }
 
-export default function Sidebar({ onOpenSettings }: SidebarProps) {
+export default function Sidebar({
+  onOpenSettings,
+  onNewConversation,
+}: SidebarProps) {
   const {
     conversations,
     currentConversation,
@@ -41,6 +45,8 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
       return;
     }
     createConversation(config.activeProviderId);
+    // Trigger config dialog to open after conversation is created
+    onNewConversation();
   };
 
   const handleExportPDF = async (conv: typeof currentConversation) => {
@@ -309,8 +315,8 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                   if (query.startsWith("#")) {
                     const tagId = query.slice(1); // Remove the # prefix
                     return (
-                      conv.practiceAreaId?.toLowerCase() === tagId ||
-                      conv.advisoryAreaId?.toLowerCase() === tagId ||
+                      conv.practiceArea?.toLowerCase() === tagId ||
+                      conv.advisoryArea?.toLowerCase() === tagId ||
                       conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
                       conv.messages.some((msg) =>
                         msg.tags?.some((tag) => tag.toLowerCase() === tagId)
@@ -368,8 +374,8 @@ export default function Sidebar({ onOpenSettings }: SidebarProps) {
                 if (query.startsWith("#")) {
                   const tagId = query.slice(1);
                   return (
-                    conv.practiceAreaId?.toLowerCase() === tagId ||
-                    conv.advisoryAreaId?.toLowerCase() === tagId ||
+                    conv.practiceArea?.toLowerCase() === tagId ||
+                    conv.advisoryArea?.toLowerCase() === tagId ||
                     conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
                     conv.messages.some((msg) =>
                       msg.tags?.some((tag) => tag.toLowerCase() === tagId)

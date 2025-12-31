@@ -22,20 +22,18 @@ import { createLogger } from "../services/logger";
 import { DateUtils } from "../utils/dateUtils";
 import { truncateToContextWindow } from "../utils/contextWindowManager";
 import {
-  RESPONSE_SIZE_PRESETS,
-  getPresetByTokens,
-  formatTokenCount,
-} from "../utils/responseSizePresets";
-import {
   JURISDICTIONS,
   getJurisdictionSystemPromptAppendix,
 } from "../config/jurisdictions";
 import ReactMarkdown from "react-markdown";
 import { piiScanner, PIIScanResult } from "../services/piiScanner";
+import { analyzeFile, quickScan } from "../services/fileSecurityPipeline";
+import { convertPDFToImages } from "../services/multimodalFormatter";
+import type { SecurityAnalysisResult } from "../services/fileSecurityPipeline";
 import PrivacyWarningDialog from "./PrivacyWarningDialog";
 import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
 import APIErrorInspector from "./APIErrorInspector";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import {
   auditLogger,
   AuditEventType,
@@ -48,7 +46,15 @@ import ConversationCostLedger from "./ConversationCostLedger";
 
 const logger = createLogger("ChatWindow");
 
-export default function ChatWindow() {
+interface ChatWindowProps {
+  openConfigDialog?: boolean;
+  onConfigDialogClose?: () => void;
+}
+
+export default function ChatWindow({
+  openConfigDialog,
+  onConfigDialogClose,
+}: ChatWindowProps = {}) {
   const {
     currentConversation,
     config,
@@ -58,13 +64,25 @@ export default function ChatWindow() {
     saveCurrentConversation,
     setConversationSelectedModels,
     setConversationJurisdictions,
-    setConversationMaxTokens,
     loadingConversations,
     setConversationLoading,
   } = useStore();
 
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<any[]>([]);
+  const [fileSecurityReports, setFileSecurityReports] = useState<
+    Map<string, SecurityAnalysisResult>
+  >(new Map());
+  const [showFileSecurityWarning, setShowFileSecurityWarning] = useState(false);
+  const [pendingFile, setPendingFile] = useState<any>(null);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [fileProcessingProgress, setFileProcessingProgress] = useState(0);
+  const [fileProcessingStage, setFileProcessingStage] = useState("");
+  const [fileProcessingComplete, setFileProcessingComplete] = useState(false);
+  const [fileProcessingError, setFileProcessingError] = useState<string | null>(
+    null
+  );
+  const [fileProcessingResult, setFileProcessingResult] = useState<any>(null);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(
     new Set()
@@ -79,6 +97,7 @@ export default function ChatWindow() {
     number | undefined
   >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Derive loading state for current conversation
   const isLoading = loadingConversations.has(currentConversation?.id ?? "");
@@ -128,6 +147,14 @@ export default function ChatWindow() {
     }
   }, [providerTemplates.length, loadProviderTemplates]);
 
+  // Handle external config dialog trigger (from new conversation)
+  useEffect(() => {
+    if (openConfigDialog && currentConversation) {
+      setShowConfigDialog(true);
+      onConfigDialogClose?.(); // Clear the trigger
+    }
+  }, [openConfigDialog, currentConversation, onConfigDialogClose]);
+
   // Load analysis configuration
   useEffect(() => {
     const loadAnalysisConfig = async () => {
@@ -156,6 +183,71 @@ export default function ChatWindow() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Helper to restore focus to the textarea after modals/dialogs close
+  // Uses requestAnimationFrame and a longer timeout to ensure DOM updates and alerts have cleared
+  const restoreTextareaFocus = () => {
+    console.debug("restoreTextareaFocus called");
+
+    // Try multiple times to ensure focus is restored
+    const attemptFocus = (attempts = 0) => {
+      if (attempts > 5) {
+        console.warn("Failed to restore textarea focus after 5 attempts");
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (textareaRef.current) {
+            console.debug(`Focus attempt ${attempts + 1}`);
+            textareaRef.current.focus();
+
+            // Verify focus was successful, if not try again
+            setTimeout(() => {
+              const isFocused = document.activeElement === textareaRef.current;
+              console.debug(`Focus check: ${isFocused}`);
+              if (!isFocused) {
+                attemptFocus(attempts + 1);
+              }
+            }, 50);
+          } else {
+            console.warn("textareaRef.current is null");
+          }
+        }, 100 + attempts * 50); // Increase delay with each attempt
+      });
+    };
+
+    attemptFocus();
+  };
+
+  // Helper to show file processing completion state
+  const showFileProcessingResult = (
+    success: boolean,
+    message: string,
+    result?: any
+  ) => {
+    if (success) {
+      setFileProcessingComplete(true);
+      setFileProcessingProgress(100);
+      setFileProcessingStage("Complete");
+      setFileProcessingResult(result);
+    } else {
+      setFileProcessingError(message);
+      setFileProcessingProgress(0);
+      setFileProcessingStage("");
+    }
+  };
+
+  // Helper to reset file processing dialog
+  const closeFileProcessingDialog = () => {
+    setIsProcessingFile(false);
+    setFileProcessingProgress(0);
+    setFileProcessingStage("");
+    setFileProcessingComplete(false);
+    setFileProcessingError(null);
+    setFileProcessingResult(null);
+    restoreTextareaFocus();
   };
 
   // Get all existing tags from all messages in current conversation
@@ -337,12 +429,12 @@ ${separator}${responses.join("\n\n" + separator)}`;
       }
 
       // Determine optimal maxTokens based on model's output capacity
-      // Use model's maxOutputTokens if available, otherwise fallback to reasonable defaults
+      // Use model's maxMaxTokens if available, otherwise fallback to reasonable defaults
       let analysisMaxTokens = maxTokensOverride;
       if (!analysisMaxTokens) {
-        if (model.maxOutputTokens) {
+        if (model.maxMaxTokens) {
           // Use 80% of model's max output capacity to be safe
-          analysisMaxTokens = Math.floor(model.maxOutputTokens * 0.8);
+          analysisMaxTokens = Math.floor(model.maxMaxTokens * 0.8);
         } else {
           // Fallback: scale based on number of responses being analyzed
           // More responses = need more output tokens for comprehensive analysis
@@ -356,7 +448,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       }
 
       logger.info("Analysis token allocation", {
-        modelMaxOutput: model.maxOutputTokens,
+        modelMaxOutput: model.maxMaxTokens,
         responseCount: responses.length,
         allocatedTokens: analysisMaxTokens,
       });
@@ -414,7 +506,26 @@ ${separator}${responses.join("\n\n" + separator)}`;
                   inputTokenPrice: model.inputTokenPrice,
                   outputTokenPrice: model.outputTokenPrice,
                 })
-              : undefined,
+              : (() => {
+                  // Log when cost calculation is skipped for analysis
+                  if (
+                    response.usage &&
+                    (!model?.inputTokenPrice || !model?.outputTokenPrice)
+                  ) {
+                    logger.warn(
+                      "Analysis cost calculation skipped - missing pricing data",
+                      {
+                        provider: provider.provider,
+                        model: modelId,
+                        hasModel: !!model,
+                        hasInputPrice: !!model?.inputTokenPrice,
+                        hasOutputPrice: !!model?.outputTokenPrice,
+                        usage: response.usage,
+                      }
+                    );
+                  }
+                  return undefined;
+                })(),
         };
 
         const assistantMessage: Message = {
@@ -771,14 +882,859 @@ ${separator}${responses.join("\n\n" + separator)}`;
     }
   };
 
-  const handleFileUpload = async () => {
+  /**
+   * Convert PDF to images using Electron's native renderer
+   * This properly captures filled form fields and annotations
+   */
+  /**
+   * Convert PDF to images using renderer process PDF.js
+   * This properly captures filled form fields and annotations
+   * Uses the direct renderer process function instead of Electron IPC
+   */
+  const convertPDFToImagesForVision = async (
+    pdfData: string,
+    fileName: string
+  ) => {
     try {
-      const result = await globalThis.window.electronAPI.uploadFile();
-      if (result.success && result.data) {
-        setAttachments([...attachments, result.data]);
+      logger.info(
+        "[PDF Conversion] Converting PDF to images for vision model",
+        { fileName }
+      );
+
+      // Use the renderer process convertPDFToImages function directly
+      // This has access to PDF.js and can properly render form fields
+      const images = await convertPDFToImages(pdfData);
+
+      if (images && images.length > 0) {
+        logger.info("[PDF Conversion] Successfully converted PDF", {
+          fileName,
+          imageCount: images.length,
+        });
+        return images;
+      } else {
+        logger.error(
+          "[PDF Conversion] Failed to convert PDF - no images returned",
+          {
+            fileName,
+          }
+        );
+        return null;
       }
     } catch (error) {
-      logger.error("File upload failed", { error });
+      logger.error("[PDF Conversion] Exception during PDF conversion", {
+        fileName,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  };
+
+  /**
+   * Convert Word document to images using Electron's native renderer
+   * This properly captures formatting, tables, and layout
+   */
+  const convertWordToImagesForVision = async (
+    wordData: string,
+    fileName: string
+  ) => {
+    try {
+      logger.info(
+        "[Word Conversion] Converting Word document to images for vision model",
+        { fileName }
+      );
+
+      const result = await globalThis.window.electronAPI.convertWordToImages(
+        wordData
+      );
+
+      if (result.success && result.data) {
+        logger.info("[Word Conversion] Successfully converted Word document", {
+          fileName,
+          imageCount: result.data.length,
+        });
+        return result.data;
+      } else {
+        logger.error("[Word Conversion] Failed to convert Word document", {
+          fileName,
+          error: result.error,
+        });
+        return null;
+      }
+    } catch (error) {
+      logger.error(
+        "[Word Conversion] Exception during Word document conversion",
+        {
+          fileName,
+          error: error instanceof Error ? error.message : String(error),
+        }
+      );
+      return null;
+    }
+  };
+
+  /**
+   * Universal document converter - detects file type and converts to images
+   */
+  const convertDocumentToImages = async (fileData: {
+    name: string;
+    extension: string;
+    data: string;
+  }) => {
+    const ext = fileData.extension.toLowerCase();
+    const fileName = fileData.name;
+    const data = fileData.data;
+
+    if (!data || !fileName || !ext) {
+      logger.error("[Document Conversion] Invalid file data", {
+        fileName,
+        ext,
+      });
+      return null;
+    }
+
+    try {
+      // Excel spreadsheets
+      if ([".xls", ".xlsx", ".xlsm"].includes(ext)) {
+        logger.info("[Document Conversion] Excel detected", { fileName });
+        setFileProcessingStage("Converting Excel spreadsheet...");
+        const result = await globalThis.window.electronAPI.convertExcelToImages(
+          data,
+          fileName
+        );
+        if (result.success && result.data) {
+          return {
+            images: result.data,
+            type: "Excel",
+            sheets: result.data.length,
+          };
+        }
+      }
+
+      // Markdown
+      else if ([".md", ".markdown"].includes(ext)) {
+        logger.info("[Document Conversion] Markdown detected", { fileName });
+        setFileProcessingStage("Converting Markdown...");
+        const result =
+          await globalThis.window.electronAPI.convertMarkdownToImages(data);
+        if (result.success && result.data) {
+          return { images: result.data, type: "Markdown" };
+        }
+      }
+
+      // CSV
+      else if (ext === ".csv") {
+        logger.info("[Document Conversion] CSV detected", { fileName });
+        setFileProcessingStage("Converting CSV...");
+        const result = await globalThis.window.electronAPI.convertCsvToImages(
+          data,
+          fileName
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "CSV" };
+        }
+      }
+
+      // Text/Code files
+      else if (
+        [
+          ".txt",
+          ".log",
+          ".json",
+          ".xml",
+          ".yaml",
+          ".yml",
+          ".html",
+          ".htm",
+          ".svg",
+          ".js",
+          ".ts",
+          ".css",
+          ".sql",
+          ".py",
+          ".java",
+          ".c",
+          ".cpp",
+          ".h",
+          ".cs",
+          ".php",
+          ".rb",
+          ".go",
+          ".rs",
+          ".swift",
+          ".kt",
+          ".sh",
+          ".bat",
+          ".ps1",
+          ".ini",
+          ".conf",
+          ".cfg",
+          ".toml",
+          ".properties",
+        ].includes(ext)
+      ) {
+        logger.info("[Document Conversion] Text/Code file detected", {
+          fileName,
+          ext,
+        });
+        setFileProcessingStage(`Converting ${ext} file...`);
+        const result = await globalThis.window.electronAPI.convertTextToImages(
+          data,
+          fileName,
+          ext
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "Text/Code" };
+        }
+      }
+
+      // PowerPoint presentations
+      else if ([".ppt", ".pptx", ".pptm"].includes(ext)) {
+        logger.info("[Document Conversion] PowerPoint detected", { fileName });
+        setFileProcessingStage("Converting PowerPoint presentation...");
+        const result =
+          await globalThis.window.electronAPI.convertPowerPointToImages(data);
+        if (result.success && result.data) {
+          return {
+            images: result.data,
+            type: "PowerPoint",
+            slides: result.data.length,
+          };
+        }
+      }
+
+      // RTF documents
+      else if (ext === ".rtf") {
+        logger.info("[Document Conversion] RTF detected", { fileName });
+        setFileProcessingStage("Converting RTF document...");
+        const result = await globalThis.window.electronAPI.convertRtfToImages(
+          data
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "RTF" };
+        }
+      }
+
+      // TIFF images
+      else if ([".tif", ".tiff"].includes(ext)) {
+        logger.info("[Document Conversion] TIFF detected", { fileName });
+        setFileProcessingStage("Converting TIFF image...");
+        const result = await globalThis.window.electronAPI.convertTiffToImages(
+          data
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "TIFF" };
+        }
+      }
+
+      // HEIC/HEIF images
+      else if ([".heic", ".heif"].includes(ext)) {
+        logger.info("[Document Conversion] HEIC/HEIF detected", { fileName });
+        setFileProcessingStage("Converting HEIC/HEIF image...");
+        const result = await globalThis.window.electronAPI.convertHeicToImages(
+          data
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "HEIC/HEIF" };
+        }
+      }
+
+      // Email files
+      else if ([".eml", ".msg"].includes(ext)) {
+        logger.info("[Document Conversion] Email detected", { fileName });
+        setFileProcessingStage("Converting email message...");
+        const result = await globalThis.window.electronAPI.convertEmailToImages(
+          data,
+          fileName
+        );
+        if (result.success && result.data) {
+          return { images: result.data, type: "Email" };
+        }
+      }
+
+      // EPUB ebooks
+      else if (ext === ".epub") {
+        logger.info("[Document Conversion] EPUB detected", { fileName });
+        setFileProcessingStage("Converting EPUB ebook...");
+        const result = await globalThis.window.electronAPI.convertEpubToImages(
+          data
+        );
+        if (result.success && result.data) {
+          return {
+            images: result.data,
+            type: "EPUB",
+            chapters: result.data.length,
+          };
+        }
+      }
+
+      return null;
+    } catch (error) {
+      logger.error("[Document Conversion] Failed to convert document", {
+        fileName,
+        ext,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  };
+
+  const handleFileUpload = async () => {
+    try {
+      setIsProcessingFile(true);
+      setFileProcessingProgress(5);
+      setFileProcessingStage("Selecting file...");
+
+      const result = await globalThis.window.electronAPI.uploadFile();
+
+      logger.info("[File Upload] Received result from Electron", {
+        success: result.success,
+        hasData: !!result.data,
+      });
+
+      setFileProcessingProgress(15);
+      setFileProcessingStage("File selected");
+
+      // Handle upload error or cancellation
+      if (!result.success || !result.data) {
+        logger.info("[File Upload] User canceled or upload failed");
+        setIsProcessingFile(false);
+        setFileProcessingProgress(0);
+        setFileProcessingStage("");
+        restoreTextareaFocus();
+        return;
+      }
+
+      if (result.success && result.data) {
+        const fileData = result.data;
+
+        setFileProcessingProgress(20);
+        setFileProcessingStage("Validating file data...");
+
+        logger.info("[File Upload] File data received", {
+          hasName: !!fileData.name,
+          hasData: !!fileData.data,
+          dataType: typeof fileData.data,
+          size: fileData.size,
+          extension: fileData.extension,
+        });
+
+        // Validate file data
+        if (!fileData.data || !fileData.name) {
+          logger.error("[File Security] Invalid file data received", {
+            fileData,
+          });
+          showFileProcessingResult(
+            false,
+            "Invalid file data. Please try uploading the file again."
+          );
+          return;
+        }
+
+        // Validate extension
+        if (!fileData.extension || typeof fileData.extension !== "string") {
+          logger.error("[File Security] Invalid file extension", {
+            extension: fileData.extension,
+            fileName: fileData.name,
+          });
+          showFileProcessingResult(
+            false,
+            "Invalid file extension. Please try again."
+          );
+          return;
+        }
+
+        // Convert base64 to Uint8Array for security analysis
+        setFileProcessingProgress(30);
+        setFileProcessingStage("Decoding file data...");
+
+        let buffer: Uint8Array;
+        try {
+          const binaryString = atob(fileData.data);
+          buffer = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            buffer[i] = binaryString.charCodeAt(i);
+          }
+        } catch (decodeError) {
+          logger.error("[File Security] Failed to decode file data", {
+            error: decodeError,
+            fileName: fileData.name,
+          });
+          showFileProcessingResult(
+            false,
+            `Failed to process file: ${fileData.name}. The file data could not be decoded.`
+          );
+          return;
+        }
+
+        // Validate buffer was created successfully
+        if (!buffer || buffer.length === 0) {
+          logger.error("[File Security] Buffer creation failed", {
+            fileName: fileData.name,
+            bufferExists: !!buffer,
+            bufferLength: buffer?.length,
+          });
+          showFileProcessingResult(
+            false,
+            "Failed to process file buffer. Please try again."
+          );
+          return;
+        }
+
+        // Perform quick pre-scan first
+        setFileProcessingProgress(40);
+        setFileProcessingStage("Running quick security scan...");
+
+        logger.info("[File Security] Starting quick scan", {
+          fileName: fileData.name,
+          size: fileData.size,
+          bufferLength: buffer.length,
+        });
+
+        const quickScanResult = await quickScan({
+          name: fileData.name,
+          size: buffer.length,
+          type: fileData.extension.replace(".", ""),
+          buffer: buffer as any, // Cast to any for compatibility
+          uploaderId: currentConversation?.id,
+          uploaderEmail: "user@local",
+        });
+
+        if (!quickScanResult.safe) {
+          // Block immediately - critical threat
+          logger.error("[File Security] Quick scan BLOCKED file", {
+            fileName: fileData.name,
+            reason: quickScanResult.reason,
+          });
+
+          setFileProcessingProgress(100);
+          setFileProcessingStage("Security scan complete");
+
+          // Wait a moment to show completion, then show blocked message
+          setTimeout(() => {
+            setIsProcessingFile(false);
+            setFileProcessingProgress(0);
+            setFileProcessingStage("");
+            alert(
+              `⛔ File Upload Blocked\n\nSecurity Threat Detected: ${quickScanResult.reason}\n\nThis file cannot be uploaded for your protection.`
+            );
+          }, 800);
+          return;
+        }
+
+        // Perform full security analysis
+        setFileProcessingProgress(60);
+        setFileProcessingStage("Performing deep security analysis...");
+
+        logger.info(
+          "[File Security] Quick scan passed, starting full analysis",
+          {
+            fileName: fileData.name,
+          }
+        );
+
+        const securityReport = await analyzeFile({
+          name: fileData.name,
+          size: buffer.length,
+          type: fileData.extension.replace(".", ""),
+          buffer: buffer as any, // Cast to any for compatibility
+          uploaderId: currentConversation?.id,
+          uploaderEmail: "user@local",
+        });
+
+        setFileProcessingProgress(80);
+        setFileProcessingStage("Analyzing security results...");
+
+        logger.info("[File Security] Analysis complete", {
+          fileName: fileData.name,
+          riskScore: securityReport.riskScore,
+          action: securityReport.action,
+          threatLevel: securityReport.threatLevel,
+        });
+
+        // Handle based on risk assessment
+        if (securityReport.action === "blocked") {
+          // CRITICAL - Do not allow upload
+          logger.error("[File Security] File BLOCKED - Critical threat", {
+            fileName: fileData.name,
+            riskScore: securityReport.riskScore,
+            findings: {
+              pii: securityReport.findings?.pii?.length ?? 0,
+              adversarial: securityReport.findings?.adversarial?.length ?? 0,
+              steganography:
+                securityReport.findings?.steganography?.length ?? 0,
+              obfuscation: securityReport.findings?.obfuscation?.length ?? 0,
+              aiEvasion: securityReport.findings?.aiEvasion?.length ?? 0,
+            },
+          });
+
+          setFileProcessingProgress(100);
+          setFileProcessingStage("Security scan complete");
+
+          // Wait a moment to show completion
+          setTimeout(() => {
+            setIsProcessingFile(false);
+            setFileProcessingProgress(0);
+            setFileProcessingStage("");
+
+            const errorMsg = `🚨 CRITICAL SECURITY THREAT\n\nFile: ${
+              fileData.name
+            }\nRisk Score: ${
+              securityReport.riskScore
+            }/100\n\nThis file has been BLOCKED due to critical security threats:\n\n${securityReport.recommendations
+              .slice(0, 3)
+              .join(
+                "\n"
+              )}\n\nFor your protection, this file cannot be uploaded.`;
+            showFileProcessingResult(false, errorMsg);
+          }, 800);
+          return;
+        } else if (securityReport.action === "human_review") {
+          // HIGH RISK - Show warning and require user confirmation
+          logger.warn("[File Security] File requires human review", {
+            fileName: fileData.name,
+            riskScore: securityReport.riskScore,
+          });
+
+          setPendingFile(fileData);
+          setFileSecurityReports(
+            new Map(fileSecurityReports).set(fileData.name, securityReport)
+          );
+
+          // Stop processing, show security warning dialog
+          // Batch all state updates together
+          setIsProcessingFile(false);
+          setFileProcessingProgress(0);
+          setFileProcessingStage("");
+          // Use setTimeout to ensure processing state is cleared before showing security dialog
+          setTimeout(() => {
+            setShowFileSecurityWarning(true);
+          }, 0);
+          return;
+        } else if (securityReport.action === "quarantined") {
+          // MEDIUM RISK - Warn user but allow with acknowledgment
+          setFileProcessingProgress(95);
+          setFileProcessingStage("Review required - medium risk detected");
+
+          logger.warn("[File Security] File quarantined - medium risk", {
+            fileName: fileData.name,
+            riskScore: securityReport.riskScore,
+          });
+
+          const proceed = confirm(
+            `⚠️  FILE SECURITY WARNING\n\n` +
+              `File: ${fileData.name}\n` +
+              `Risk Score: ${securityReport.riskScore}/100\n\n` +
+              `Medium-risk content detected. Review recommended before proceeding.\n\n` +
+              `Do you want to upload this file anyway?`
+          );
+
+          if (!proceed) {
+            logger.info(
+              "[File Security] User declined quarantined file upload"
+            );
+            setIsProcessingFile(false);
+            setFileProcessingProgress(0);
+            setFileProcessingStage("");
+            restoreTextareaFocus();
+            return;
+          }
+        }
+
+        // Complete processing
+        setFileProcessingProgress(100);
+        setFileProcessingStage("File approved");
+
+        // Store security report with file
+        setFileSecurityReports(
+          new Map(fileSecurityReports).set(fileData.name, securityReport)
+        );
+
+        // Check if this is a PDF - convert to images for vision models
+        const isPDFFile = fileData.extension === ".pdf";
+
+        if (isPDFFile) {
+          logger.info("[File Processing] PDF detected, converting to images", {
+            fileName: fileData.name,
+          });
+          setFileProcessingStage("Converting PDF to images...");
+
+          const pdfImages = await convertPDFToImagesForVision(
+            fileData.data,
+            fileData.name
+          );
+
+          if (pdfImages && pdfImages.length > 0) {
+            // Add each PDF page as a separate image attachment
+            const imageAttachments = pdfImages.map((imageData, index) => ({
+              name: `${fileData.name} - Page ${index + 1}`,
+              data: imageData,
+              extension: ".png",
+              size: Math.floor(imageData.length * 0.75), // Rough estimate of decoded size
+              id: `att-${Date.now()}-${index}-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`,
+              type: ".png",
+              originalPdfName: fileData.name,
+            }));
+
+            setAttachments([...attachments, ...imageAttachments]);
+
+            logger.info(
+              "[File Processing] PDF converted to images successfully",
+              {
+                fileName: fileData.name,
+                pageCount: pdfImages.length,
+              }
+            );
+          } else {
+            // Fallback: Add original PDF if conversion failed
+            logger.warn(
+              "[File Processing] PDF conversion failed, adding original PDF",
+              { fileName: fileData.name }
+            );
+            const attachmentWithId = {
+              ...fileData,
+              id: `att-${Date.now()}-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`,
+              type: fileData.extension,
+            };
+            setAttachments([...attachments, attachmentWithId]);
+          }
+        } else if (
+          fileData.extension === ".doc" ||
+          fileData.extension === ".docx"
+        ) {
+          // Word document - convert to images for vision models
+          logger.info(
+            "[File Processing] Word document detected, converting to images",
+            {
+              fileName: fileData.name,
+            }
+          );
+          setFileProcessingStage("Converting Word document to images...");
+
+          const wordImages = await convertWordToImagesForVision(
+            fileData.data,
+            fileData.name
+          );
+
+          if (wordImages && wordImages.length > 0) {
+            // Add Word document pages as image attachments
+            const imageAttachments = wordImages.map((imageData, index) => ({
+              name: `${fileData.name} - Page ${index + 1}`,
+              data: imageData,
+              extension: ".png",
+              size: Math.floor(imageData.length * 0.75),
+              id: `att-${Date.now()}-${index}-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`,
+              type: ".png",
+              originalWordName: fileData.name,
+            }));
+
+            setAttachments([...attachments, ...imageAttachments]);
+
+            logger.info(
+              "[File Processing] Word document converted to images successfully",
+              {
+                fileName: fileData.name,
+                pageCount: wordImages.length,
+              }
+            );
+          } else {
+            // Fallback: Add original Word doc if conversion failed
+            logger.warn(
+              "[File Processing] Word conversion failed, adding original document",
+              { fileName: fileData.name }
+            );
+            const attachmentWithId = {
+              ...fileData,
+              id: `att-${Date.now()}-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`,
+              type: fileData.extension,
+            };
+            setAttachments([...attachments, attachmentWithId]);
+          }
+        } else {
+          // Try universal document converter for other file types
+          const conversionResult = await convertDocumentToImages(fileData);
+
+          if (
+            conversionResult &&
+            conversionResult.images &&
+            conversionResult.images.length > 0
+          ) {
+            // Successfully converted - add as image attachments
+            const imageAttachments = conversionResult.images.map(
+              (imageData, index) => {
+                const pageName = conversionResult.sheets
+                  ? `${fileData.name} - Sheet ${index + 1}`
+                  : conversionResult.images.length > 1
+                  ? `${fileData.name} - Page ${index + 1}`
+                  : fileData.name;
+
+                return {
+                  name: pageName,
+                  data: imageData,
+                  extension: ".png",
+                  size: Math.floor(imageData.length * 0.75),
+                  id: `att-${Date.now()}-${index}-${Math.random()
+                    .toString(36)
+                    .substring(2, 11)}`,
+                  type: ".png",
+                  originalFileName: fileData.name,
+                  originalType: conversionResult.type,
+                };
+              }
+            );
+
+            setAttachments([...attachments, ...imageAttachments]);
+
+            logger.info(
+              `[File Processing] ${conversionResult.type} file converted to images successfully`,
+              {
+                fileName: fileData.name,
+                imageCount: conversionResult.images.length,
+              }
+            );
+          } else {
+            // No conversion available or failed - add original file
+            const attachmentWithId = {
+              ...fileData,
+              id: `att-${Date.now()}-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`,
+              type: fileData.extension,
+            };
+            setAttachments([...attachments, attachmentWithId]);
+
+            logger.info("[File Processing] File added without conversion", {
+              fileName: fileData.name,
+              extension: fileData.extension,
+            });
+          }
+        }
+
+        logger.info("[File Security] File approved for upload", {
+          fileName: fileData.name,
+          riskScore: securityReport.riskScore,
+          action: securityReport.action,
+        });
+
+        // Show detailed security summary
+        const threatEmoji =
+          securityReport.threatLevel === "critical"
+            ? "🔴"
+            : securityReport.threatLevel === "high"
+            ? "🟠"
+            : securityReport.threatLevel === "medium"
+            ? "🟡"
+            : "🟢";
+
+        const findingsSummary =
+          [
+            (securityReport.findings?.pii?.length ?? 0) > 0
+              ? `PII: ${securityReport.findings.pii.length}`
+              : null,
+            (securityReport.findings?.adversarial?.length ?? 0) > 0
+              ? `Adversarial: ${securityReport.findings.adversarial.length}`
+              : null,
+            (securityReport.findings?.steganography?.length ?? 0) > 0
+              ? `Steganography: ${securityReport.findings.steganography.length}`
+              : null,
+            (securityReport.findings?.obfuscation?.length ?? 0) > 0
+              ? `Obfuscation: ${securityReport.findings.obfuscation.length}`
+              : null,
+            (securityReport.findings?.aiEvasion?.length ?? 0) > 0
+              ? `AI Evasion: ${securityReport.findings.aiEvasion.length}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(", ") || "None detected";
+
+        // Determine file type capabilities
+        const isImage = fileData.name
+          .toLowerCase()
+          .match(/\.(jpg|jpeg|png|gif|webp|bmp)$/);
+        const isPDF = fileData.name.toLowerCase().endsWith(".pdf");
+        const isWord = fileData.name.toLowerCase().match(/\.(doc|docx)$/);
+        const isExcel = fileData.name.toLowerCase().match(/\.(xls|xlsx|xlsm)$/);
+        const isPowerPoint = fileData.name
+          .toLowerCase()
+          .match(/\.(ppt|pptx|pptm)$/);
+        const isMarkdown = fileData.name
+          .toLowerCase()
+          .match(/\.(md|markdown)$/);
+        const isCsv = fileData.name.toLowerCase().endsWith(".csv");
+        const isRtf = fileData.name.toLowerCase().endsWith(".rtf");
+        const isTiff = fileData.name.toLowerCase().match(/\.(tif|tiff)$/);
+        const isHeic = fileData.name.toLowerCase().match(/\.(heic|heif)$/);
+        const isEmail = fileData.name.toLowerCase().match(/\.(eml|msg)$/);
+        const isEpub = fileData.name.toLowerCase().endsWith(".epub");
+        const isCode = fileData.name
+          .toLowerCase()
+          .match(
+            /\.(txt|log|json|xml|yaml|yml|html|htm|svg|js|ts|css|sql|py|java|c|cpp|h|cs|php|rb|go|rs|swift|kt|sh|bat|ps1|ini|conf|cfg|toml|properties)$/
+          );
+
+        const capabilityNote = isImage
+          ? `\n\n🖼️  Vision-capable models will analyze the image content.`
+          : isPDF
+          ? `\n\n📄 PDF will be converted to images for vision models to see filled form fields and content.`
+          : isWord
+          ? `\n\n📝 Word document will be converted to images to preserve formatting, tables, and layout.`
+          : isExcel
+          ? `\n\n📊 Excel spreadsheet will be converted to images - each sheet will be rendered separately.`
+          : isPowerPoint
+          ? `\n\n📊 PowerPoint presentation will be converted to images - each slide rendered separately.`
+          : isMarkdown
+          ? `\n\n📝 Markdown will be rendered and converted to an image with proper formatting.`
+          : isCsv
+          ? `\n\n📋 CSV will be rendered as a table and converted to an image.`
+          : isRtf
+          ? `\n\n📄 RTF document will be converted to an image with formatting preserved.`
+          : isTiff
+          ? `\n\n🖼️ TIFF image will be converted to PNG for vision model analysis.`
+          : isHeic
+          ? `\n\n🖼️ HEIC/HEIF image will be converted to PNG for vision model analysis.`
+          : isEmail
+          ? `\n\n📧 Email will be rendered showing headers, body, and attachment list.`
+          : isEpub
+          ? `\n\n📚 EPUB ebook will be converted to images - chapters rendered separately.`
+          : isCode
+          ? `\n\n💻 Code/text file will be rendered with syntax highlighting and converted to an image.`
+          : `\n\n📄 Document content will be included in your prompt.`;
+
+        // Wait a moment to show completion animation
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        // Show success result in dialog
+        showFileProcessingResult(true, "File attached successfully", {
+          fileName: fileData.name,
+          threatEmoji,
+          riskScore: securityReport.riskScore,
+          threatLevel: securityReport.threatLevel,
+          action: securityReport.action,
+          findingsSummary,
+          summary: securityReport.summary,
+          capabilityNote,
+        });
+      }
+    } catch (error) {
+      logger.error("File upload or security scan failed", {
+        error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+      });
+
+      const errorMsg =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFileProcessingResult(
+        false,
+        `File upload failed: ${errorMsg}\n\nPlease check the console for details.`
+      );
     }
   };
 
@@ -981,7 +1937,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
     const requestId = `req-${Date.now()}-${Math.random()
       .toString(36)
-      .substr(2, 9)}`;
+      .substring(2, 11)}`;
     const requestStartTime = Date.now();
 
     // AUDIT: API request initiated
@@ -1097,7 +2053,26 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 inputTokenPrice: model.inputTokenPrice,
                 outputTokenPrice: model.outputTokenPrice,
               })
-            : undefined,
+            : (() => {
+                // Log when cost calculation is skipped
+                if (
+                  response.usage &&
+                  (!model?.inputTokenPrice || !model?.outputTokenPrice)
+                ) {
+                  logger.warn(
+                    "Cost calculation skipped - missing pricing data",
+                    {
+                      provider: provider.provider,
+                      model: selectedModel.modelId,
+                      hasModel: !!model,
+                      hasInputPrice: !!model?.inputTokenPrice,
+                      hasOutputPrice: !!model?.outputTokenPrice,
+                      usage: response.usage,
+                    }
+                  );
+                }
+                return undefined;
+              })(),
       };
 
       return {
@@ -1212,9 +2187,50 @@ ${separator}${responses.join("\n\n" + separator)}`;
     // even if user switches to a different conversation while API call is in progress
     const targetConversationId = currentConversation.id;
 
-    // Detect practice area and advisory area
-    const practiceArea = detectPracticeArea(messageText);
-    const advisoryArea = detectAdvisoryArea(messageText);
+    // Build full context for detection: user message + document metadata
+    // Note: Actual document text extraction happens in main process via augmentMessageWithDocuments
+    // For practice area detection, we use filename and metadata
+    let fullContextForDetection = messageText;
+
+    if (attachments.length > 0) {
+      for (const attachment of attachments) {
+        const ext = attachment.name
+          .toLowerCase()
+          .substring(attachment.name.lastIndexOf("."));
+
+        // Extract filename without extension for keyword detection
+        const filename = attachment.name.substring(
+          0,
+          attachment.name.lastIndexOf(".")
+        );
+        const filenameWords = filename.replaceAll(/[_-]/g, " ").toLowerCase();
+
+        if ([".pdf", ".doc", ".docx", ".txt"].includes(ext)) {
+          // Use filename context for practice area detection
+          // Full document extraction will happen in main process
+          fullContextForDetection += `\n\nAttached document: "${
+            attachment.name
+          }". File context: ${filenameWords}. Document type: ${ext
+            .replace(".", "")
+            .toUpperCase()} document requiring legal analysis.`;
+        }
+      }
+    }
+
+    // Detect practice area and advisory area using FULL CONTEXT (message + documents)
+    const practiceArea = detectPracticeArea(fullContextForDetection);
+    const advisoryArea = detectAdvisoryArea(fullContextForDetection);
+
+    // Log detection results for debugging/transparency
+    logger.info("[Context Detection] Practice and advisory areas detected", {
+      userMessage: messageText.substring(0, 100),
+      hasAttachments: attachments.length > 0,
+      attachmentCount: attachments.length,
+      attachmentNames: attachments.map((a) => a.name),
+      detectedPracticeArea: practiceArea.name,
+      detectedAdvisoryArea: advisoryArea.name,
+      fullContextLength: fullContextForDetection.length,
+    });
 
     // Build system prompt with jurisdiction appendix
     const jurisdictions = currentConversation.selectedJurisdictions || [];
@@ -1354,6 +2370,53 @@ ${separator}${responses.join("\n\n" + separator)}`;
     }
   };
 
+  // File security warning handlers
+  const handleFileSecurityProceed = async () => {
+    if (!pendingFile) return;
+
+    const securityReport = fileSecurityReports.get(pendingFile.name);
+
+    logger.warn("[File Security] User chose to proceed with high-risk file", {
+      fileName: pendingFile.name,
+      riskScore: securityReport?.riskScore,
+      findingsCounts: securityReport
+        ? {
+            pii: securityReport.findings.pii.length,
+            adversarial: securityReport.findings.adversarial.length,
+            steganography: securityReport.findings.steganography.length,
+            obfuscation: securityReport.findings.obfuscation.length,
+            aiEvasion: securityReport.findings.aiEvasion.length,
+          }
+        : {},
+    });
+
+    // Add file to attachments
+    setAttachments([...attachments, pendingFile]);
+
+    // Clear dialog state and reset processing
+    setShowFileSecurityWarning(false);
+    setPendingFile(null);
+    setIsProcessingFile(false);
+    setFileProcessingProgress(0);
+    setFileProcessingStage("");
+    restoreTextareaFocus();
+  };
+
+  const handleFileSecurityCancel = () => {
+    if (pendingFile) {
+      logger.info("[File Security] User cancelled high-risk file upload", {
+        fileName: pendingFile.name,
+      });
+    }
+
+    setShowFileSecurityWarning(false);
+    setPendingFile(null);
+    setIsProcessingFile(false);
+    setFileProcessingProgress(0);
+    setFileProcessingStage("");
+    restoreTextareaFocus();
+  };
+
   // Privacy warning handlers
   const handlePrivacyProceed = async () => {
     if (!currentConversation || !piiScanResult) return;
@@ -1441,6 +2504,9 @@ ${separator}${responses.join("\n\n" + separator)}`;
     // Message stays in input field
     setPendingMessage("");
     setPiiScanResult(null);
+
+    // Restore focus to textarea after modal closes
+    setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
   const handlePrivacyAnonymize = async () => {
@@ -1491,6 +2557,9 @@ ${separator}${responses.join("\n\n" + separator)}`;
     // Don't send automatically - let user review
     setPendingMessage("");
     setPiiScanResult(null);
+
+    // Restore focus to textarea after modal closes
+    setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1633,7 +2702,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 Thread Configuration
               </h2>
               <button
-                onClick={() => setShowConfigDialog(false)}
+                onClick={() => {
+                  setShowConfigDialog(false);
+                  restoreTextareaFocus();
+                }}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="Close dialog"
                 aria-label="Close configuration dialog"
@@ -1861,7 +2933,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 Configuration is saved automatically per conversation
               </div>
               <button
-                onClick={() => setShowConfigDialog(false)}
+                onClick={() => {
+                  setShowConfigDialog(false);
+                  restoreTextareaFocus();
+                }}
                 className="bg-gray-600 hover:bg-gray-500 px-6 py-2 rounded-lg text-white font-medium transition-colors border border-gray-500"
               >
                 Done
@@ -2404,7 +3479,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-700 bg-gray-800 p-4">
+      <div className="border-t border-gray-700 bg-gray-800 p-4 relative z-10">
         {attachments.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {attachments.map((att) => (
@@ -2438,13 +3513,23 @@ ${separator}${responses.join("\n\n" + separator)}`;
           </button>
 
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onMouseDown={(e) => {
+              // Ensure focus happens on mouse down
+              e.currentTarget.focus();
+            }}
+            onFocus={() => {
+              // Log when focus is gained (for debugging)
+              console.debug("Textarea focused");
+            }}
             placeholder="Ask a legal/business question..."
-            disabled={isLoading}
-            className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
+            className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none cursor-text"
             rows={3}
+            tabIndex={0}
+            autoComplete="off"
           />
 
           <button
@@ -2473,7 +3558,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
       {showAuditLog && currentConversation && (
         <PrivacyAuditLogViewer
           conversationId={currentConversation.id}
-          onClose={() => setShowAuditLog(false)}
+          onClose={() => {
+            setShowAuditLog(false);
+            restoreTextareaFocus();
+          }}
           piiScanner={piiScanner}
         />
       )}
@@ -2482,7 +3570,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
       {showCostLedger && currentConversation && (
         <ConversationCostLedger
           conversation={currentConversation}
-          onClose={() => setShowCostLedger(false)}
+          onClose={() => {
+            setShowCostLedger(false);
+            restoreTextareaFocus();
+          }}
         />
       )}
 
@@ -2490,7 +3581,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
       {inspectedApiTrace && (
         <APIErrorInspector
           apiTrace={inspectedApiTrace}
-          onClose={() => setInspectedApiTrace(null)}
+          onClose={() => {
+            setInspectedApiTrace(null);
+            restoreTextareaFocus();
+          }}
         />
       )}
 
@@ -2506,6 +3600,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 onClick={() => {
                   setShowTagDialog(false);
                   setNewTagInput("");
+                  restoreTextareaFocus();
                 }}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="Close tag dialog"
@@ -2605,11 +3700,421 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 onClick={() => {
                   setShowTagDialog(false);
                   setNewTagInput("");
+                  restoreTextareaFocus();
                 }}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unified File Security Processing and Review Dialog */}
+      {(isProcessingFile ||
+        showFileSecurityWarning ||
+        fileProcessingComplete ||
+        fileProcessingError) && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 border border-blue-600 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                {fileProcessingError ? (
+                  <>
+                    <span className="text-2xl">❌</span> Upload Failed
+                  </>
+                ) : fileProcessingComplete ? (
+                  <>
+                    <span className="text-2xl">✅</span> Upload Complete
+                  </>
+                ) : isProcessingFile ? (
+                  <>
+                    <div className="animate-spin h-5 w-5 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                    Processing File
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl">⚠️</span> High-Risk File Detected
+                  </>
+                )}
+              </h3>
+              {(!isProcessingFile ||
+                fileProcessingError ||
+                fileProcessingComplete) && (
+                <button
+                  onClick={
+                    fileProcessingError || fileProcessingComplete
+                      ? closeFileProcessingDialog
+                      : handleFileSecurityCancel
+                  }
+                  className="text-gray-400 hover:text-white transition-colors"
+                  title="Close"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {/* Progress Section - Show during processing */}
+              {isProcessingFile && (
+                <>
+                  {/* Progress Bar */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-300 font-medium">
+                        {fileProcessingStage}
+                      </span>
+                      <span className="text-sm text-blue-400 font-bold">
+                        {fileProcessingProgress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${fileProcessingProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Processing Stages */}
+                  <div className="bg-gray-900 rounded-lg p-4 space-y-2 text-sm">
+                    <div
+                      className={`flex items-center gap-2 ${
+                        fileProcessingProgress >= 20
+                          ? "text-green-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {fileProcessingProgress >= 20 ? "✓" : "○"} File validation
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 ${
+                        fileProcessingProgress >= 40
+                          ? "text-green-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {fileProcessingProgress >= 40 ? "✓" : "○"} Quick security
+                      scan
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 ${
+                        fileProcessingProgress >= 80
+                          ? "text-green-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {fileProcessingProgress >= 80 ? "✓" : "○"} Deep security
+                      analysis
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 ${
+                        fileProcessingProgress >= 100
+                          ? "text-green-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {fileProcessingProgress >= 100 ? "✓" : "○"} Finalization
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3">
+                    <p className="text-xs text-blue-200">
+                      🔒 Your file is being scanned for security threats
+                      including PII, adversarial content, and AI evasion
+                      techniques.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Error Section - Show when upload fails */}
+              {fileProcessingError && (
+                <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div className="flex-1">
+                      <h4 className="text-red-400 font-semibold mb-2">Error</h4>
+                      <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                        {fileProcessingError}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={closeFileProcessingDialog}
+                      className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Section - Show when upload completes */}
+              {fileProcessingComplete && fileProcessingResult && (
+                <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">
+                        {fileProcessingResult.threatEmoji}
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="text-green-400 font-semibold mb-1">
+                          File Attached Successfully
+                        </h4>
+                        <p className="text-gray-300 text-sm mb-3">
+                          📎 {fileProcessingResult.fileName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-900 rounded p-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Security Rating:</span>
+                        <span className="text-white font-medium">
+                          {fileProcessingResult.riskScore}/100
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Threat Level:</span>
+                        <span className="text-white font-medium">
+                          {fileProcessingResult.threatLevel.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Action:</span>
+                        <span className="text-white font-medium">
+                          {fileProcessingResult.action.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h5 className="text-gray-400 text-sm font-medium mb-1">
+                        🔍 Security Findings:
+                      </h5>
+                      <p className="text-gray-300 text-sm">
+                        {fileProcessingResult.findingsSummary}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h5 className="text-gray-400 text-sm font-medium mb-1">
+                        📋 Summary:
+                      </h5>
+                      <p className="text-gray-300 text-sm">
+                        {fileProcessingResult.summary}
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-900/20 border border-blue-700 rounded p-3">
+                      <p className="text-blue-300 text-sm">
+                        {fileProcessingResult.capabilityNote}
+                      </p>
+                    </div>
+
+                    <p className="text-gray-400 text-sm text-center">
+                      Type your question and click Send to submit.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={closeFileProcessingDialog}
+                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Security Report Section - Show after processing completes */}
+              {!isProcessingFile &&
+                showFileSecurityWarning &&
+                pendingFile &&
+                (() => {
+                  const report = fileSecurityReports.get(pendingFile.name);
+                  if (!report) return null;
+
+                  return (
+                    <>
+                      {/* File Info */}
+                      <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">File:</span>
+                          <span className="text-white font-mono text-sm">
+                            {pendingFile.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">
+                            Risk Score:
+                          </span>
+                          <span
+                            className={`font-bold text-lg ${
+                              report.riskScore >= 70
+                                ? "text-red-500"
+                                : "text-yellow-500"
+                            }`}
+                          >
+                            {report.riskScore}/100
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm text-gray-400">
+                            Threat Level:
+                          </span>
+                          <span
+                            className={`font-semibold px-2 py-1 rounded text-sm ${
+                              report.threatLevel === "critical"
+                                ? "bg-red-900 text-red-200"
+                                : report.threatLevel === "high"
+                                ? "bg-orange-900 text-orange-200"
+                                : report.threatLevel === "medium"
+                                ? "bg-yellow-900 text-yellow-200"
+                                : "bg-green-900 text-green-200"
+                            }`}
+                          >
+                            {report.threatLevel}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Executive Summary */}
+                      <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+                        <h4 className="font-semibold text-yellow-400 mb-2">
+                          Security Assessment
+                        </h4>
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                          {report.summary}
+                        </p>
+                      </div>
+
+                      {/* Key Findings */}
+                      {report.findings &&
+                        Object.values(report.findings).some(
+                          (arr) => arr.length > 0
+                        ) && (
+                          <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+                            <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+                              <span>🔍</span> Detected Issues
+                            </h4>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {Object.entries(report.findings).flatMap(
+                                ([_category, items]) =>
+                                  items.map((finding: any, idx: number) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-start gap-2 text-sm"
+                                    >
+                                      <span
+                                        className={`mt-0.5 ${
+                                          finding.severity === "CRITICAL"
+                                            ? "text-red-500"
+                                            : finding.severity === "HIGH"
+                                            ? "text-orange-500"
+                                            : finding.severity === "MEDIUM"
+                                            ? "text-yellow-500"
+                                            : "text-blue-500"
+                                        }`}
+                                      >
+                                        {finding.severity === "CRITICAL"
+                                          ? "🔴"
+                                          : finding.severity === "HIGH"
+                                          ? "🟠"
+                                          : finding.severity === "MEDIUM"
+                                          ? "🟡"
+                                          : "🔵"}
+                                      </span>
+                                      <div className="flex-1">
+                                        <div className="text-gray-300">
+                                          <span className="font-medium">
+                                            {finding.category}:
+                                          </span>{" "}
+                                          {finding.description}
+                                        </div>
+                                        {finding.location && (
+                                          <div className="text-xs text-gray-500 mt-1">
+                                            Location: {finding.location}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Recommendations */}
+                      {report.recommendations &&
+                        report.recommendations.length > 0 && (
+                          <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+                            <h4 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                              <span>💡</span> Recommendations
+                            </h4>
+                            <ul className="space-y-1 text-sm text-gray-300">
+                              {report.recommendations.map((rec, idx) => (
+                                <li
+                                  key={idx}
+                                  className="flex items-start gap-2"
+                                >
+                                  <span className="text-blue-400 mt-0.5">
+                                    •
+                                  </span>
+                                  <span>{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Warning Message */}
+                      <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4">
+                        <p className="text-sm text-red-200 leading-relaxed">
+                          <strong>⚠️ Warning:</strong> This file contains
+                          security risks that require your review. Proceeding
+                          may expose sensitive information or introduce security
+                          vulnerabilities. Only proceed if you trust the source
+                          and have reviewed the findings above.
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3 justify-end pt-2">
+                        <button
+                          onClick={handleFileSecurityCancel}
+                          className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                        >
+                          Cancel Upload
+                        </button>
+                        <button
+                          onClick={handleFileSecurityProceed}
+                          className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center gap-2"
+                        >
+                          <span>⚠️</span>
+                          <span>Proceed Anyway</span>
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
             </div>
           </div>
         </div>
@@ -2627,6 +4132,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 onClick={() => {
                   setShowAnalysisDialog(false);
                   setSelectedAnalysisModel(null);
+                  restoreTextareaFocus();
                 }}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="Close analysis dialog"

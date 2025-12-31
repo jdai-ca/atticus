@@ -1,5 +1,5 @@
 version: "1.1.0"
-minAppVersion: "0.9.17"
+minAppVersion: "0.9.18"
 lastUpdated: "2025-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -11,14 +11,24 @@ providers:
     displayName: OpenAI
     description: GPT-5 collection of models
     endpoint: https://api.openai.com/v1/chat/completions
-    defaultModel: gpt-5.1
+    defaultModel: gpt-5.2
 
     models:
+      - id: gpt-5.2
+        name: GPT-5.2
+        description: Latest and most advanced model with unparalleled capabilities
+        maxContextWindow: 400000
+        defaultMaxTokens: 128000
+        maxMaxTokens: 128000
+        inputTokenPrice: 1.75
+        outputTokenPrice: 14.00
+        enabled: true
+
       - id: gpt-5.1
         name: GPT-5.1
         description: Next-generation model with superior reasoning and creativity
         maxContextWindow: 400000
-        defaultMaxTokens: 64000
+        defaultMaxTokens: 128000
         maxMaxTokens: 128000
         inputTokenPrice: 1.25
         outputTokenPrice: 10.00
@@ -28,7 +38,7 @@ providers:
         name: GPT-5
         description: Advanced model with enhanced capabilities
         maxContextWindow: 400000
-        defaultMaxTokens: 64000
+        defaultMaxTokens: 128000
         maxMaxTokens: 128000
         inputTokenPrice: 1.25
         outputTokenPrice: 10.00
@@ -38,7 +48,7 @@ providers:
         name: GPT-5 Mini
         description: Balanced performance and cost for general tasks
         maxContextWindow: 400000
-        defaultMaxTokens: 64000
+        defaultMaxTokens: 128000
         maxMaxTokens: 128000
         inputTokenPrice: 0.25
         outputTokenPrice: 2.00
@@ -48,7 +58,7 @@ providers:
         name: GPT-5 Nano
         description: Cost-effective version of GPT-5 for general tasks
         maxContextWindow: 400000
-        defaultMaxTokens: 64000
+        defaultMaxTokens: 128000
         maxMaxTokens: 128000
         inputTokenPrice: 0.05
         outputTokenPrice: 0.40
@@ -125,27 +135,46 @@ providers:
   - id: google
     name: Google
     displayName: Google AI
-    description: Gemini 2.5 Pro, Flash, and other Gemini models
-    endpoint: https://generativelanguage.googleapis.com/v1beta/openai/
+    description: Gemini Pro, Flash, and other Gemini models
     defaultModel: gemini-2.5-pro
 
     models:
+      - id: gemini-3-pro-preview
+        name: Gemini 3 Pro
+        description: Latest next-gen model with advanced capabilities
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
+        inputTokenPrice: 4.00
+        outputTokenPrice: 18.00
+        enabled: true
+
       - id: gemini-2.5-pro
         name: Gemini 2.5 Pro
         description: Most capable model, 1M token context, multimodal
-        maxContextWindow: 1000000
-        defaultMaxTokens: 8192
-        maxMaxTokens: 8192
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
         inputTokenPrice: 2.50
         outputTokenPrice: 15.00
+        enabled: true
+
+      - id: gemini-3-flash-preview
+        name: Gemini 3 Flash
+        description: Fast and efficient next-gen model, 1M token context
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
+        inputTokenPrice: 0.50
+        outputTokenPrice: 3.00
         enabled: true
 
       - id: gemini-2.5-flash
         name: Gemini 2.5 Flash
         description: Fast and efficient, 1M token context, multimodal
-        maxContextWindow: 1000000
-        defaultMaxTokens: 8192
-        maxMaxTokens: 8192
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
         inputTokenPrice: 0.30
         outputTokenPrice: 2.50
         enabled: true
@@ -153,9 +182,9 @@ providers:
       - id: gemini-2.5-flash-lite
         name: Gemini 2.5 Flash Lite
         description: Lightweight and cost-effective, 1M token context
-        maxContextWindow: 1000000
-        defaultMaxTokens: 8192
-        maxMaxTokens: 8192
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
         inputTokenPrice: 0.10
         outputTokenPrice: 0.40
         enabled: true
@@ -246,22 +275,22 @@ providers:
         outputTokenPrice: 30.00
         enabled: true
 
-      - id: grok-4-fast-reasoning
-        name: Grok 4 Fast Reasoning
+      - id: grok-4-1-fast-reasoning
+        name: Grok 4.1 Fast Reasoning
         description: Grok with fast reasoning capabilities
         maxContextWindow: 2000000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 256000
+        defaultMaxTokens: 1000000
+        maxMaxTokens: 2000000
         inputTokenPrice: 0.40
         outputTokenPrice: 1.00
         enabled: true
 
-      - id: grok-4-fast-non-reasoning
-        name: Grok 4 Fast Non-Reasoning
+      - id: grok-4-1-fast-non-reasoning
+        name: Grok 4.1 Fast Non-Reasoning
         description: Grok with fast non-reasoning capabilities
         maxContextWindow: 2000000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 256000
+        defaultMaxTokens: 1000000
+        maxMaxTokens: 2000000
         inputTokenPrice: 0.40
         outputTokenPrice: 1.00
         enabled: true

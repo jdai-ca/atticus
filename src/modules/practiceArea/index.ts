@@ -15,8 +15,19 @@ export { PracticeAreaManager, practiceAreaManager } from './PracticeAreaManager'
 export {
     detectPracticeArea,
     detectPracticeAreaWithConfidence,
+    detectMultiplePracticeAreas,
     getAllPracticeAreas,
     getPracticeAreaById,
-    searchPracticeAreasByKeyword
+    searchPracticeAreasByKeyword,
+    clearKeywordCache,
+    invalidateCacheForArea,
+    addSynonyms,
+    getSynonyms
 } from './detector';
-export type { PracticeAreaConfig, PracticeAreaDetectionResult, DetectionSettings } from './types';
+export type {
+    PracticeAreaConfig,
+    PracticeAreaDetectionResult,
+    DetectionSettings,
+    KeywordSynonym,
+    WeightedKeyword
+} from './types';

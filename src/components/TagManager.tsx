@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Tag, Search, Star, TrendingUp, Grid, Network } from "lucide-react";
+import { X, Tag, Search, Star, TrendingUp, Grid } from "lucide-react";
 import {
   TagMetadata,
   TagCategory,
@@ -97,7 +97,7 @@ const COLOR_MAP: Record<
 };
 
 export const TagManager: React.FC<TagManagerProps> = ({
-  messageId,
+  messageId: _messageId,
   existingTags,
   allAvailableTags,
   recentTags = [],
@@ -236,6 +236,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
   const mediumConfidenceSuggestions = suggestedTags.filter(
     (s) => s.confidence >= 0.4 && s.confidence < 0.7
   );
+  void mediumConfidenceSuggestions; // May be used for UI in future
 
   if (compact) {
     return (
@@ -322,41 +323,43 @@ export const TagManager: React.FC<TagManagerProps> = ({
         {/* Autocomplete dropdown */}
         {autocompleteResults.length > 0 && (
           <div className="mt-2 bg-gray-700 rounded-lg border border-gray-600 max-h-64 overflow-y-auto">
-            {autocompleteResults.map(({ tag, matchType, relevanceScore }) => {
-              const colorName = getTagColor(tag);
-              const styles = getTagStyles(colorName);
-              const categoryConfig = TAG_CATEGORY_CONFIG[tag.category];
+            {autocompleteResults.map(
+              ({ tag, matchType: _matchType, relevanceScore }) => {
+                const colorName = getTagColor(tag);
+                const styles = getTagStyles(colorName);
+                const categoryConfig = TAG_CATEGORY_CONFIG[tag.category];
 
-              return (
-                <button
-                  key={tag.id}
-                  onClick={() => handleAddTag(tag.id)}
-                  className={`w-full text-left px-3 py-2 hover:bg-gray-600 transition-colors flex items-center justify-between group`}
-                >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-sm">{categoryConfig.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">
-                        {tag.label}
-                      </div>
-                      <div className="text-xs text-gray-400 truncate">
-                        {categoryConfig.label} • Used {tag.usageCount} times
+                return (
+                  <button
+                    key={tag.id}
+                    onClick={() => handleAddTag(tag.id)}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-600 transition-colors flex items-center justify-between group`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-sm">{categoryConfig.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
+                          {tag.label}
+                        </div>
+                        <div className="text-xs text-gray-400 truncate">
+                          {categoryConfig.label} • Used {tag.usageCount} times
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {tag.isFavorite && (
-                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                    )}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded ${styles.bg} ${styles.text} ${styles.border} border`}
-                    >
-                      {Math.round(relevanceScore * 100)}%
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {tag.isFavorite && (
+                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                      )}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded ${styles.bg} ${styles.text} ${styles.border} border`}
+                      >
+                        {Math.round(relevanceScore * 100)}%
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
+            )}
           </div>
         )}
 

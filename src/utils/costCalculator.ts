@@ -7,11 +7,17 @@ export interface TokenUsage {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    // Anthropic-specific: cached tokens (if applicable)
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
 }
 
 export interface ModelPricing {
     inputTokenPrice: number; // Price per 1M tokens in USD
     outputTokenPrice: number; // Price per 1M tokens in USD
+    // Anthropic-specific: cached token pricing (optional)
+    cacheWriteTokenPrice?: number; // Price per 1M cache write tokens in USD
+    cacheReadTokenPrice?: number; // Price per 1M cache read tokens in USD
 }
 
 export interface CostBreakdown {
@@ -20,6 +26,9 @@ export interface CostBreakdown {
     totalCost: number;
     inputTokenPrice: number;
     outputTokenPrice: number;
+    // Anthropic-specific: cached token costs (if applicable)
+    cacheCreationCost?: number;
+    cacheReadCost?: number;
 }
 
 /**
@@ -32,10 +41,30 @@ export function calculateCost(
     usage: TokenUsage,
     pricing: ModelPricing
 ): CostBreakdown {
-    // Calculate costs (pricing is per 1M tokens, so divide by 1,000,000)
+    // Calculate base costs (pricing is per 1M tokens, so divide by 1,000,000)
     const inputCost = (usage.promptTokens / 1_000_000) * pricing.inputTokenPrice;
     const outputCost = (usage.completionTokens / 1_000_000) * pricing.outputTokenPrice;
-    const totalCost = inputCost + outputCost;
+
+    // Calculate cached token costs for Anthropic (if present)
+    let cacheCreationCost: number | undefined;
+    let cacheReadCost: number | undefined;
+    let cachedTokensCost = 0;
+
+    if (usage.cacheCreationInputTokens) {
+        // Cache write tokens: use explicit price or default to 1.25x input price
+        const cacheWritePrice = pricing.cacheWriteTokenPrice || (pricing.inputTokenPrice * 1.25);
+        cacheCreationCost = (usage.cacheCreationInputTokens / 1_000_000) * cacheWritePrice;
+        cachedTokensCost += cacheCreationCost;
+    }
+
+    if (usage.cacheReadInputTokens) {
+        // Cache read tokens: use explicit price or default to 0.1x input price (90% discount)
+        const cacheReadPrice = pricing.cacheReadTokenPrice || (pricing.inputTokenPrice * 0.1);
+        cacheReadCost = (usage.cacheReadInputTokens / 1_000_000) * cacheReadPrice;
+        cachedTokensCost += cacheReadCost;
+    }
+
+    const totalCost = inputCost + outputCost + cachedTokensCost;
 
     return {
         inputCost,
@@ -43,6 +72,8 @@ export function calculateCost(
         totalCost,
         inputTokenPrice: pricing.inputTokenPrice,
         outputTokenPrice: pricing.outputTokenPrice,
+        cacheCreationCost,
+        cacheReadCost,
     };
 }
 
@@ -86,6 +117,51 @@ export function getCostTier(totalCost: number): 'low' | 'medium' | 'high' {
     if (totalCost < 0.01) return 'low';
     if (totalCost < 0.1) return 'medium';
     return 'high';
+}
+
+/**
+ * Validate cost breakdown consistency
+ * @param cost Cost breakdown to validate
+ * @returns True if valid, false if there are inconsistencies
+ */
+export function validateCostBreakdown(cost: CostBreakdown): { valid: boolean; error?: string } {
+    const epsilon = 0.000001; // Tolerance for floating point errors
+
+    // Calculate expected total
+    let expectedTotal = cost.inputCost + cost.outputCost;
+    if (cost.cacheCreationCost) {
+        expectedTotal += cost.cacheCreationCost;
+    }
+    if (cost.cacheReadCost) {
+        expectedTotal += cost.cacheReadCost;
+    }
+
+    // Check if total matches (within epsilon)
+    const diff = Math.abs(cost.totalCost - expectedTotal);
+    if (diff > epsilon) {
+        return {
+            valid: false,
+            error: `Cost mismatch: total=${cost.totalCost}, expected=${expectedTotal}, diff=${diff}`
+        };
+    }
+
+    // Check for negative costs
+    if (cost.inputCost < 0 || cost.outputCost < 0 || cost.totalCost < 0) {
+        return {
+            valid: false,
+            error: 'Negative costs detected'
+        };
+    }
+
+    if (cost.cacheCreationCost && cost.cacheCreationCost < 0) {
+        return { valid: false, error: 'Negative cache creation cost' };
+    }
+
+    if (cost.cacheReadCost && cost.cacheReadCost < 0) {
+        return { valid: false, error: 'Negative cache read cost' };
+    }
+
+    return { valid: true };
 }
 
 /**
