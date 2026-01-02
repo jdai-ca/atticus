@@ -14,14 +14,16 @@ const logger = createLogger('ApiKeyAuth');
 
 export class ApiKeyAuth {
     private authorizedKeys: Set<string>;
+    private adminKeys: Set<string>;
 
-    constructor(apiKeys: string[]) {
+    constructor(apiKeys: string[], adminKeys: string[] = []) {
         this.authorizedKeys = new Set(apiKeys.filter(key => key && key.trim().length > 0));
+        this.adminKeys = new Set(adminKeys.filter(k => k && k.trim().length > 0));
 
         if (this.authorizedKeys.size === 0) {
             logger.warn('No API keys configured - all requests will be rejected');
         } else {
-            console.log(`[ApiKeyAuth] Initialized with ${this.authorizedKeys.size} authorized key(s)`);
+            logger.info({ count: this.authorizedKeys.size }, 'ApiKeyAuth initialized');
         }
     }
 
@@ -47,7 +49,10 @@ export class ApiKeyAuth {
                 });
             }
 
-            // API key is valid, proceed
+            // Attach apiKey and admin flag to request for downstream handlers
+            (req as any).apiKey = apiKey;
+            (req as any).isAdmin = this.adminKeys.has(apiKey) || false;
+
             next();
         };
     }
@@ -62,6 +67,10 @@ export class ApiKeyAuth {
             this.authorizedKeys.add(apiKey);
             logger.info({ totalKeys: this.authorizedKeys.size }, 'Added new API key');
         }
+    }
+
+    isAdminKey(apiKey: string): boolean {
+        return this.adminKeys.has(apiKey);
     }
 
     /**
@@ -105,5 +114,18 @@ export function loadApiKeysFromEnv(): string[] {
     const keys = [...keysFromList];
     if (single && !keys.includes(single)) keys.push(single);
 
+    return keys;
+}
+
+export function loadAdminKeysFromEnv(): string[] {
+    const single = (process.env.ADMIN_API_KEY || '').trim();
+    const listEnv = (process.env.AGENTIC_ADMIN_KEYS || '').trim();
+
+    const keysFromList = listEnv
+        ? listEnv.split(',').map(k => k.trim()).filter(k => k.length > 0)
+        : [];
+
+    const keys = [...keysFromList];
+    if (single && !keys.includes(single)) keys.push(single);
     return keys;
 }

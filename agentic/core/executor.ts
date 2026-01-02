@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { ConfigLoader } from '../services/config-loader';
 import { KeyManager } from '../services/key-manager';
 import { auditLogger } from '../services/audit-logger';
+import { createLogger } from '../utils/logger';
+import telemetry from '../telemetry';
 
 export class ModelExecutor {
     private configLoader: ConfigLoader;
@@ -35,6 +37,8 @@ export class ModelExecutor {
         , options?: { temperature?: number; maxTokens?: number; topP?: number }
     ): Promise<Message> {
         const startTime = Date.now();
+        const logger = createLogger('ModelExecutor');
+        const { providerDuration } = telemetry;
         const config = this.configLoader.getModel(model.modelId);
 
         // Ensure providerId is set correctly from config if missing
@@ -54,11 +58,13 @@ export class ModelExecutor {
                     messageCount: (history?.length || 0) + 1,
                     initiatedAt: new Date().toISOString()
                 });
-            } catch (_) {
-                // best-effort
+            } catch (e) {
+                logger.debug({ err: e }, 'auditLogger.logAPIRequest failed');
             }
             let responseMsg: Message;
-            switch (model.providerId) {
+            const providerTimer = providerDuration.startTimer({ provider: model.providerId, model: model.modelId });
+            try {
+                switch (model.providerId) {
                 case 'openai':
                     responseMsg = await this.callOpenAI(systemPrompt, history, userMessage, model, startTime, options);
                     break;
@@ -93,6 +99,13 @@ export class ModelExecutor {
                     console.warn(`Unknown provider ${model.providerId}, falling back to mock.`);
                     responseMsg = await this.callMockProvider(systemPrompt, history, userMessage, model, startTime);
             }
+            } finally {
+                try {
+                    providerTimer();
+                } catch (err) {
+                    logger.warn({ err }, 'providerDuration timer failed');
+                }
+            }
 
             // Audit: record API response (best-effort)
             try {
@@ -117,7 +130,7 @@ export class ModelExecutor {
 
             return responseMsg;
         } catch (error) {
-            console.error(`Error calling ${model.providerId}:`, error);
+            logger.error({ err: error, provider: model.providerId, model: model.modelId }, 'Error calling provider');
             try {
                 const convId = userMessage.conversationId || 'system';
                 const msgId = userMessage.messageId || `msg_${Date.now()}`;
@@ -131,7 +144,9 @@ export class ModelExecutor {
                         httpStatus: (error as any)?.status
                     }
                 });
-            } catch (_) {}
+            } catch (e) {
+                logger.debug({ err: e }, 'auditLogger.logAPIResponse failed');
+            }
 
             return {
                 role: 'assistant',

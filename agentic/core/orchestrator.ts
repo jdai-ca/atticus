@@ -23,7 +23,9 @@ export class AgenticPipeline {
         history: Message[],
         selectedModels: ModelInfo[],
         jurisdictions: string[] = [],
-        options?: { temperature?: number; maxTokens?: number; topP?: number }
+        options?: { temperature?: number; maxTokens?: number; topP?: number },
+        analysisModel?: ModelInfo,
+        analysisOptions?: { temperature?: number; maxTokens?: number; topP?: number }
     ): Promise<PipelineResponse> {
         // Generate IDs for audit trail
         const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -92,10 +94,30 @@ export class AgenticPipeline {
                 options
             );
 
-            return {
+            const result: PipelineResponse = {
                 success: true,
                 responses,
             };
+
+            // Optional analysis pass using a separate model and the analysis system prompt
+            if (analysisModel) {
+                try {
+                    const analysisPrompt = this.configLoader.getAnalysisPrompt() || systemPrompt;
+                    const analysisResponses = await this.executor.executeRequests(
+                        analysisPrompt,
+                        [...history, userMessage, ...responses],
+                        userMessage,
+                        [analysisModel],
+                        analysisOptions
+                    );
+
+                    result.analysis = { success: true, message: analysisResponses[0] };
+                } catch (err) {
+                    result.analysis = { success: false, error: err instanceof Error ? err.message : String(err) };
+                }
+            }
+
+            return result;
         } catch (error) {
             return {
                 success: false,

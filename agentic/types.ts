@@ -96,4 +96,10 @@ export interface PipelineResponse {
     responses: Message[];
     /** Error message if request failed */
     error?: string;
+    /** Optional analysis pass result when requested */
+    analysis?: {
+        success: boolean;
+        message?: Message;
+        error?: string;
+    };
 }

@@ -10,9 +10,11 @@ import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { auditLogger } from '../services/audit-logger';
+import client from 'prom-client';
+import telemetry from '../telemetry';
 import { AgenticPipeline } from '../core/orchestrator';
 import { Message, ModelInfo } from '../types';
-import { ApiKeyAuth, loadApiKeysFromEnv } from './auth';
+import { ApiKeyAuth, loadApiKeysFromEnv, loadAdminKeysFromEnv } from './auth';
 import { createLogger } from '../utils/logger';
 import { AuditEventType, AuditSeverity } from '../services/audit-logger';
 
@@ -43,9 +45,25 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Metrics: use shared telemetry module
+const { register, requestsTotal, providerDuration } = telemetry;
+
 // Initialize API key authentication
 const apiKeys = loadApiKeysFromEnv();
-const apiKeyAuth = new ApiKeyAuth(apiKeys);
+const adminKeys = loadAdminKeysFromEnv ? loadAdminKeysFromEnv() : [];
+const apiKeyAuth = new ApiKeyAuth(apiKeys, adminKeys);
+
+// Protect metrics endpoint; only allow authenticated callers
+app.get('/metrics', apiKeyAuth.middleware(), async (req, res) => {
+    try {
+        res.set('Content-Type', register.contentType);
+        const metrics = await register.metrics();
+        res.send(metrics);
+    } catch (err) {
+        logger.error({ err }, 'Failed to collect metrics');
+        res.status(500).send('Failed to collect metrics');
+    }
+});
 
 const pipeline = new AgenticPipeline();
 const startTime = Date.now();
@@ -58,6 +76,8 @@ interface ChatRequest {
     temperature?: number;
     maxTokens?: number;
     topP?: number;
+    analysisModel?: ModelInfo;
+    analysisOptions?: any;
 }
 
 // Apply API key authentication to all /api/* endpoints
@@ -221,23 +241,48 @@ app.get('/audit/export', apiKeyAuth.middleware(), async (req, res) => {
 
 // Runtime API key management (requires an existing valid API key)
 app.get('/api/keys', apiKeyAuth.middleware(), (req, res) => {
+    if (!(req as any).isAdmin) return res.status(403).json({ error: 'Admin required' });
     res.json({ count: apiKeyAuth.getKeyCount() });
 });
 
 app.post('/api/keys', apiKeyAuth.middleware(), (req, res) => {
     const { key } = req.body || {};
     if (!key || typeof key !== 'string') return res.status(400).json({ error: 'key required in body' });
+    if (!(req as any).isAdmin) return res.status(403).json({ error: 'Admin required' });
     apiKeyAuth.addKey(key);
+    try {
+        auditLogger.logEvent(
+            AuditEventType.KEY_ADDED,
+            AuditSeverity.INFO,
+            'SYSTEM',
+            'API key added',
+            { addedKeyHash: String(key).slice(0, 8) }
+        );
+    } catch (_) {}
     res.json({ added: true, total: apiKeyAuth.getKeyCount() });
 });
 
 app.delete('/api/keys', apiKeyAuth.middleware(), (req, res) => {
     const { key } = req.body || {};
     if (!key || typeof key !== 'string') return res.status(400).json({ error: 'key required in body' });
+    if (!(req as any).isAdmin) return res.status(403).json({ error: 'Admin required' });
     apiKeyAuth.removeKey(key);
+    try {
+        auditLogger.logEvent(
+            AuditEventType.KEY_REMOVED,
+            AuditSeverity.INFO,
+            'SYSTEM',
+            'API key removed',
+            { removedKeyHash: String(key).slice(0, 8) }
+        );
+    } catch (_) {}
     res.json({ removed: true, total: apiKeyAuth.getKeyCount() });
 });
 
-app.listen(port, () => {
-    logger.info({ port }, 'Agentic Pipeline Service started');
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        logger.info({ port }, 'Agentic Pipeline Service started');
+    });
+}
+
+export default app;

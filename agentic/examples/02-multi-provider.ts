@@ -14,7 +14,7 @@ interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
     modelInfo?: {
-        provider: string;
+        providerId: string;
         modelId: string;
     };
 }
@@ -23,7 +23,7 @@ interface ChatRequest {
     message: string;
     history: Message[];
     models: Array<{
-        provider: string;
+        providerId: string;
         modelId: string;
     }>;
     jurisdictions?: string[];
@@ -47,7 +47,7 @@ async function compareProviders() {
 
     console.log('📤 Question:', question);
     console.log('🌍 Jurisdictions:', request.jurisdictions);
-    console.log('🤖 Providers:', request.models.map(m => `${m.provider}/${m.modelId}`).join(', '));
+    console.log('🤖 Providers:', request.models.map(m => `${m.providerId}/${m.modelId}`).join(', '));
     console.log('\n⏳ Waiting for responses...\n');
 
     try {
@@ -67,7 +67,7 @@ async function compareProviders() {
             console.log('='.repeat(80));
 
             data.responses.forEach((msg: Message, idx: number) => {
-                console.log(`\n[${idx + 1}] ${msg.modelInfo?.provider?.toUpperCase()} - ${msg.modelInfo?.modelId}`);
+                console.log(`\n[${idx + 1}] ${msg.modelInfo?.providerId?.toUpperCase()} - ${msg.modelInfo?.modelId}`);
                 console.log('-'.repeat(80));
                 console.log(msg.content);
                 console.log('='.repeat(80));
@@ -76,7 +76,7 @@ async function compareProviders() {
             // Compare response lengths
             console.log('\n📊 Response Statistics:');
             data.responses.forEach((msg: Message) => {
-                console.log(`  ${msg.modelInfo?.provider}: ${msg.content.length} characters`);
+                console.log(`  ${msg.modelInfo?.providerId}: ${msg.content.length} characters`);
             });
         } else {
             console.error('❌ Request failed:', data.error);

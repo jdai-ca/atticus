@@ -16,7 +16,7 @@ interface Message {
 }
 
 interface ModelInfo {
-    provider: string;
+    providerId: string;
     modelId: string;
     endpoint?: string;
 }
@@ -81,7 +81,7 @@ async function main() {
         if (response.success) {
             console.log('✅ Response received:\n');
             response.responses.forEach((msg, idx) => {
-                console.log(`[${msg.modelInfo?.provider}/${msg.modelInfo?.modelId}]`);
+                console.log(`[${msg.modelInfo?.providerId}/${msg.modelInfo?.modelId}]`);
                 console.log(msg.content);
                 console.log('');
             });
