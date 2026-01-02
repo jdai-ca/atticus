@@ -1,0 +1,10 @@
+{
+    "message": "Hello testing contract law",
+    "history": [],
+    "models": [
+        {
+            "providerId": "openai",
+            "modelId": "gpt-4"
+        }
+    ]
+}

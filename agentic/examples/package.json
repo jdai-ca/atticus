@@ -1,0 +1,23 @@
+{
+    "name": "agentic-examples",
+    "version": "1.0.0",
+    "description": "Examples for the Atticus Agentic Endpoint",
+    "scripts": {
+        "example:01": "tsx examples/01-basic-chat.ts",
+        "example:02": "tsx examples/02-multi-provider.ts",
+        "example:03": "tsx examples/03-conversation-history.ts",
+        "example:03:interactive": "tsx examples/03-conversation-history.ts interactive",
+        "example:04": "tsx examples/04-pii-detection.ts",
+        "example:05": "tsx examples/05-advanced-parameters.ts",
+        "example:06": "tsx examples/06-audit-logs.ts",
+        "examples:all": "npm run example:01 && npm run example:02 && npm run example:04 && npm run example:05"
+    },
+    "dependencies": {
+        "node-fetch": "^2.7.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.6",
+        "@types/node-fetch": "^2.6.9",
+        "tsx": "^4.7.0"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "message": "What is 2 + 2? Answer concisely.",
+    "history": [],
+    "models": [
+        {
+            "providerId": "openai",
+            "modelId": "gpt-3.5-turbo"
+        }
+    ]
+}
