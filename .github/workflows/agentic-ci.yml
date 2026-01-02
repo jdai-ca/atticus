@@ -24,7 +24,8 @@ jobs:
         run: npm ci --prefix agentic
 
       - name: TypeScript check
-        run: npx tsc -p ./agentic/tsconfig.json --noEmit
+        run: npx tsc -p ./tsconfig.json --noEmit
+        working-directory: agentic
 
       - name: Run tests
         run: npm test --prefix agentic
