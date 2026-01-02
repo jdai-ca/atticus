@@ -17,9 +17,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: agentic/package-lock.json
 
       - name: Install dependencies
-        run: npm install --prefix agentic
+        run: npm ci --prefix agentic
 
       - name: TypeScript check
         run: npx tsc -p ./agentic/tsconfig.json --noEmit
