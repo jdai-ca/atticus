@@ -6,6 +6,9 @@ describe('API key models endpoint', () => {
     beforeAll(() => {
         process.env.AGENTIC_API_KEYS = 'testkey,admin-1';
         process.env.AGENTIC_ADMIN_KEYS = 'admin-1';
+        // Ensure provider keys exist so models show as enabled
+        process.env.OPENAI_API_KEY = 'openai-test-key';
+        process.env.ANTHROPIC_API_KEY = 'anthropic-test-key';
         delete require.cache[require.resolve('../../server/index')];
         app = require('../../server/index').default;
     });

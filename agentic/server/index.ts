@@ -16,6 +16,7 @@ import { AgenticPipeline } from '../core/orchestrator';
 import { Message, ModelInfo } from '../types';
 import { ApiKeyAuth, loadApiKeysFromEnv, loadAdminKeysFromEnv } from './auth';
 import { createLogger } from '../utils/logger';
+import { KeyManager } from '../services/key-manager';
 import { AuditEventType, AuditSeverity } from '../services/audit-logger';
 
 const logger = createLogger('Server');
@@ -66,6 +67,7 @@ app.get('/metrics', apiKeyAuth.middleware(), async (req, res) => {
 });
 
 const pipeline = new AgenticPipeline();
+const keyManager = new KeyManager();
 const startTime = Date.now();
 
 interface ChatRequest {
@@ -205,13 +207,19 @@ app.get('/api/keys/me/models', apiKeyAuth.middleware(), (req, res) => {
 
         // For now, policy per key is not implemented. We'll return configured models and mark enabled based on model config.
         const allModels = pipeline.getAllModels();
-        const models = allModels.map(m => ({
-            providerId: m.providerId,
-            modelId: m.modelId,
-            enabled: !!m.enabled,
-            reason: m.enabled ? null : 'disabled_by_config',
-            maxContextWindow: m.maxContextWindow
-        }));
+        const models = allModels.map(m => {
+            const providerKey = keyManager.getApiKey(m.providerId);
+            const enabledByProvider = !!providerKey;
+            const enabled = !!m.enabled && enabledByProvider;
+            const reason = enabled ? null : (!m.enabled ? 'disabled_by_config' : 'no_provider_key');
+            return {
+                providerId: m.providerId,
+                modelId: m.modelId,
+                enabled,
+                reason,
+                maxContextWindow: m.maxContextWindow
+            };
+        });
 
         res.json({ key: targetKey || callerKey, models });
     } catch (error) {
