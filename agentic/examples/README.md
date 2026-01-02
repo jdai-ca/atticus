@@ -119,6 +119,23 @@ npx tsx examples/05-advanced-parameters.ts
 npx tsx examples/06-audit-logs.ts
 ```
 
+---
+
+### 07. Comprehensive Review (`07-comprehensive-review.js`)
+**Purpose**: Send multiple providers, include conversation history, attach PDF/Word files, and request an analysis model for a separate review pass.
+
+```bash
+# Place sample files at `agentic/examples/assets/sample.pdf` and `sample.docx` then:
+node examples/07-comprehensive-review.js
+```
+
+**What it demonstrates**:
+- Selecting multiple models/providers in one request
+- Providing prior conversation `history` array for context
+- Including binary attachments as `contentBase64` (PDF/Word)
+- Requesting an `analysisModel` to perform a secondary review pass
+
+
 **What it demonstrates**:
 - Exporting all audit logs
 - Filtering by conversation ID
