@@ -77,7 +77,9 @@ export class AgenticPipeline {
             content: userContent,
             practiceArea,
             advisoryArea,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            conversationId,
+            messageId
         };
 
         // 4. Execution

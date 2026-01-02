@@ -2,6 +2,7 @@ import { Message, ModelInfo } from '../types';
 import OpenAI from 'openai';
 import { ConfigLoader } from '../services/config-loader';
 import { KeyManager } from '../services/key-manager';
+import { auditLogger } from '../services/audit-logger';
 
 export class ModelExecutor {
     private configLoader: ConfigLoader;
@@ -42,33 +43,96 @@ export class ModelExecutor {
         }
 
         try {
+            // Audit: record API request (best-effort)
+            try {
+                const convId = userMessage.conversationId || 'system';
+                const msgId = userMessage.messageId || `msg_${Date.now()}`;
+                await auditLogger.logAPIRequest(convId, msgId, {
+                    provider: model.providerId,
+                    model: model.modelId,
+                    endpoint: config?.providerId || model.endpoint || '',
+                    messageCount: (history?.length || 0) + 1,
+                    initiatedAt: new Date().toISOString()
+                });
+            } catch (_) {
+                // best-effort
+            }
+            let responseMsg: Message;
             switch (model.providerId) {
                 case 'openai':
-                    return await this.callOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'azure-openai':
-                    return await this.callAzureOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callAzureOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'anthropic':
-                    return await this.callAnthropic(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callAnthropic(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'google':
-                    return await this.callGoogle(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callGoogle(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'mistral':
-                    return await this.callMistral(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callMistral(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'groq':
-                    return await this.callGroq(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callGroq(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'perplexity':
-                    return await this.callPerplexity(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callPerplexity(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'cohere':
-                    return await this.callCohere(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callCohere(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'cerebras':
-                    return await this.callCerebras(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callCerebras(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 case 'xai':
-                    return await this.callXAI(systemPrompt, history, userMessage, model, startTime, options);
+                    responseMsg = await this.callXAI(systemPrompt, history, userMessage, model, startTime, options);
+                    break;
                 default:
                     console.warn(`Unknown provider ${model.providerId}, falling back to mock.`);
-                    return this.callMockProvider(systemPrompt, history, userMessage, model, startTime);
+                    responseMsg = await this.callMockProvider(systemPrompt, history, userMessage, model, startTime);
             }
+
+            // Audit: record API response (best-effort)
+            try {
+                const convId = userMessage.conversationId || 'system';
+                const msgId = userMessage.messageId || `msg_${Date.now()}`;
+                const contentLength = responseMsg.content ? responseMsg.content.length : undefined;
+                const usage = (responseMsg as any).usage || (responseMsg.apiTrace && (responseMsg.apiTrace as any).usage) || undefined;
+                await auditLogger.logAPIResponse(convId, msgId, {
+                    provider: model.providerId,
+                    model: model.modelId,
+                    success: true,
+                    contentLength,
+                    usage: usage ? {
+                        promptTokens: usage.prompt_tokens || usage.promptTokens,
+                        completionTokens: usage.completion_tokens || usage.completionTokens,
+                        totalTokens: usage.total_tokens || usage.totalTokens
+                    } : undefined
+                });
+            } catch (_) {
+                // best-effort
+            }
+
+            return responseMsg;
         } catch (error) {
             console.error(`Error calling ${model.providerId}:`, error);
+            try {
+                const convId = userMessage.conversationId || 'system';
+                const msgId = userMessage.messageId || `msg_${Date.now()}`;
+                await auditLogger.logAPIResponse(convId, msgId, {
+                    provider: model.providerId,
+                    model: model.modelId,
+                    success: false,
+                    error: {
+                        code: 'PROVIDER_ERROR',
+                        message: String(error),
+                        httpStatus: (error as any)?.status
+                    }
+                });
+            } catch (_) {}
+
             return {
                 role: 'assistant',
                 content: `Error calling ${model.providerId} (${model.modelId}): ${error instanceof Error ? error.message : String(error)}`,

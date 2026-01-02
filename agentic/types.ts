@@ -34,6 +34,10 @@ export interface Message {
     modelInfo?: ModelInfo;
     /** Message timestamp (Unix milliseconds) */
     timestamp?: number;
+    /** Conversation identifier for audit tracing */
+    conversationId?: string;
+    /** Message identifier for audit tracing */
+    messageId?: string;
     /** API request trace information */
     apiTrace?: {
         /** Unique request ID */
