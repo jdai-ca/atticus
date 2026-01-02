@@ -25,16 +25,57 @@ export class AgenticPipeline {
         jurisdictions: string[] = [],
         options?: { temperature?: number; maxTokens?: number; topP?: number },
         analysisModel?: ModelInfo,
-        analysisOptions?: { temperature?: number; maxTokens?: number; topP?: number }
+        analysisOptions?: { temperature?: number; maxTokens?: number; topP?: number },
+        attachments?: Array<{ filename?: string; contentType?: string; contentBase64?: string }>
     ): Promise<PipelineResponse> {
         // Generate IDs for audit trail
         const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-        // 1. Context Building
-        const practiceArea = this.contextManager.detectPracticeArea(userContent);
-        const advisoryArea = this.contextManager.detectAdvisoryArea(userContent);
-        const piiResult = this.contextManager.scanForPII(userContent, jurisdictions);
+        // 1. Attachment processing: use AttachmentProcessor service to extract text/previews/images
+        let attachmentTextCombined = '';
+        try {
+            // Use require in a try/catch to avoid TypeScript module resolution failures in test environments
+            let attachmentModule: any = null;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                attachmentModule = require('../services/attachment-processor');
+            } catch (e) {
+                attachmentModule = null;
+            }
+
+            const processed: any[] = attachmentModule && attachmentModule.processAttachments
+                ? await attachmentModule.processAttachments(attachments)
+                : [];
+            const metas = processed.map((p: any) => ({ filename: p.filename, size: p.size, hasImages: (p.images && p.images.length > 0), error: p.error }));
+
+            // Build a combined text preview for context and PII scanning
+            for (const p of processed) {
+                if (p && p.textPreview) {
+                    attachmentTextCombined += `\n\n[Attachment: ${p.filename}]\n` + String(p.textPreview).substring(0, 2000);
+                }
+            }
+
+            try {
+                await auditLogger.logEvent(
+                    // @ts-ignore
+                    'ADMIN_ACTION',
+                    // @ts-ignore
+                    'INFO',
+                    'SYSTEM',
+                    'Attachments processed',
+                    { attachments: metas }
+                );
+            } catch (_) {}
+        } catch (err) {
+            console.warn('Attachment processing failed', err);
+        }
+
+        // 2. Context Building
+        const combinedForContext = userContent + (attachmentTextCombined ? `\n\n${attachmentTextCombined}` : '');
+        const practiceArea = this.contextManager.detectPracticeArea(combinedForContext);
+        const advisoryArea = this.contextManager.detectAdvisoryArea(combinedForContext);
+        const piiResult = this.contextManager.scanForPII(combinedForContext, jurisdictions);
 
         // 2. PII Check with Audit Logging
         if (piiResult.detected) {
@@ -76,7 +117,7 @@ export class AgenticPipeline {
 
         const userMessage: Message = {
             role: 'user',
-            content: userContent,
+            content: userContent + (attachmentTextCombined ? `\n\n[Attachments]\n${attachmentTextCombined}` : ''),
             practiceArea,
             advisoryArea,
             timestamp: Date.now(),

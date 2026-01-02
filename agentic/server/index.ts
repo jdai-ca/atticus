@@ -80,6 +80,7 @@ interface ChatRequest {
     topP?: number;
     analysisModel?: ModelInfo;
     analysisOptions?: any;
+    attachments?: Array<{ filename?: string; contentType?: string; contentBase64?: string }>;
 }
 
 // Apply API key authentication to all /api/* endpoints
@@ -87,7 +88,7 @@ app.use('/api/*', apiKeyAuth.middleware());
 
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, history, models, jurisdictions, temperature, maxTokens, topP, analysisModel, analysisOptions } = req.body as ChatRequest;
+        const { message, history, models, jurisdictions, temperature, maxTokens, topP, analysisModel, analysisOptions, attachments } = req.body as ChatRequest;
 
         // Input validation
         if (!message || typeof message !== 'string' || !message.trim()) {
@@ -171,7 +172,8 @@ app.post('/api/chat', async (req, res) => {
             jurisdictions || [],
             options,
             normalizedAnalysisModel,
-            analysisOptions
+            analysisOptions,
+            attachments
         );
 
         if (result.success) {

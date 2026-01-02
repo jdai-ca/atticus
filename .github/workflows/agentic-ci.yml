@@ -20,8 +20,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: agentic/package-lock.json
 
+      - name: Install system libs for canvas/pdf rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev pkg-config
+
       - name: Install dependencies
-        run: npm ci --prefix agentic
+        run: npm install --prefix agentic
 
       - name: TypeScript check
         run: npx tsc -p ./tsconfig.json --noEmit
