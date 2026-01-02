@@ -1,0 +1,17 @@
+flowchart TD
+  subgraph API
+    A[Client / External API] -->|POST /api/chat| Server[Agentic HTTP Server]
+  end
+
+  Server --> Orch[Orchestrator]
+  Orch --> Exec[Model Executor]
+  Exec --> Providers[LLM Providers]
+
+  Server --> Audit[AuditLogger]
+  Exec --> Telemetry[Telemetry / Prometheus]
+
+  subgraph Storage
+    Audit -->|writes| Filesystem[/app/logs/audit]
+  end
+
+  note right of Exec: forwards parameters (temperature, maxTokens)

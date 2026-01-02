@@ -49,6 +49,9 @@ Where to look
 - `agentic/server/index.ts` — HTTP endpoints (/api/chat, /metrics, /api/audit/export)
 - `agentic/services/audit-logger.ts` — audit logging and export
 
+- `docs/diagrams/agentic-architecture.mmd` — a Mermaid diagram of request flow and integrations
+
+
 Need more? Open an issue or request specific example types (webhook, streaming adapters, provider mocks).
 # Atticus Agentic Service
 
