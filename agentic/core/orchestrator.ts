@@ -115,6 +115,20 @@ export class AgenticPipeline {
         };
     }
 
+    /**
+     * Validate whether a model id exists in the loaded configuration
+     */
+    public isValidModel(modelId: string): boolean {
+        return !!this.configLoader.getModel(modelId);
+    }
+
+    /**
+     * Return model configuration if available
+     */
+    public getModelInfo(modelId: string) {
+        return this.configLoader.getModel(modelId);
+    }
+
     // Helper to expose scanner separately for UI pre-checks
     public scanContent(content: string, jurisdictions: string[] = []) {
         return this.contextManager.scanForPII(content, jurisdictions);

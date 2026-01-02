@@ -84,6 +84,16 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
+        // Validate models against configuration
+        const invalidModels = (models || []).filter(m => !pipeline.isValidModel(m.modelId));
+        if (invalidModels.length > 0) {
+            return res.status(400).json({
+                success: false,
+                responses: [],
+                error: `Unknown model(s): ${invalidModels.map(m=>m.modelId).join(', ')}`
+            });
+        }
+
         // Validate optional parameters
         if (temperature !== undefined && (typeof temperature !== 'number' || temperature < 0 || temperature > 2)) {
             return res.status(400).json({
@@ -162,7 +172,9 @@ app.get('/health', (req, res) => {
         status: 'ok',
         service: 'atticus-agentic-pipeline',
         timestamp: new Date().toISOString(),
-        stats
+        stats,
+        apiKeyCount: apiKeyAuth.getKeyCount(),
+        uptimeMs: Date.now() - startTime
     });
 });
 
@@ -191,6 +203,25 @@ app.get('/audit/export', apiKeyAuth.middleware(), async (req, res) => {
         } catch (_) {}
         res.status(500).json({ error: 'Failed to export audit logs' });
     }
+});
+
+// Runtime API key management (requires an existing valid API key)
+app.get('/api/keys', apiKeyAuth.middleware(), (req, res) => {
+    res.json({ count: apiKeyAuth.getKeyCount() });
+});
+
+app.post('/api/keys', apiKeyAuth.middleware(), (req, res) => {
+    const { key } = req.body || {};
+    if (!key || typeof key !== 'string') return res.status(400).json({ error: 'key required in body' });
+    apiKeyAuth.addKey(key);
+    res.json({ added: true, total: apiKeyAuth.getKeyCount() });
+});
+
+app.delete('/api/keys', apiKeyAuth.middleware(), (req, res) => {
+    const { key } = req.body || {};
+    if (!key || typeof key !== 'string') return res.status(400).json({ error: 'key required in body' });
+    apiKeyAuth.removeKey(key);
+    res.json({ removed: true, total: apiKeyAuth.getKeyCount() });
 });
 
 app.listen(port, () => {
