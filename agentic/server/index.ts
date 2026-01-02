@@ -8,18 +8,40 @@
 
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { auditLogger } from '../services/audit-logger';
 import { AgenticPipeline } from '../core/orchestrator';
 import { Message, ModelInfo } from '../types';
 import { ApiKeyAuth, loadApiKeysFromEnv } from './auth';
 import { createLogger } from '../utils/logger';
+import { AuditEventType, AuditSeverity } from '../services/audit-logger';
 
 const logger = createLogger('Server');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+// CORS: restrict origins via AGENTIC_CORS_ORIGINS (comma separated). Defaults to localhost.
+const allowedOrigins = (process.env.AGENTIC_CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',').map(s => s.trim());
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true); // allow server-to-server or curl
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error('Origin not allowed by CORS'));
+    }
+}));
+
+// Body size limit to protect provider quotas
+app.use(express.json({ limit: process.env.AGENTIC_JSON_LIMIT || '256kb' }));
+
+// Basic rate limiting
+const limiter = rateLimit({
+    windowMs: Number(process.env.AGENTIC_RATE_LIMIT_WINDOW_MS) || 60_000, // 1 minute
+    max: Number(process.env.AGENTIC_RATE_LIMIT_MAX) || 60, // 60 requests per window
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/', limiter);
 
 // Initialize API key authentication
 const apiKeys = loadApiKeysFromEnv();
@@ -113,6 +135,17 @@ app.post('/api/chat', async (req, res) => {
         }
     } catch (error) {
         logger.error({ error }, 'API request failed');
+        try {
+            auditLogger.logEvent(
+                AuditEventType.SYSTEM_ERROR,
+                AuditSeverity.ERROR,
+                'SYSTEM',
+                'API request failed',
+                { error: String(error) }
+            );
+        } catch (_) {
+            // best-effort
+        }
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
@@ -146,6 +179,16 @@ app.get('/audit/export', apiKeyAuth.middleware(), async (req, res) => {
         res.send(logs);
     } catch (error) {
         logger.error({ error }, 'Audit export failed');
+        try {
+            const convId = (req.query && req.query.conversationId) ? String(req.query.conversationId) : undefined;
+            auditLogger.logEvent(
+                AuditEventType.SYSTEM_ERROR,
+                AuditSeverity.ERROR,
+                'SYSTEM',
+                'Audit export failed',
+                { error: String(error), conversationId: convId }
+            );
+        } catch (_) {}
         res.status(500).json({ error: 'Failed to export audit logs' });
     }
 });
