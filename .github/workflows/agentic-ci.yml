@@ -1,0 +1,40 @@
+name: Agentic CI
+
+on:
+  push:
+    branches: [ feature/agentic-endpoint-improvements ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: agentic
+
+      - name: TypeScript check
+        run: npx tsc -p ./agentic/tsconfig.json --noEmit
+
+      - name: Run tests
+        run: npm test --prefix agentic
+        env:
+          AGENTIC_API_KEYS: testkey
+          AGENTIC_ADMIN_KEYS: testadminkey
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v4
+        with:
+          context: ./agentic
+          push: false
+          tags: ghcr.io/${{ github.repository_owner }}/agentic:${{ github.sha }}
