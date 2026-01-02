@@ -194,6 +194,32 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// Return effective model availability for the calling key
+app.get('/api/keys/me/models', apiKeyAuth.middleware(), (req, res) => {
+    try {
+        const callerKey = (req as any).apiKey as string;
+        const isAdmin = (req as any).isAdmin as boolean;
+        const targetKey = typeof req.query.key === 'string' ? String(req.query.key) : undefined;
+
+        if (targetKey && !isAdmin) return res.status(403).json({ error: 'Admin required to query other keys' });
+
+        // For now, policy per key is not implemented. We'll return configured models and mark enabled based on model config.
+        const allModels = pipeline.getAllModels();
+        const models = allModels.map(m => ({
+            providerId: m.providerId,
+            modelId: m.modelId,
+            enabled: !!m.enabled,
+            reason: m.enabled ? null : 'disabled_by_config',
+            maxContextWindow: m.maxContextWindow
+        }));
+
+        res.json({ key: targetKey || callerKey, models });
+    } catch (error) {
+        logger.error({ error }, 'Failed to list models for key');
+        res.status(500).json({ error: 'Failed to list models' });
+    }
+});
+
 app.get('/health', (req, res) => {
     // Phase 3: Robust Health Check
     // We can't easily access the pipeline's internal configLoader here because pipeline is private/protected or instantiated locally.

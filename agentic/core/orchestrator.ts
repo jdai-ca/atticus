@@ -151,6 +151,28 @@ export class AgenticPipeline {
         return this.configLoader.getModel(modelId);
     }
 
+    /**
+     * Return a list of all configured models with provider references
+     */
+    public getAllModels() {
+        const providers = this.configLoader.getAllProviders();
+        const models: Array<{ providerId: string; modelId: string; name?: string; enabled?: boolean; maxContextWindow?: number }> = [];
+        for (const p of providers) {
+            if (p.models && Array.isArray(p.models)) {
+                for (const m of p.models) {
+                    models.push({
+                        providerId: p.id,
+                        modelId: m.id,
+                        name: m.name,
+                        enabled: m.enabled,
+                        maxContextWindow: m.maxContextWindow
+                    });
+                }
+            }
+        }
+        return models;
+    }
+
     // Helper to expose scanner separately for UI pre-checks
     public scanContent(content: string, jurisdictions: string[] = []) {
         return this.contextManager.scanForPII(content, jurisdictions);
