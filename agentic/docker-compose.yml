@@ -1,0 +1,24 @@
+# docker-compose for local development of the Agentic service (WSL-friendly)
+version: '3.8'
+
+services:
+  agentic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: atticus-agentic:local
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - AGENTIC_API_KEYS=${AGENTIC_API_KEYS:-test-key}
+      - AGENTIC_ADMIN_KEYS=${AGENTIC_ADMIN_KEYS:-admin-key}
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
