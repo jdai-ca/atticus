@@ -23,6 +23,19 @@ export AGENTIC_API_KEY=your-api-key-here
 npx tsx examples/01-basic-chat.ts
 ```
 
+Quick run (Node):
+
+```bash
+# Load env (example uses .env.example in this folder)
+export $(cat examples/.env.example | xargs)
+
+# Run the Node example (Node 18+)
+node examples/01-basic-chat.js
+
+# Export audit logs (admin key required)
+node examples/02-audit-export.js
+```
+
 **What it demonstrates**:
 - Sending a chat request
 - Handling responses
@@ -171,6 +184,7 @@ console.log('Service status:', status);
 |----------|-------------|---------|
 | `AGENTIC_ENDPOINT` | Base URL of the agentic service | `http://localhost:3000` |
 | `AGENTIC_API_KEY` | Your API key for authentication | `your-secret-key-123` |
+| `AGENTIC_ADMIN_KEYS` | Admin API key(s), comma-separated for protected endpoints (e.g. `/metrics`, `/api/keys`, `/api/audit/export`) | `admin-secret-123` |
 
 ## Response Format
 
