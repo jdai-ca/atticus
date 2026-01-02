@@ -24,6 +24,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuditLogger');
@@ -113,9 +114,32 @@ export class AuditLogger {
                 fs.mkdirSync(this.logDir, { recursive: true });
                 logger.info({ logDir: this.logDir }, 'Created audit log directory');
             }
+            return;
         } catch (error) {
-            logger.error({ error }, 'Failed to create audit log directory');
+            logger.error({ error, attempted: this.logDir }, 'Failed to create audit log directory');
         }
+
+        // Fallback: try several writable locations (repo-relative test-logs, tmp dir)
+        const fallbacks = [
+            path.resolve(__dirname, '..', 'tests', 'test-logs'),
+            path.resolve(process.cwd(), 'agentic', 'tests', 'test-logs'),
+            path.join(os.tmpdir(), 'agentic-audit-logs')
+        ];
+
+        for (const candidate of fallbacks) {
+            try {
+                if (!fs.existsSync(candidate)) {
+                    fs.mkdirSync(candidate, { recursive: true });
+                }
+                this.logDir = candidate;
+                logger.info({ logDir: this.logDir }, 'Falling back to audit log directory');
+                return;
+            } catch (err) {
+                logger.warn({ error: err, candidate }, 'Fallback audit log directory not writable');
+            }
+        }
+
+        logger.error({ fallbacks }, 'All fallback audit log directories failed; audit logging will be disabled');
     }
 
     async logEvent(
