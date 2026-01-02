@@ -18,6 +18,8 @@ interface ChatRequest {
     temperature?: number;
     maxTokens?: number;
     topP?: number;
+    analysisModel?: { provider: string; modelId: string };
+    analysisOptions?: { temperature?: number; maxTokens?: number; topP?: number };
 }
 
 async function sendWithParameters(params: ChatRequest) {
@@ -38,13 +40,13 @@ async function demonstrateParameters() {
 
     const baseQuestion = 'Explain the concept of consideration in contract law.';
 
-    const scenarios = [
+    let scenarios: any[] = [
         {
             name: 'Conservative (Low Temperature)',
             params: {
                 message: baseQuestion,
                 history: [],
-                models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                 temperature: 0.3,
                 maxTokens: 500
             },
@@ -55,7 +57,7 @@ async function demonstrateParameters() {
             params: {
                 message: baseQuestion,
                 history: [],
-                models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                 temperature: 0.7,
                 maxTokens: 500
             },
@@ -66,7 +68,7 @@ async function demonstrateParameters() {
             params: {
                 message: baseQuestion,
                 history: [],
-                models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                 temperature: 1.0,
                 maxTokens: 500
             },
@@ -77,13 +79,28 @@ async function demonstrateParameters() {
             params: {
                 message: baseQuestion,
                 history: [],
-                models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                 temperature: 0.7,
                 maxTokens: 150
             },
             description: 'Shorter, more concise answers'
         }
     ];
+
+    // Example: run an analysis pass with a separate model
+    scenarios.push({
+        name: 'Analysis Pass',
+        params: {
+            message: baseQuestion,
+            history: [],
+            models: [{ providerId: 'openai', modelId: 'gpt-4' }],
+            temperature: 0.7,
+            maxTokens: 300,
+            analysisModel: { providerId: 'openai', modelId: 'gpt-4o-mini' },
+            analysisOptions: { temperature: 0.2, maxTokens: 200 }
+        },
+        description: 'Run a separate analysis pass after primary responses'
+    });
 
     for (const scenario of scenarios) {
         console.log(`\n${'='.repeat(80)}`);

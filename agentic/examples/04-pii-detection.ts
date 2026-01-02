@@ -50,7 +50,7 @@ async function testPIIDetection() {
                 body: JSON.stringify({
                     message: testCase.message,
                     history: [],
-                    models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                    models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                     jurisdictions: ['US']
                 })
             });

@@ -150,7 +150,7 @@ const request = {
         { role: 'assistant', content: 'Previous answer' }
     ],
     models: [
-        { provider: 'openai', modelId: 'gpt-4' }
+        { providerId: 'openai', modelId: 'gpt-4' }
     ],
     jurisdictions: ['US', 'CA'],
     temperature: 0.7,

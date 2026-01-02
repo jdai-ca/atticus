@@ -65,7 +65,7 @@ app.use('/api/*', apiKeyAuth.middleware());
 
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, history, models, jurisdictions, temperature, maxTokens, topP } = req.body as ChatRequest;
+        const { message, history, models, jurisdictions, temperature, maxTokens, topP, analysisModel, analysisOptions } = req.body as ChatRequest;
 
         // Input validation
         if (!message || typeof message !== 'string' || !message.trim()) {
@@ -84,8 +84,14 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        // Validate models against configuration
-        const invalidModels = (models || []).filter(m => !pipeline.isValidModel(m.modelId));
+        // Normalize incoming model objects to `ModelInfo` shape and validate
+        const normalizedModels = (models || []).map((m: any) => ({
+            providerId: m.providerId || m.provider,
+            modelId: m.modelId || m.model,
+            endpoint: m.endpoint
+        }));
+
+        const invalidModels = normalizedModels.filter(m => !pipeline.isValidModel(m.modelId));
         if (invalidModels.length > 0) {
             return res.status(400).json({
                 success: false,
@@ -130,12 +136,20 @@ app.post('/api/chat', async (req, res) => {
             topP
         };
 
+        // Normalize analysisModel if provided
+        const normalizedAnalysisModel = analysisModel ? {
+            providerId: (analysisModel as any).providerId || (analysisModel as any).provider,
+            modelId: (analysisModel as any).modelId || (analysisModel as any).model
+        } as any : undefined;
+
         const result = await pipeline.processRequest(
             message,
             history || [],
-            models,
+            normalizedModels,
             jurisdictions || [],
-            options
+            options,
+            normalizedAnalysisModel,
+            analysisOptions
         );
 
         if (result.success) {

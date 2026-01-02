@@ -30,7 +30,7 @@ class ConversationManager {
             body: JSON.stringify({
                 message: userMessage,
                 history: this.history,
-                models: [{ provider: 'openai', modelId: 'gpt-4' }],
+                models: [{ providerId: 'openai', modelId: 'gpt-4' }],
                 jurisdictions: this.jurisdictions
             })
         });

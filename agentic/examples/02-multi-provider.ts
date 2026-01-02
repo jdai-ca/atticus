@@ -38,9 +38,9 @@ async function compareProviders() {
         message: question,
         history: [],
         models: [
-            { provider: 'openai', modelId: 'gpt-4' },
-            { provider: 'anthropic', modelId: 'claude-3-opus-20240229' },
-            { provider: 'google', modelId: 'gemini-pro' }
+            { providerId: 'openai', modelId: 'gpt-4' },
+            { providerId: 'anthropic', modelId: 'claude-3-opus-20240229' },
+            { providerId: 'google', modelId: 'gemini-pro' }
         ],
         jurisdictions: ['US', 'CA']
     };

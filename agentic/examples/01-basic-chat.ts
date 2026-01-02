@@ -63,7 +63,7 @@ async function main() {
         history: [],
         models: [
             {
-                provider: 'openai',
+                providerId: 'openai',
                 modelId: 'gpt-4'
             }
         ],
