@@ -363,13 +363,15 @@ function getContext(text: string, index: number, chars: number): string {
 /**
  * Assess compliance violations based on findings
  */
-export function assessComplianceViolations(findings: PIIFinding[]): {
+interface ComplianceViolation {
     framework: string;
     severity: string;
     reportingDeadline?: string;
     potentialPenalty?: string;
-}[] {
-    const violations: any[] = [];
+}
+
+export function assessComplianceViolations(findings: PIIFinding[]): ComplianceViolation[] {
+    const violations: ComplianceViolation[] = [];
     const frameworks = new Set<string>();
 
     findings.forEach(finding => {

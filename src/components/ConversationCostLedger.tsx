@@ -8,6 +8,9 @@ import {
 import { DateUtils } from "../utils/dateUtils";
 import jsPDF from "jspdf";
 import packageJson from "../../package.json";
+import { createLogger } from "../services/logger";
+
+const logger = createLogger("ConversationCostLedger");
 
 interface ConversationCostLedgerProps {
   conversation: Conversation;
@@ -47,10 +50,11 @@ export default function ConversationCostLedger({
       const costData = msg.apiTrace!.cost!;
       const validation = validateCostBreakdown(costData as any);
       if (!validation.valid) {
-        console.warn(
-          `Cost validation failed for message ${msg.id}: ${validation.error}`,
-          { cost: costData }
-        );
+        logger.warn("Cost validation failed", {
+          messageId: msg.id,
+          error: validation.error,
+          cost: costData,
+        });
       }
 
       return {
@@ -95,11 +99,11 @@ export default function ConversationCostLedger({
   const expectedTotalCost = totals.inputCost + totals.outputCost;
   const costDiff = Math.abs(totals.cost - expectedTotalCost);
   if (costDiff > epsilon) {
-    console.warn(
-      `Total cost mismatch: sum=${totals.cost.toFixed(
-        6
-      )}, expected=${expectedTotalCost.toFixed(6)}, diff=${costDiff.toFixed(6)}`
-    );
+    logger.warn("Total cost mismatch detected", {
+      totalCost: totals.cost.toFixed(6),
+      expectedTotal: expectedTotalCost.toFixed(6),
+      difference: costDiff.toFixed(6),
+    });
   }
 
   // Get cost tier for color coding
@@ -429,7 +433,10 @@ export default function ConversationCostLedger({
       // Save PDF with conversation ID and type
       pdf.save(`atticus-${conversation.id}-costledger-${Date.now()}.pdf`);
     } catch (error) {
-      console.error("Failed to export cost ledger:", error);
+      logger.error("Failed to export cost ledger to PDF", {
+        error,
+        conversationId: conversation.id,
+      });
     }
   };
 

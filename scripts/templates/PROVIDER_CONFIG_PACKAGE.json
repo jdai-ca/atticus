@@ -1,0 +1,42 @@
+{
+    "name": "atticus-provider-config",
+    "version": "1.0.0",
+    "description": "External AI provider configuration for Atticus - AI Counsel for Startups",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/atticus-ai/provider-config.git"
+    },
+    "keywords": [
+        "atticus",
+        "ai",
+        "providers",
+        "configuration",
+        "llm",
+        "openai",
+        "anthropic",
+        "google",
+        "mistral"
+    ],
+    "author": "JDAI Development Team <info@jdai.ca>",
+    "license": "MIT",
+    "private": false,
+    "scripts": {
+        "validate": "node scripts/validate-config.js providers.yaml schemas/provider-config.schema.json",
+        "check-duplicates": "node scripts/check-duplicates.js providers.yaml",
+        "test": "npm run validate && npm run check-duplicates",
+        "version-check": "node -e \"const yaml = require('js-yaml'); const fs = require('fs'); const config = yaml.load(fs.readFileSync('providers.yaml', 'utf8')); console.log('Version:', config.version);\""
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "ajv": "^8.12.0",
+        "ajv-formats": "^2.1.1",
+        "js-yaml": "^4.1.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "homepage": "https://github.com/atticus-ai/provider-config#readme",
+    "bugs": {
+        "url": "https://github.com/atticus-ai/provider-config/issues"
+    }
+}

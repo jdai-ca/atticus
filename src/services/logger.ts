@@ -17,6 +17,7 @@ interface LoggerConfig {
     level: LogLevel;
     enableColors: boolean;
     redactKeys: string[];
+    maxStoredLogs: number;
 }
 
 class Logger {
@@ -24,7 +25,11 @@ class Logger {
         level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
         enableColors: true,
         redactKeys: ['apiKey', 'api_key', 'token', 'password', 'secret'],
+        maxStoredLogs: 1000,
     };
+
+    private logHistory: LogEntry[] = [];
+    private readonly STORAGE_KEY = 'atticus-logs';
 
     private readonly levels: Record<LogLevel, number> = {
         debug: 0,
@@ -46,6 +51,7 @@ class Logger {
         if (config) {
             this.config = { ...this.config, ...config };
         }
+        this.loadLogsFromStorage();
     }
 
     /**
@@ -119,6 +125,9 @@ class Logger {
             data: data ? this.redact(data) : undefined,
         };
 
+        // Store in history
+        this.storeLog(entry);
+
         // Format and output
         const formatted = this.format(entry);
 
@@ -137,6 +146,71 @@ class Logger {
                 console.error(formatted);
                 break;
         }
+    }
+
+    /**
+     * Store log entry in memory and localStorage
+     */
+    private storeLog(entry: LogEntry): void {
+        this.logHistory.push(entry);
+
+        // Trim if exceeds max
+        if (this.logHistory.length > this.config.maxStoredLogs) {
+            this.logHistory = this.logHistory.slice(-this.config.maxStoredLogs);
+        }
+
+        // Persist to localStorage (async, non-blocking)
+        try {
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.logHistory));
+            }
+        } catch (error) {
+            // Ignore storage errors
+        }
+    }
+
+    /**
+     * Load logs from localStorage on initialization
+     */
+    private loadLogsFromStorage(): void {
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const stored = localStorage.getItem(this.STORAGE_KEY);
+                if (stored) {
+                    this.logHistory = JSON.parse(stored);
+                }
+            }
+        } catch (error) {
+            // Ignore load errors
+        }
+    }
+
+    /**
+     * Get all stored logs
+     */
+    getLogs(): LogEntry[] {
+        return [...this.logHistory];
+    }
+
+    /**
+     * Clear all stored logs
+     */
+    clearLogs(): void {
+        this.logHistory = [];
+        try {
+            if (typeof localStorage !== 'undefined') {
+                localStorage.removeItem(this.STORAGE_KEY);
+            }
+        } catch (error) {
+            // Ignore storage errors
+        }
+    }
+
+    /**
+     * Export logs as JSON string
+     */
+    exportLogs(): string {
+        return JSON.stringify(this.logHistory, null, 2);
     }
 
     /**

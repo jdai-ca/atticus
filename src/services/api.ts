@@ -24,8 +24,11 @@ import { CohereClient } from 'cohere-ai';
 export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
 
-  console.log('[API] sendChatMessage called for provider:', provider.provider, provider.id);
-  console.log('[API] Provider config:', JSON.stringify({ id: provider.id, provider: provider.provider, model: provider.model, endpoint: provider.endpoint }));
+  logger.debug('Chat message request received', {
+    providerId: provider.provider,
+    providerInstanceId: provider.id,
+    messageCount: messages.length
+  });
 
   // Ensure provider has API key (this service should only be used in main process)
   if (!('apiKey' in provider) || !provider.apiKey) {
@@ -35,7 +38,7 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
   // Provider is guaranteed to have apiKey at this point
   const secureProvider = provider;
 
-  console.log('[API] Routing to provider:', secureProvider.provider);
+  logger.debug('Routing to provider', { providerId: secureProvider.provider });
 
   switch (secureProvider.provider) {
     case 'openai':

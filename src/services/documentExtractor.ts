@@ -20,12 +20,12 @@ if (typeof process !== 'undefined' && process.versions?.electron) {
         // In development, reference from public directory
         const workerPath = path.join(process.cwd(), 'public', 'pdf.worker.min.mjs');
         pdfjsLib.GlobalWorkerOptions.workerSrc = `file://${workerPath}`;
-        console.log('[PDF.js] Worker configured for dev:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+        logger.debug('PDF.js worker configured for dev', { workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc });
     } else {
         // In production, it should be in the resources folder
         const workerPath = path.join(process.resourcesPath, 'public', 'pdf.worker.min.mjs');
         pdfjsLib.GlobalWorkerOptions.workerSrc = `file://${workerPath}`;
-        console.log('[PDF.js] Worker configured for production:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+        logger.debug('PDF.js worker configured for production', { workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc });
     }
 } else if (globalThis.window !== undefined) {
     // Browser/renderer process - use legacy build worker via import.meta.url
@@ -33,7 +33,7 @@ if (typeof process !== 'undefined' && process.versions?.electron) {
         'pdfjs-dist/legacy/build/pdf.worker.mjs',
         import.meta.url
     ).toString();
-    console.log('[PDF.js] Worker configured for renderer:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+    logger.debug('PDF.js worker configured for renderer', { workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc });
 }
 
 export interface ExtractedDocument {
@@ -106,11 +106,7 @@ async function extractFromPDF(base64Data: string): Promise<ExtractedDocument> {
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'PDF extraction failed';
-        console.error('[PDF.js] Extraction failed:', errorMessage, error);
-        logger.error('PDF extraction failed', '[Document Extraction]', {
-            error: errorMessage,
-            workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc
-        });
+        logger.error('PDF extraction failed', { error: errorMessage, workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc });
         return {
             text: '',
             wordCount: 0,

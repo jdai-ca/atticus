@@ -11,6 +11,10 @@
  * informed choices about data sharing.
  */
 
+import { createLogger } from './logger';
+
+const logger = createLogger('PIIScanner');
+
 export type Jurisdiction = 'CA' | 'US' | 'MX' | 'EU' | 'UK';
 
 export enum PIIType {
@@ -558,7 +562,7 @@ export class PIIScanner {
                 this.sensitivityLevel = parsed.sensitivityLevel ?? 'moderate';
             }
         } catch (error) {
-            console.error('[PIIScanner] Failed to load settings:', error);
+            logger.error('Failed to log PII scan', { error });
         }
     }
 
@@ -571,7 +575,7 @@ export class PIIScanner {
                 sensitivityLevel: this.sensitivityLevel,
             }));
         } catch (error) {
-            console.error('[PIIScanner] Failed to save settings:', error);
+            logger.error('Failed to save PII scanner settings', { error });
         }
     }
 
@@ -604,7 +608,7 @@ export class PIIScanner {
             // Store updated logs
             localStorage.setItem(key, JSON.stringify(logs));
         } catch (error) {
-            console.error('[PIIScanner] Failed to log scan:', error);
+            logger.error('Failed to log PII scan', { error });
             // Continue execution - logging failure shouldn't break functionality
         }
     }
@@ -618,7 +622,7 @@ export class PIIScanner {
             const existing = localStorage.getItem(key);
             return existing ? JSON.parse(existing) : [];
         } catch (error) {
-            console.error('[PIIScanner] Failed to retrieve scan logs:', error);
+            logger.error('Failed to retrieve PII scan logs', { error });
             return [];
         }
     }
@@ -631,7 +635,7 @@ export class PIIScanner {
             const logs = this.getScanLogs(conversationId);
             return JSON.stringify(logs, null, 2);
         } catch (error) {
-            console.error('[PIIScanner] Failed to export logs:', error);
+            logger.error('Failed to export PII scan logs', { error });
             return '[]';
         }
     }
@@ -644,7 +648,7 @@ export class PIIScanner {
             const key = `piiScanLogs_${conversationId}`;
             localStorage.removeItem(key);
         } catch (error) {
-            console.error('[PIIScanner] Failed to clear logs:', error);
+            logger.error('Failed to clear old PII scan logs', { error });
         }
     }
 
@@ -665,7 +669,7 @@ export class PIIScanner {
             }
             return count;
         } catch (error) {
-            console.error('[PIIScanner] Failed to get total scan count:', error);
+            logger.error('Failed to get total PII scan count', { error });
             return 0;
         }
     }

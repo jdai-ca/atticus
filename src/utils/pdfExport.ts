@@ -2,6 +2,9 @@ import jsPDF from 'jspdf';
 import { Conversation, Message } from '../types';
 import { DateUtils } from './dateUtils';
 import packageJson from '../../package.json';
+import { createLogger } from '../services/logger';
+
+const logger = createLogger('PDFExport');
 
 // Helper to strip markdown and format text for PDF
 interface FormattedTextSegment {
@@ -691,10 +694,10 @@ export async function downloadPDF(conversation: Conversation): Promise<void> {
     });
 
     if (result.success && result.data) {
-      console.log('PDF saved:', result.data.filepath);
+      logger.info('PDF saved', { filepath: result.data.filepath });
     }
   } catch (error) {
-    console.error('Error downloading PDF:', error);
+    logger.error('Error downloading PDF', { error });
     throw error;
   }
 }
@@ -848,10 +851,10 @@ export async function downloadMessagePDF(
     });
 
     if (result.success && result.data) {
-      console.log('Message PDF saved:', result.data.filepath);
+      logger.info('Message PDF saved', { filepath: result.data.filepath });
     }
   } catch (error) {
-    console.error('Error downloading message PDF:', error);
+    logger.error('Error downloading message PDF', { error });
     throw error;
   }
 }
@@ -893,10 +896,10 @@ export async function downloadClusterPDF(
     });
 
     if (result.success && result.data) {
-      console.log('Cluster PDF saved:', result.data.filepath);
+      logger.info('Cluster PDF saved', { filepath: result.data.filepath });
     }
   } catch (error) {
-    console.error('Error downloading cluster PDF:', error);
+    logger.error('Error downloading cluster PDF', { error });
     throw error;
   }
 }

@@ -5,7 +5,7 @@
  * Helps users make informed decisions about data sharing.
  */
 
-import { AlertTriangle, X, Shield, Info } from "lucide-react";
+import { AlertTriangle, X, Shield, Info, Circle } from "lucide-react";
 import { PIIScanResult, RiskLevel } from "../services/piiScanner";
 
 interface PrivacyWarningDialogProps {
@@ -46,16 +46,22 @@ export default function PrivacyWarningDialog({
     }
   };
 
-  const getRiskIcon = (level: RiskLevel): string => {
+  const getRiskIcon = (level: RiskLevel): JSX.Element => {
     switch (level) {
       case RiskLevel.CRITICAL:
-        return "🔴";
+        return <Circle className="inline w-3 h-3 fill-red-500 text-red-500" />;
       case RiskLevel.HIGH:
-        return "🟠";
+        return (
+          <Circle className="inline w-3 h-3 fill-orange-500 text-orange-500" />
+        );
       case RiskLevel.MODERATE:
-        return "🟡";
+        return (
+          <Circle className="inline w-3 h-3 fill-yellow-500 text-yellow-500" />
+        );
       default:
-        return "🔵";
+        return (
+          <Circle className="inline w-3 h-3 fill-blue-500 text-blue-500" />
+        );
     }
   };
 

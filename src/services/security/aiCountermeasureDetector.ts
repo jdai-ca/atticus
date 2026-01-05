@@ -632,7 +632,9 @@ function detectEncodingChain(text: string): {
                 decoded = true;
                 levels++;
             }
-        } catch (e) { }
+        } catch (e) {
+            // Base64 decoding failed, continue to try hex
+        }
 
         // Try hex
         if (!decoded) {
@@ -643,7 +645,9 @@ function detectEncodingChain(text: string): {
                     decoded = true;
                     levels++;
                 }
-            } catch (e) { }
+            } catch (e) {
+                // Hex decoding failed, exit decoding loop
+            }
         }
 
         if (!decoded) break;

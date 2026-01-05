@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { downloadPDF } from "../utils/pdfExport";
 import { Conversation } from "../types";
+import { createLogger } from "../services/logger";
+
+const logger = createLogger("Sidebar");
 
 interface SidebarProps {
   readonly onOpenSettings: () => void;
@@ -55,7 +58,10 @@ export default function Sidebar({
       await downloadPDF(conv);
     } catch (error) {
       alert("Failed to export PDF");
-      console.error(error);
+      logger.error("Failed to export conversation to PDF", {
+        error,
+        conversationId: conv.id,
+      });
     }
   };
 
@@ -237,18 +243,21 @@ export default function Sidebar({
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
-                        console.log(
-                          "Delete button clicked for conversation:",
-                          conv.id
-                        );
+                        logger.debug("Delete button clicked", {
+                          conversationId: conv.id,
+                        });
                         if (globalThis.confirm("Delete this conversation?")) {
-                          console.log(
-                            "Deletion confirmed, calling deleteConversation..."
-                          );
+                          logger.info("User confirmed deletion", {
+                            conversationId: conv.id,
+                          });
                           await deleteConversation(conv.id);
-                          console.log("deleteConversation completed");
+                          logger.debug("Conversation deleted", {
+                            conversationId: conv.id,
+                          });
                         } else {
-                          console.log("Deletion cancelled");
+                          logger.debug("Deletion cancelled by user", {
+                            conversationId: conv.id,
+                          });
                         }
                       }}
                       className="p-1.5 hover:bg-gray-600 rounded transition-colors"

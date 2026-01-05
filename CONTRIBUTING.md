@@ -268,20 +268,69 @@ atticus/
 
 ### TypeScript
 
+**Type Safety - REQUIRED**
+
 ```typescript
-// ✅ Good
-interface UserPreferences {
-  theme: "light" | "dark";
-  fontSize: number;
+// ✅ GOOD: Proper interface definitions
+interface LegalPracticeArea {
+  id: string;
+  name: string;
+  keywords: string[];
+  description: string;
+  systemPrompt: string;
+  color: string;
 }
 
-function getUserPreferences(userId: string): UserPreferences {
-  // Implementation
+function loadPracticeAreas(): LegalPracticeArea[] {
+  // Implementation with proper return type
 }
 
-// ❌ Bad
-function getPrefs(id: any) {
-  // No types, unclear name
+// ❌ BAD: Using any
+function loadPracticeAreas(): any[] {
+  // Loses type safety
+}
+```
+
+### Logging - REQUIRED
+
+**Always use structured logging, never console.log**
+
+```typescript
+// ✅ GOOD: Structured logging
+import { createLogger } from "../services/logger";
+const logger = createLogger("ComponentName");
+
+logger.debug("Operation started", { userId, action });
+logger.info("User action completed", { result });
+logger.warn("Deprecation warning", { feature });
+logger.error("Operation failed", { error, context });
+
+// ❌ BAD: Console logging
+console.log("Something happened");
+console.error("Error:", error);
+```
+
+### Error Handling - REQUIRED
+
+```typescript
+// ✅ GOOD: Documented error handling
+try {
+  await riskyOperation();
+} catch (error) {
+  logger.error("Risk operation failed", { error, operation: "riskyOp" });
+  throw new Error("Operation failed: check logs for details");
+}
+
+// ❌ BAD: Empty catch block (silently swallows errors)
+try {
+  await riskyOperation();
+} catch (e) {}
+
+// ❌ BAD: Catch without logging
+try {
+  await riskyOperation();
+} catch (e) {
+  return null;
 }
 ```
 
@@ -481,5 +530,22 @@ Contributors are recognized in:
 - Release notes
 - Project README
 - Annual contributor highlights
+
+## Recent Updates (v0.9.19)
+
+### Code Quality Standards
+
+- **Type Safety**: All `any[]` types must be replaced with proper interfaces
+- **Logging**: Use `createLogger()` utility instead of console.log
+- **Error Handling**: No empty catch blocks - all errors must be logged
+- **Documentation**: Update CHANGELOG.md and relevant docs for all changes
+
+### New Documentation
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and detailed changes
+- **[docs/TECHNICAL.md](docs/TECHNICAL.md)** - Technical architecture and development guide
+- Enhanced README with code quality section
+
+---
 
 Thank you for contributing to Atticus! 🎉

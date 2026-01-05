@@ -116,24 +116,22 @@ export const useStore = create<AppState>((set, get) => ({
   loadAdvisoryAreas: async () => {
     try {
       set({ isLoading: true, error: null });
-      console.log('[Store] Loading advisory areas...');
+      logger.debug('Loading advisory areas');
       const advisoryAreas = await advisoryLoader.loadConfig();
-      console.log('[Store] Advisory areas loaded:', advisoryAreas.length, 'areas');
+      logger.info('Advisory areas loaded', { count: advisoryAreas.length });
 
       // Load advisory areas into the manager
       advisoryAreaManager.loadAdvisoryAreas(advisoryAreas);
 
       // Store in config (consistent with practice areas)
       const config = get().config;
-      console.log('[Store] Current config before update:', config.advisoryAreas?.length || 0, 'advisory areas');
+      logger.debug('Config before advisory update', { currentAreasCount: config.advisoryAreas?.length || 0 });
       set({
         config: { ...config, advisoryAreas: advisoryAreas },
         isLoading: false
       });
-      console.log('[Store] Config updated with', advisoryAreas.length, 'advisory areas');
-      logger.info('Loaded advisory areas', { count: advisoryAreas.length });
+      logger.info('Config updated with advisory areas', { count: advisoryAreas.length });
     } catch (error) {
-      console.error('[Store] Failed to load advisory areas:', error);
       logger.error('Failed to load advisory areas', { error });
       set({ error: 'Failed to load advisory area configuration', isLoading: false });
     }
@@ -297,7 +295,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       await (globalThis as any).electronAPI.deleteConversation(id);
     } catch (error) {
-      console.error('Failed to delete conversation file:', error);
+      logger.error('Failed to delete conversation file', { error, conversationId: id });
     }
 
     // Update in-memory state
@@ -462,9 +460,9 @@ export const useStore = create<AppState>((set, get) => ({
             advisoryAreas: currentConfig.advisoryAreas,
           }
         });
-        console.log('[Store] Config loaded, preserved areas:', {
-          practice: currentConfig.legalPracticeAreas.length,
-          advisory: currentConfig.advisoryAreas?.length ?? 0
+        logger.debug('Config loaded, preserved areas', {
+          practiceAreasCount: currentConfig.legalPracticeAreas.length,
+          advisoryAreasCount: currentConfig.advisoryAreas?.length ?? 0
         });
       }
     } catch (error) {

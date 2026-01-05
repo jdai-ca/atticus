@@ -4,6 +4,9 @@
  */
 
 import { ProviderConfig, ProviderTemplate } from '../types';
+import { createLogger } from '../services/logger';
+
+const logger = createLogger('ConfigMigration');
 
 /**
  * Migrate provider config to ensure all required fields are present
@@ -17,13 +20,16 @@ export function migrateProviderConfig(
     const template = templates.find(t => t.id === provider.provider);
 
     if (!template) {
-        console.warn(`[ConfigMigration] No template found for provider ${provider.provider}`);
+        logger.warn('No template found for provider', { providerId: provider.provider });
         return provider;
     }
 
     // If endpoint is missing or empty, set it from template
     if (!provider.endpoint || provider.endpoint.trim() === '') {
-        console.log(`[ConfigMigration] Fixing missing endpoint for ${provider.provider}: ${template.endpoint}`);
+        logger.info('Fixing missing endpoint for provider', {
+            providerId: provider.provider,
+            endpoint: template.endpoint
+        });
         return {
             ...provider,
             endpoint: template.endpoint,

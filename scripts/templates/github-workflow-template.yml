@@ -1,0 +1,164 @@
+# GitHub Actions Workflow for Provider Config Validation
+#
+# This workflow validates provider configuration changes on:
+# - Pull requests that modify providers.yaml
+# - Pushes to main branch
+#
+# Validation includes:
+# - YAML syntax check
+# - JSON Schema validation
+# - Duplicate ID detection
+# - Required field verification
+
+name: Validate Provider Config
+
+on:
+  pull_request:
+    paths:
+      - "providers.yaml"
+      - "schemas/**"
+      - ".github/workflows/validate.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "providers.yaml"
+      - "schemas/**"
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm install js-yaml@4.1.0 ajv@8.12.0 ajv-formats@2.1.1
+
+      - name: Validate YAML syntax
+        run: |
+          echo "Checking YAML syntax..."
+          node -e "
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            try {
+              const config = yaml.load(fs.readFileSync('providers.yaml', 'utf8'));
+              console.log('✅ YAML syntax valid');
+              console.log('Providers:', config.providers.length);
+              console.log('Version:', config.version);
+            } catch (error) {
+              console.error('❌ YAML syntax error:', error.message);
+              process.exit(1);
+            }
+          "
+
+      - name: Validate against JSON Schema
+        run: |
+          echo "Validating against schema..."
+          node scripts/validate-config.js providers.yaml schemas/provider-config.schema.json
+
+      - name: Check for duplicates
+        run: |
+          echo "Checking for duplicate IDs..."
+          node scripts/check-duplicates.js providers.yaml
+
+      - name: Verify version format
+        run: |
+          echo "Checking version format..."
+          node -e "
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            const config = yaml.load(fs.readFileSync('providers.yaml', 'utf8'));
+            const versionRegex = /^\d+\.\d+\.\d+$/;
+            if (!versionRegex.test(config.version)) {
+              console.error('❌ Invalid version format:', config.version);
+              console.error('Expected format: X.Y.Z (e.g., 1.0.0)');
+              process.exit(1);
+            }
+            console.log('✅ Version format valid:', config.version);
+          "
+
+      - name: Check update timestamp
+        run: |
+          echo "Verifying update timestamp..."
+          node -e "
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            const config = yaml.load(fs.readFileSync('providers.yaml', 'utf8'));
+            const timestamp = new Date(config.lastUpdated);
+            if (isNaN(timestamp.getTime())) {
+              console.error('❌ Invalid timestamp:', config.lastUpdated);
+              process.exit(1);
+            }
+            console.log('✅ Timestamp valid:', config.lastUpdated);
+          "
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "✨ All validation checks passed!"
+          echo "Configuration is ready for deployment."
+
+  # Optional: Auto-tag on merge to main
+  tag-release:
+    name: Tag Release
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(node -e "
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            const config = yaml.load(fs.readFileSync('providers.yaml', 'utf8'));
+            console.log(config.version);
+          ")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Create release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            Provider configuration v${{ steps.version.outputs.version }}
+
+            See CHANGELOG.md for details.
+          draft: false
+          prerelease: false

@@ -9,6 +9,7 @@ import {
     TagStore as TagStoreType,
     TagSuggestion
 } from '../types/tags';
+import { LegalPracticeArea } from '../types';
 
 /**
  * Zustand store for managing tags, relationships, and metadata
@@ -41,7 +42,7 @@ interface TagStoreState extends TagStoreType {
     generateSuggestions: (messageContent: string, existingTags: string[]) => TagSuggestion[];
 
     // Initialization
-    initializeSystemTags: (practiceAreas: any[], advisoryAreas: any[]) => void;
+    initializeSystemTags: (practiceAreas: LegalPracticeArea[], advisoryAreas: LegalPracticeArea[]) => void;
 }
 
 /**
@@ -345,7 +346,7 @@ export const useTagStore = create<TagStoreState>()(
             },
 
             // Initialize system tags from practice and advisory areas
-            initializeSystemTags: (practiceAreas: any[], advisoryAreas: any[]) => {
+            initializeSystemTags: (practiceAreas: LegalPracticeArea[], advisoryAreas: LegalPracticeArea[]) => {
                 set((state) => {
                     const newTags = new Map(state.tags);
 

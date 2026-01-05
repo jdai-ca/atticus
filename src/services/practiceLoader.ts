@@ -12,6 +12,9 @@ import yaml from 'js-yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import practiceSchema from '../schemas/practice-config.schema.json';
+import { createLogger } from './logger';
+
+const logger = createLogger('PracticeLoader');
 
 interface PracticeConfigFile {
     version: string;
@@ -48,7 +51,7 @@ class PracticeConfigLoader {
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         this.updateFromRemote(current.version).catch(err => {
-            console.warn('[PracticeLoader] Remote update failed:', err.message);
+            logger.warn('Remote update failed', { error: err.message });
         });
 
         return current.practiceAreas;
@@ -63,7 +66,7 @@ class PracticeConfigLoader {
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                console.log('[PracticeLoader] Loading bundled config via Electron IPC');
+                logger.debug('Loading bundled config via Electron IPC');
                 const result = await (globalThis as any).electronAPI.loadBundledConfig('practices.yaml');
 
                 if (!result.success || !result.data) {
@@ -74,7 +77,7 @@ class PracticeConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                console.log('[PracticeLoader] Loading bundled config via fetch');
+                logger.debug('Loading bundled config via fetch');
                 const response = await fetch('/config/practices.yaml');
                 if (!response.ok) {
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
@@ -88,10 +91,10 @@ class PracticeConfigLoader {
                 throw new Error('Bundled config validation failed');
             }
 
-            console.log('[PracticeLoader] Bundled config loaded: version', config.version);
+            logger.info('Bundled config loaded', { version: config.version });
             return config;
         } catch (error) {
-            console.error('[PracticeLoader] Failed to load bundled config:', error);
+            logger.error('Failed to load bundled config', { error });
             // Return emergency fallback
             return this.getEmergencyFallback();
         }
@@ -110,15 +113,15 @@ class PracticeConfigLoader {
             const config = JSON.parse(cached) as PracticeConfigFile;
 
             if (!this.validateConfig(config)) {
-                console.warn('[PracticeLoader] Cached config failed validation');
+                logger.warn('Cached config failed validation');
                 localStorage.removeItem(this.CACHE_KEY);
                 return null;
             }
 
-            console.log('[PracticeLoader] Loaded cached config: version', config.version);
+            logger.info('Loaded cached config', { version: config.version });
             return config;
         } catch (error) {
-            console.warn('[PracticeLoader] Failed to load cached config:', error);
+            logger.warn('Failed to load cached config', { error });
             return null;
         }
     }
@@ -133,16 +136,16 @@ class PracticeConfigLoader {
 
             // Skip remote update if configuration has been customized by user
             if (bundled.customized === true) {
-                console.log('[PracticeLoader] Skipping remote update - configuration is customized');
+                logger.info('Skipping remote update - configuration is customized');
                 return;
             }
 
             if (!bundled.updateUrl) {
-                console.log('[PracticeLoader] No update URL configured');
+                logger.debug('No update URL configured');
                 return;
             }
 
-            console.log('[PracticeLoader] Checking for remote updates...');
+            logger.debug('Checking for remote updates');
             const response = await fetch(bundled.updateUrl, {
                 cache: 'no-cache',
                 headers: {
@@ -162,21 +165,21 @@ class PracticeConfigLoader {
             }
 
             if (!this.isCompatibleVersion(config)) {
-                console.warn('[PracticeLoader] Remote config requires newer app version');
+                logger.warn('Remote config requires newer app version', { minRequired: config.minAppVersion });
                 return;
             }
 
             if (this.compareVersions(config.version, currentVersion) > 0) {
-                console.log(`[PracticeLoader] New config available: ${config.version} (current: ${currentVersion})`);
+                logger.info('New config available', { newVersion: config.version, currentVersion });
                 this.cacheConfig(config);
 
                 // Notify user about update (optional)
                 this.notifyConfigUpdate(config.version);
             } else {
-                console.log('[PracticeLoader] Config is up to date');
+                logger.debug('Config is up to date');
             }
         } catch (error) {
-            console.warn('[PracticeLoader] Remote update failed:', error);
+            logger.warn('Remote update failed', { error });
             // Don't throw - we have fallback configs
         }
     }
@@ -188,12 +191,12 @@ class PracticeConfigLoader {
         const valid = this.validate(config);
 
         if (!valid) {
-            console.error('[PracticeLoader] Validation errors:', this.validate.errors);
+            logger.error('Validation errors', { errors: this.validate.errors });
             // Log each error in detail
             if (this.validate.errors) {
                 for (let index = 0; index < this.validate.errors.length; index++) {
                     const error = this.validate.errors[index];
-                    console.error(`  Error ${index + 1}:`, {
+                    logger.error(`Validation error ${index + 1}`, {
                         path: error.dataPath || error.schemaPath,
                         message: error.message,
                         params: error.params
@@ -211,7 +214,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.18';
+        const appVersion = '0.9.19';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -247,9 +250,9 @@ class PracticeConfigLoader {
         try {
             localStorage.setItem(this.CACHE_KEY, JSON.stringify(config));
             localStorage.setItem(this.VERSION_KEY, config.version);
-            console.log('[PracticeLoader] Config cached successfully');
+            logger.debug('Config cached successfully', { version: config.version });
         } catch (error) {
-            console.warn('[PracticeLoader] Failed to cache config:', error);
+            logger.warn('Failed to cache config', { error });
         }
     }
 
@@ -257,7 +260,7 @@ class PracticeConfigLoader {
      * Notify about config update (can be extended with UI notifications)
      */
     private notifyConfigUpdate(newVersion: string): void {
-        console.log(`[PracticeLoader] Practice area config updated to ${newVersion}`);
+        logger.info('Practice area config updated', { version: newVersion });
         // Dispatch event for UI notification
         (globalThis as any).dispatchEvent(new CustomEvent('practice-config-updated', {
             detail: { version: newVersion }
@@ -272,7 +275,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.18',
+            minAppVersion: '0.9.19',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {
@@ -318,7 +321,7 @@ class PracticeConfigLoader {
             this.cacheConfig(config);
             return true;
         } catch (error) {
-            console.error('[PracticeLoader] Force update failed:', error);
+            logger.error('Force update failed', { error });
             return false;
         }
     }
@@ -329,7 +332,7 @@ class PracticeConfigLoader {
     clearCache(): void {
         localStorage.removeItem(this.CACHE_KEY);
         localStorage.removeItem(this.VERSION_KEY);
-        console.log('[PracticeLoader] Cache cleared');
+        logger.info('Cache cleared');
     }
 
     /**

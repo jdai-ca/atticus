@@ -1,6 +1,6 @@
 {
   "name": "atticus",
-  "version": "0.9.18",
+  "version": "0.9.19",
   "description": "Atticus - In-House AI Counsel",
   "main": "dist-electron/main.js",
   "author": "John Kost",
@@ -8,19 +8,17 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "vite build && electron-builder",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
-    "validate:practices": "node scripts/validate-practices-clean.js",
-    "validate:advisory": "node scripts/validate-advisory-clean.js",
-    "validate:providers": "node scripts/validate-providers-clean.js",
-    "validate:analysis": "node scripts/validate-analysis-clean.js",
+    "validate:practices": "node scripts/validate-practices.js",
+    "validate:advisory": "node scripts/validate-advisory.js",
+    "validate:providers": "node scripts/validate-providers.js",
+    "validate:analysis": "node scripts/validate-analysis.js",
     "validate:all": "npm run validate:practices && npm run validate:advisory && npm run validate:providers && npm run validate:analysis",
     "ediscovery": "tsx scripts/eDiscovery.ts",
-    "ediscovery:export": "tsx scripts/eDiscovery.ts --export",
-    "predev": "npm run validate:all",
-    "prebuild": "npm run validate:all"
+    "ediscovery:export": "tsx scripts/eDiscovery.ts --export"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

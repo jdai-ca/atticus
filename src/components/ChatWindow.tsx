@@ -7,6 +7,12 @@ import {
   Settings,
   Shield,
   DollarSign,
+  Circle,
+  AlertCircle,
+  Check,
+  X,
+  Scale,
+  BarChart3,
 } from "lucide-react";
 import {
   Message,
@@ -14,6 +20,8 @@ import {
   ModelDomain,
   SelectedModel,
   APITrace,
+  Attachment,
+  FileUploadResult,
 } from "../types";
 // Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
@@ -69,12 +77,12 @@ export default function ChatWindow({
   } = useStore();
 
   const [input, setInput] = useState("");
-  const [attachments, setAttachments] = useState<any[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [fileSecurityReports, setFileSecurityReports] = useState<
     Map<string, SecurityAnalysisResult>
   >(new Map());
   const [showFileSecurityWarning, setShowFileSecurityWarning] = useState(false);
-  const [pendingFile, setPendingFile] = useState<any>(null);
+  const [pendingFile, setPendingFile] = useState<FileUploadResult | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileProcessingProgress, setFileProcessingProgress] = useState(0);
   const [fileProcessingStage, setFileProcessingStage] = useState("");
@@ -82,7 +90,8 @@ export default function ChatWindow({
   const [fileProcessingError, setFileProcessingError] = useState<string | null>(
     null
   );
-  const [fileProcessingResult, setFileProcessingResult] = useState<any>(null);
+  const [fileProcessingResult, setFileProcessingResult] =
+    useState<SecurityAnalysisResult | null>(null);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(
     new Set()
@@ -188,31 +197,31 @@ export default function ChatWindow({
   // Helper to restore focus to the textarea after modals/dialogs close
   // Uses requestAnimationFrame and a longer timeout to ensure DOM updates and alerts have cleared
   const restoreTextareaFocus = () => {
-    console.debug("restoreTextareaFocus called");
+    logger.debug("Restoring textarea focus");
 
     // Try multiple times to ensure focus is restored
     const attemptFocus = (attempts = 0) => {
       if (attempts > 5) {
-        console.warn("Failed to restore textarea focus after 5 attempts");
+        logger.warn("Failed to restore textarea focus after 5 attempts");
         return;
       }
 
       requestAnimationFrame(() => {
         setTimeout(() => {
           if (textareaRef.current) {
-            console.debug(`Focus attempt ${attempts + 1}`);
+            logger.debug("Focus attempt", { attempt: attempts + 1 });
             textareaRef.current.focus();
 
             // Verify focus was successful, if not try again
             setTimeout(() => {
               const isFocused = document.activeElement === textareaRef.current;
-              console.debug(`Focus check: ${isFocused}`);
+              logger.debug("Focus check result", { isFocused });
               if (!isFocused) {
                 attemptFocus(attempts + 1);
               }
             }, 50);
           } else {
-            console.warn("textareaRef.current is null");
+            logger.warn("Textarea ref is null during focus attempt");
           }
         }, 100 + attempts * 50); // Increase delay with each attempt
       });
@@ -1624,14 +1633,24 @@ ${separator}${responses.join("\n\n" + separator)}`;
         });
 
         // Show detailed security summary
-        const threatEmoji =
-          securityReport.threatLevel === "critical"
-            ? "🔴"
-            : securityReport.threatLevel === "high"
-            ? "🟠"
-            : securityReport.threatLevel === "medium"
-            ? "🟡"
-            : "🟢";
+        const getThreatIcon = () => {
+          const level = securityReport.threatLevel;
+          if (level === "critical")
+            return (
+              <Circle className="inline w-3 h-3 fill-red-500 text-red-500" />
+            );
+          if (level === "high")
+            return (
+              <Circle className="inline w-3 h-3 fill-orange-500 text-orange-500" />
+            );
+          if (level === "medium")
+            return (
+              <Circle className="inline w-3 h-3 fill-yellow-500 text-yellow-500" />
+            );
+          return (
+            <Circle className="inline w-3 h-3 fill-green-500 text-green-500" />
+          );
+        };
 
         const findingsSummary =
           [
@@ -1713,7 +1732,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         // Show success result in dialog
         showFileProcessingResult(true, "File attached successfully", {
           fileName: fileData.name,
-          threatEmoji,
+          threatIcon: getThreatIcon(),
           riskScore: securityReport.riskScore,
           threatLevel: securityReport.threatLevel,
           action: securityReport.action,
@@ -2657,35 +2676,27 @@ ${separator}${responses.join("\n\n" + separator)}`;
               {/* Privacy Audit Log Button */}
               <button
                 onClick={() => setShowAuditLog(true)}
-                className="flex items-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 px-4 py-2 rounded-lg transition-colors border border-blue-500/50"
+                className="flex items-center justify-center bg-blue-600/20 hover:bg-blue-600/30 p-2 rounded-lg transition-colors border border-blue-500/50"
                 title="View Privacy Scan Audit Log"
               >
-                <Shield className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium text-blue-300">
-                  Audit Log
-                </span>
+                <Shield className="w-5 h-5 text-blue-400" />
               </button>
 
               {/* Cost Ledger Button */}
               <button
                 onClick={() => setShowCostLedger(true)}
-                className="flex items-center gap-2 bg-green-600/20 hover:bg-green-600/30 px-4 py-2 rounded-lg transition-colors border border-green-500/50"
+                className="flex items-center justify-center bg-green-600/20 hover:bg-green-600/30 p-2 rounded-lg transition-colors border border-green-500/50"
                 title="View Cost Ledger"
               >
-                <DollarSign className="w-4 h-4 text-green-400" />
-                <span className="text-sm font-medium text-green-300">
-                  Cost Ledger
-                </span>
+                <DollarSign className="w-5 h-5 text-green-400" />
               </button>
 
               <button
                 onClick={() => setShowConfigDialog(!showConfigDialog)}
-                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg transition-colors border border-gray-500"
+                className="flex items-center justify-center bg-gray-600 hover:bg-gray-500 p-2 rounded-lg transition-colors border border-gray-500"
+                title="Configure Thread"
               >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium text-white">
-                  Configure Thread
-                </span>
+                <Settings className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -2822,20 +2833,21 @@ ${separator}${responses.join("\n\n" + separator)}`;
                             )}
                             {model.domains === "both" && (
                               <>
-                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
-                                  ⚖️ Law
+                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600 flex items-center gap-1">
+                                  <Scale className="w-3 h-3" /> Law
                                 </span>
-                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600">
-                                  📊 Advisory
+                                <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-medium border border-gray-600 flex items-center gap-1">
+                                  <BarChart3 className="w-3 h-3" /> Advisory
                                 </span>
                               </>
                             )}
                             {model.maxContextWindow <= 16384 && (
                               <span
-                                className="bg-amber-900/30 text-amber-300 px-2 py-1 rounded text-xs font-medium border border-amber-700"
+                                className="bg-amber-900/30 text-amber-300 px-2 py-1 rounded text-xs font-medium border border-amber-700 flex items-center gap-1"
                                 title="Small context window - may not fit complex system prompts with multiple jurisdictions"
                               >
-                                ⚠️ {(model.maxContextWindow / 1024).toFixed(0)}K
+                                <AlertCircle className="w-3 h-3" />{" "}
+                                {(model.maxContextWindow / 1024).toFixed(0)}K
                                 context
                               </span>
                             )}
@@ -3523,7 +3535,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             }}
             onFocus={() => {
               // Log when focus is gained (for debugging)
-              console.debug("Textarea focused");
+              logger.debug("Textarea focused");
             }}
             placeholder="Ask a legal/business question..."
             className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none cursor-text"
@@ -3722,11 +3734,11 @@ ${separator}${responses.join("\n\n" + separator)}`;
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 {fileProcessingError ? (
                   <>
-                    <span className="text-2xl">❌</span> Upload Failed
+                    <X className="w-6 h-6 text-red-500" /> Upload Failed
                   </>
                 ) : fileProcessingComplete ? (
                   <>
-                    <span className="text-2xl">✅</span> Upload Complete
+                    <Check className="w-6 h-6 text-green-500" /> Upload Complete
                   </>
                 ) : isProcessingFile ? (
                   <>
@@ -3735,7 +3747,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
                   </>
                 ) : (
                   <>
-                    <span className="text-2xl">⚠️</span> High-Risk File Detected
+                    <AlertCircle className="w-6 h-6 text-yellow-500" />{" "}
+                    High-Risk File Detected
                   </>
                 )}
               </h3>
@@ -3871,7 +3884,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">
-                        {fileProcessingResult.threatEmoji}
+                        {fileProcessingResult.threatIcon}
                       </span>
                       <div className="flex-1">
                         <h4 className="text-green-400 font-semibold mb-1">
@@ -4034,13 +4047,17 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                             : "text-blue-500"
                                         }`}
                                       >
-                                        {finding.severity === "CRITICAL"
-                                          ? "🔴"
-                                          : finding.severity === "HIGH"
-                                          ? "🟠"
-                                          : finding.severity === "MEDIUM"
-                                          ? "🟡"
-                                          : "🔵"}
+                                        <Circle
+                                          className={`w-3 h-3 inline ${
+                                            finding.severity === "CRITICAL"
+                                              ? "fill-red-500"
+                                              : finding.severity === "HIGH"
+                                              ? "fill-orange-500"
+                                              : finding.severity === "MEDIUM"
+                                              ? "fill-yellow-500"
+                                              : "fill-blue-500"
+                                          }`}
+                                        />
                                       </span>
                                       <div className="flex-1">
                                         <div className="text-gray-300">

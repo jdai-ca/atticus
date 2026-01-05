@@ -12,6 +12,9 @@ import yaml from 'js-yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import advisorySchema from '../schemas/advisory-config.schema.json';
+import { createLogger } from './logger';
+
+const logger = createLogger('AdvisoryLoader');
 
 interface AdvisoryConfigFile {
     version: string;
@@ -40,19 +43,19 @@ class AdvisoryConfigLoader {
     async loadConfig(): Promise<LegalPracticeArea[]> {
         // 1. Load bundled config (always available)
         const bundled = await this.loadBundledConfig();
-        console.log('[AdvisoryLoader] Bundled config loaded, areas:', bundled.practiceAreas.length);
+        logger.info('Bundled config loaded', { areasCount: bundled.practiceAreas.length });
 
         // 2. Try to load from cache
         const cached = this.loadCachedConfig();
         let current = this.selectNewerConfig(bundled, cached);
-        console.log('[AdvisoryLoader] Using config version:', current.version, 'with', current.practiceAreas.length, 'areas');
+        logger.info('Using config', { version: current.version, areasCount: current.practiceAreas.length });
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         this.updateFromRemote(current.version).catch(err => {
-            console.warn('[AdvisoryLoader] Remote update failed:', err.message);
+            logger.warn('Remote update failed', { error: err.message });
         });
 
-        console.log('[AdvisoryLoader] Returning', current.practiceAreas.length, 'advisory areas');
+        logger.debug('Returning advisory areas', { count: current.practiceAreas.length });
         return current.practiceAreas;
     }
 
@@ -65,7 +68,7 @@ class AdvisoryConfigLoader {
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                console.log('[AdvisoryLoader] Loading bundled config via Electron IPC');
+                logger.debug('Loading bundled config via Electron IPC');
                 const result = await (globalThis as any).electronAPI.loadBundledConfig('advisory.yaml');
 
                 if (!result.success || !result.data) {
@@ -76,7 +79,7 @@ class AdvisoryConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                console.log('[AdvisoryLoader] Loading bundled config via fetch');
+                logger.debug('Loading bundled config via fetch');
                 const response = await fetch('/config/advisory.yaml');
                 if (!response.ok) {
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
@@ -90,10 +93,10 @@ class AdvisoryConfigLoader {
                 throw new Error('Bundled config validation failed');
             }
 
-            console.log('[AdvisoryLoader] Bundled config loaded: version', config.version);
+            logger.info('Bundled config loaded', { version: config.version });
             return config;
         } catch (error) {
-            console.error('[AdvisoryLoader] Failed to load bundled config:', error);
+            logger.error('Failed to load bundled config', { error });
             // Return emergency fallback
             return this.getEmergencyFallback();
         }
@@ -112,15 +115,15 @@ class AdvisoryConfigLoader {
             const config = JSON.parse(cached) as AdvisoryConfigFile;
 
             if (!this.validateConfig(config)) {
-                console.warn('[AdvisoryLoader] Cached config failed validation');
+                logger.warn('Cached config failed validation');
                 localStorage.removeItem(this.CACHE_KEY);
                 return null;
             }
 
-            console.log('[AdvisoryLoader] Cached config loaded: version', config.version);
+            logger.info('Cached config loaded', { version: config.version });
             return config;
         } catch (error) {
-            console.warn('[AdvisoryLoader] Error loading cached config:', error);
+            logger.warn('Error loading cached config', { error });
             return null;
         }
     }
@@ -135,16 +138,16 @@ class AdvisoryConfigLoader {
 
             // Skip remote update if configuration has been customized by user
             if (bundled.customized === true) {
-                console.log('[AdvisoryLoader] Skipping remote update - configuration is customized');
+                logger.info('Skipping remote update - configuration is customized');
                 return;
             }
 
             if (!bundled.updateUrl) {
-                console.log('[AdvisoryLoader] No update URL configured');
+                logger.debug('No update URL configured');
                 return;
             }
 
-            console.log('[AdvisoryLoader] Checking for updates at', bundled.updateUrl);
+            logger.debug('Checking for updates', { url: bundled.updateUrl });
             const response = await fetch(bundled.updateUrl, {
                 cache: 'no-cache',
                 headers: {
@@ -165,14 +168,14 @@ class AdvisoryConfigLoader {
 
             // Only update if remote is newer
             if (this.isNewerVersion(remoteConfig.version, currentVersion)) {
-                console.log('[AdvisoryLoader] New version available:', remoteConfig.version);
+                logger.info('New version available', { remoteVersion: remoteConfig.version, currentVersion });
                 this.cacheConfig(remoteConfig);
             } else {
-                console.log('[AdvisoryLoader] Current version is up to date');
+                logger.debug('Current advisory version is up to date', { version: currentVersion });
             }
         } catch (error) {
             // Remote update failure is not critical
-            console.warn('[AdvisoryLoader] Remote update failed:', error);
+            logger.warn('Remote advisory update failed', { error });
         }
     }
 
@@ -183,10 +186,14 @@ class AdvisoryConfigLoader {
         const valid = this.validate(config);
 
         if (!valid && this.validate.errors) {
-            console.error('[AdvisoryLoader] Validation errors:', this.validate.errors);
-            for (const error of this.validate.errors) {
-                console.error(`  - ${error.schemaPath} ${error.message}`, error.params);
-            }
+            logger.error('Advisory configuration validation errors', {
+                errorCount: this.validate.errors.length,
+                errors: this.validate.errors.map(e => ({
+                    schemaPath: e.schemaPath,
+                    message: e.message,
+                    params: e.params
+                }))
+            });
         }
 
         return valid as boolean;
@@ -228,9 +235,9 @@ class AdvisoryConfigLoader {
         try {
             localStorage.setItem(this.CACHE_KEY, JSON.stringify(config));
             localStorage.setItem(this.VERSION_KEY, config.version);
-            console.log('[AdvisoryLoader] Config cached: version', config.version);
+            logger.debug('Config cached', { version: config.version });
         } catch (error) {
-            console.warn('[AdvisoryLoader] Failed to cache config:', error);
+            logger.warn('Failed to cache advisory configuration', { error });
         }
     }
 
@@ -240,7 +247,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.18',
+            minAppVersion: '0.9.19',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

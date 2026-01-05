@@ -19,6 +19,9 @@ import {
 } from './security/aiCountermeasureDetector';
 import { calculateRiskScore } from './security/riskScorer';
 import { generateSecurityReport, RedactionSuggestion, ComplianceViolation } from './security/reportGenerator';
+import { createLogger } from './logger';
+
+const logger = createLogger('FileSecurityPipeline');
 
 // Re-export types for convenience
 export type { PIIFinding, PIIType, AdversarialFinding, SteganographyFinding, ObfuscationFinding, AIEvasionFinding, RedactionSuggestion, ComplianceViolation };
@@ -65,7 +68,7 @@ export interface SecurityAnalysisResult {
  * Main pipeline - orchestrates all security checks
  */
 export async function analyzeFile(file: UploadedFile): Promise<SecurityAnalysisResult> {
-    console.log(`[FileSecurityPipeline] Starting analysis of ${file.name}`);
+    logger.info('Starting file analysis', { fileName: file.name, fileSize: file.size });
 
     try {
         // Phase 1: Pre-Processing & Triage
@@ -154,7 +157,7 @@ export async function analyzeFile(file: UploadedFile): Promise<SecurityAnalysisR
             riskAssessment
         });
 
-        console.log(`[FileSecurityPipeline] Analysis complete - Risk Score: ${report.riskScore}, Action: ${report.action}`);
+        logger.info('Analysis complete', { fileName: file.name, riskScore: report.riskScore, action: report.action });
 
         return {
             ...report,
@@ -164,7 +167,7 @@ export async function analyzeFile(file: UploadedFile): Promise<SecurityAnalysisR
         };
 
     } catch (error) {
-        console.error('[FileSecurityPipeline] Analysis failed:', error);
+        logger.error('File security analysis failed', { error, fileName: file.name });
         throw error;
     }
 }
@@ -210,7 +213,7 @@ export async function analyzeFiles(files: UploadedFile[]): Promise<SecurityAnaly
             const result = await analyzeFile(file);
             results.push(result);
         } catch (error) {
-            console.error(`[FileSecurityPipeline] Failed to analyze ${file.name}:`, error);
+            logger.error('Failed to analyze file in batch', { fileName: file.name, error });
             // Create error report
             results.push({
                 reportId: generateReportId(),

@@ -18,8 +18,10 @@ import Ajv from 'ajv';
 import { ProviderTemplate, AIProvider } from '../types';
 import providerSchema from '../schemas/provider-config.schema.json';
 import { isDevelopmentMode } from '../utils/devMode';
+import { createLogger } from './logger';
 
 const ajv = new Ajv({ allErrors: true });
+const logger = createLogger('ConfigLoader');
 
 interface ProviderConfigFile {
     version: string;
@@ -88,7 +90,7 @@ export class ConfigLoader {
         // 3. Try remote update (non-blocking, won't delay app startup)
         if (!isDevelopmentMode()) {
             this.updateFromRemote(current.version).catch(err => {
-                console.warn('[ConfigLoader] Remote update failed:', err.message);
+                logger.warn('Remote update failed', { error: err.message });
             });
         }
 
@@ -129,7 +131,7 @@ export class ConfigLoader {
 
             return config;
         } catch (error) {
-            console.error('[ConfigLoader] CRITICAL: Bundled config failed to load', error);
+            logger.error('CRITICAL: Bundled config failed to load', { error });
             throw new Error('Cannot load bundled provider configuration');
         }
     }
@@ -147,14 +149,14 @@ export class ConfigLoader {
             const config = JSON.parse(cached) as ProviderConfigFile;
 
             if (!this.validateConfig(config)) {
-                console.warn('[ConfigLoader] Cached config validation failed, ignoring');
+                logger.warn('Cached config validation failed, ignoring');
                 localStorage.removeItem('provider-config');
                 return null;
             }
 
             return config;
         } catch (error) {
-            console.warn('[ConfigLoader] Failed to load cached config:', error);
+            logger.warn('Failed to load cached config', { error });
             return null;
         }
     }
@@ -189,17 +191,20 @@ export class ConfigLoader {
             }
 
             if (!this.isCompatibleVersion(config)) {
-                console.warn('[ConfigLoader] Remote config requires newer app version');
+                logger.warn('Remote config requires newer app version', { minRequired: config.minAppVersion });
                 return;
             }
 
             if (this.compareVersions(config.version, currentVersion) > 0) {
-                console.log(`[ConfigLoader] Updated to config version ${config.version}`);
+                logger.info('Updated to new config version', {
+                    newVersion: config.version,
+                    previousVersion: currentVersion
+                });
                 this.cacheConfig(config);
                 this.notifyConfigUpdate(config.version);
             }
         } catch (error) {
-            console.warn('[ConfigLoader] Remote update failed:', error);
+            logger.warn('Remote config update failed', { error });
             // Don't throw - we have fallback configs
         }
     }
@@ -211,7 +216,7 @@ export class ConfigLoader {
         const valid = this.validate(config);
 
         if (!valid) {
-            console.error('[ConfigLoader] Validation errors:', this.validate.errors);
+            logger.error('Validation errors', { errors: this.validate.errors });
             return false;
         }
 
@@ -233,7 +238,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.18';
+        return '0.9.19';
     }
 
     /**
@@ -273,7 +278,7 @@ export class ConfigLoader {
             localStorage.setItem('provider-config-version', config.version);
             localStorage.setItem('provider-config-updated', new Date().toISOString());
         } catch (error) {
-            console.warn('[ConfigLoader] Failed to cache config:', error);
+            logger.warn('Failed to cache provider configuration', { error });
         }
     }
 

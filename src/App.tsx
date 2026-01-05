@@ -3,11 +3,13 @@ import { useStore } from "./store";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import Settings from "./components/Settings";
-import { Scale, Settings as SettingsIcon } from "lucide-react";
+import LogViewer from "./components/LogViewer";
+import { Scale, Settings as SettingsIcon, FileText } from "lucide-react";
 import packageJson from "../package.json";
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
+  const [showLogViewer, setShowLogViewer] = useState(false);
   const [openConfigDialog, setOpenConfigDialog] = useState(false);
   const {
     loadConfig,
@@ -72,12 +74,18 @@ function App() {
                 )}
               </div>
               <button
+                onClick={() => setShowLogViewer(true)}
+                className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                title="View Logs"
+              >
+                <FileText className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowSettings(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
+                className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                 title="Settings"
               >
-                <SettingsIcon className="w-4 h-4" />
-                <span>Settings</span>
+                <SettingsIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -105,6 +113,9 @@ function App() {
 
       {/* Settings Modal */}
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+
+      {/* Log Viewer Modal */}
+      {showLogViewer && <LogViewer onClose={() => setShowLogViewer(false)} />}
     </div>
   );
 }

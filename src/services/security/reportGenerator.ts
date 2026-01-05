@@ -10,6 +10,9 @@ import { RiskAssessment } from './riskScorer';
 import { FileTypeAnalysis } from './fileTypeDetector';
 import { ExtractedContent } from './contentExtractor';
 import { UploadedFile } from '../fileSecurityPipeline';
+import { createLogger } from '../logger';
+
+const logger = createLogger('SecurityReportGenerator');
 
 export interface RedactionSuggestion {
     location: {
@@ -326,11 +329,13 @@ async function notifySecurityTeam(
     riskAssessment: RiskAssessment
 ): Promise<void> {
     // In production, this would send email/Slack notification to security team
-    console.log(`[SECURITY ALERT] Critical threat detected in file: ${file.name}`);
-    console.log(`Report ID: ${reportId}`);
-    console.log(`Risk Score: ${riskAssessment.overallScore}/100`);
-    console.log(`Uploader: ${file.uploaderId || 'Unknown'}`);
-    console.log(`Timestamp: ${new Date().toISOString()}`);
+    logger.warn('SECURITY ALERT: Critical threat detected', {
+        reportId,
+        fileName: file.name,
+        riskScore: riskAssessment.overallScore,
+        uploader: file.uploaderId || 'Unknown',
+        timestamp: new Date().toISOString()
+    });
 
     // TODO: Implement actual notification system
     // - Send email to security@company.com
@@ -345,16 +350,14 @@ async function notifyComplianceOfficer(
     violations: ComplianceViolation[]
 ): Promise<void> {
     // In production, this would send notification to compliance officer
-    console.log(`[COMPLIANCE ALERT] Regulatory violations detected in file: ${file.name}`);
-    console.log(`Report ID: ${reportId}`);
-    console.log(`Violations: ${violations.map(v => v.framework).join(', ')}`);
-    console.log(`Uploader: ${file.uploaderId || 'Unknown'}`);
-
-    // Log reporting deadlines
-    violations.forEach(v => {
-        if (v.reportingDeadline) {
-            console.log(`⏱️  ${v.framework} reporting deadline: ${v.reportingDeadline}`);
-        }
+    logger.warn('COMPLIANCE ALERT: Regulatory violations detected', {
+        reportId,
+        fileName: file.name,
+        violations: violations.map(v => v.framework).join(', '),
+        uploader: file.uploaderId || 'Unknown',
+        deadlines: violations
+            .filter(v => v.reportingDeadline)
+            .map(v => ({ framework: v.framework, deadline: v.reportingDeadline }))
     });
 
     // TODO: Implement actual notification system

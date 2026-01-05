@@ -4,12 +4,25 @@ import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import path from 'node:path';
 
+// External packages that should not be bundled
+const EXTERNAL_PACKAGES = [
+  '@google/genai',
+  '@mistralai/mistralai',
+  '@anthropic-ai/sdk',
+  'cohere-ai',
+  'google-auth-library',
+  'zod',
+  '@aws-crypto',
+  '@aws-sdk',
+  '@smithy'
+];
+
 export default defineConfig({
   plugins: [
     react(),
     electron([
       {
-        entry: 'electron/main.ts',
+        entry: 'src/electron/main.ts',
         onstart(options) {
           options.startup();
         },
@@ -19,16 +32,7 @@ export default defineConfig({
             rollupOptions: {
               external: (id) => {
                 // Externalize electron and all native SDKs plus their dependencies
-                return id === 'electron' ||
-                  id.startsWith('@google/genai') ||
-                  id.startsWith('@mistralai/mistralai') ||
-                  id.startsWith('@anthropic-ai/sdk') ||
-                  id.startsWith('cohere-ai') ||
-                  id.startsWith('google-auth-library') ||
-                  id.startsWith('zod') ||
-                  id.startsWith('@aws-crypto') ||
-                  id.startsWith('@aws-sdk') ||
-                  id.startsWith('@smithy');
+                return id === 'electron' || EXTERNAL_PACKAGES.some(pkg => id.startsWith(pkg));
               },
               output: {
                 format: 'es'
@@ -38,7 +42,7 @@ export default defineConfig({
         }
       },
       {
-        entry: 'electron/preload.ts',
+        entry: 'src/electron/preload.ts',
         onstart(options) {
           options.reload();
         },

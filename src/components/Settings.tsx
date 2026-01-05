@@ -8,10 +8,14 @@ import {
   ProviderTemplate,
   ModelDomain,
   ModelDomainConfig,
+  LegalPracticeArea,
 } from "../types";
 import { JURISDICTIONS } from "../config/jurisdictions";
 import { piiScanner } from "../services/piiScanner";
 import packageJson from "../../package.json";
+import { createLogger } from "../services/logger";
+
+const logger = createLogger("Settings");
 
 // Helper component for area cards with dynamic border colors
 function AreaCard({
@@ -90,7 +94,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Debug: Log config changes
   useEffect(() => {
-    console.log("[Settings] Config updated:", {
+    logger.debug("Config updated", {
       advisoryAreas: config.advisoryAreas?.length || 0,
       practiceAreas: config.legalPracticeAreas?.length || 0,
       providers: config.providers?.length || 0,
@@ -106,25 +110,25 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Parse YAML to structured areas array
   // Parse YAML to areas using js-yaml
-  const parseYamlToAreas = (yamlText: string): any[] => {
+  const parseYamlToAreas = (yamlText: string): LegalPracticeArea[] => {
     try {
       const parsed = yaml.load(yamlText) as any;
       return parsed?.practiceAreas || [];
     } catch (error) {
-      console.error("[Settings] Failed to parse YAML:", error);
+      logger.error("Failed to parse YAML", { error });
       throw new Error(`YAML parsing failed: ${(error as Error).message}`);
     }
   };
 
   // Serialize areas back to YAML using js-yaml
-  const serializeAreasToYaml = (areas: any[]): string => {
+  const serializeAreasToYaml = (areas: LegalPracticeArea[]): string => {
     const now = new Date().toISOString();
     const type = editingYamlType === "practices" ? "practices" : "advisory";
 
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.18",
+      minAppVersion: "0.9.19",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -221,7 +225,7 @@ export default function Settings({ onClose }: SettingsProps) {
     type: "practices" | "advisory" | "analysis"
   ) => {
     try {
-      console.log(`[Settings] Loading ${type} configuration...`);
+      logger.debug(`Loading ${type} configuration`);
       setYamlLoadError(null);
       const filename =
         type === "practices"
@@ -234,7 +238,7 @@ export default function Settings({ onClose }: SettingsProps) {
       if (!(globalThis as any).electronAPI?.loadBundledConfig) {
         const errorMsg =
           "Electron API not available. Please restart the application.";
-        console.error(`[Settings] ${errorMsg}`);
+        logger.error(errorMsg);
         setYamlLoadError(errorMsg);
         return;
       }
@@ -243,7 +247,7 @@ export default function Settings({ onClose }: SettingsProps) {
         filename
       );
 
-      console.log(`[Settings] Load result for ${filename}:`, {
+      logger.debug(`Load result for ${filename}`, {
         success: result.success,
         hasData: !!result.data,
         dataLength: result.data?.length,
@@ -256,7 +260,7 @@ export default function Settings({ onClose }: SettingsProps) {
         if (type === "analysis") {
           // Parse analysis.yaml
           const parsed = yaml.load(result.data) as any;
-          console.log(`[Settings] Parsed analysis.yaml:`, {
+          logger.debug(`Parsed analysis.yaml`, {
             hasAnalysis: !!parsed?.analysis,
             hasSystemPrompt: !!parsed?.analysis?.systemPrompt,
             promptLength: parsed?.analysis?.systemPrompt?.length || 0,
@@ -266,11 +270,11 @@ export default function Settings({ onClose }: SettingsProps) {
             // Allow empty prompts - user might want to add one
             setAnalysisPrompt(parsed.analysis.systemPrompt || "");
             setShowYamlEditor(true);
-            console.log(`[Settings] Analysis editor opened successfully`);
+            logger.debug(`Analysis editor opened successfully`);
           } else {
             const errorMsg =
               "Invalid analysis.yaml structure - missing 'analysis' section";
-            console.error(`[Settings] ${errorMsg}`, parsed);
+            logger.error(errorMsg, { parsed });
             setYamlLoadError(errorMsg);
           }
         } else {
@@ -278,21 +282,19 @@ export default function Settings({ onClose }: SettingsProps) {
           const areas = parseYamlToAreas(result.data);
           setParsedAreas(areas);
           setShowYamlEditor(true);
-          console.log(
-            `[Settings] ${type} editor opened with ${areas.length} areas`
-          );
+          logger.debug(`${type} editor opened with ${areas.length} areas`);
         }
       } else {
         const errorMsg =
           result.error?.message || "Failed to load configuration file";
-        console.error(`[Settings] Failed to load ${filename}:`, result.error);
+        logger.error(`Failed to load ${filename}`, { error: result.error });
         setYamlLoadError(errorMsg);
       }
     } catch (error) {
       const errorMsg = `Failed to load ${type}.yaml: ${
         (error as Error).message
       }`;
-      console.error(`[Settings] Exception loading ${type}:`, error);
+      logger.error(`Exception loading ${type}`, { error });
       setYamlLoadError(errorMsg);
     }
   };
@@ -362,7 +364,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.18
+minAppVersion: 0.9.19
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -613,7 +615,7 @@ ${analysisPrompt
     try {
       await (globalThis as any).electronAPI.deleteApiKey(template.id);
     } catch (error) {
-      console.error("Failed to delete API key from secure storage:", error);
+      logger.error("Failed to delete API key from secure storage", { error });
     }
 
     // Remove provider from config
