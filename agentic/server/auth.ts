@@ -8,23 +8,39 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ApiKeyAuth');
 
 export class ApiKeyAuth {
-    private authorizedKeys: Set<string>;
-    private adminKeys: Set<string>;
+    private authorizedKeyHashes: Set<string>;
+    private adminKeyHashes: Set<string>;
 
     constructor(apiKeys: string[], adminKeys: string[] = []) {
-        this.authorizedKeys = new Set(apiKeys.filter(key => key && key.trim().length > 0));
-        this.adminKeys = new Set(adminKeys.filter(k => k && k.trim().length > 0));
+        this.authorizedKeyHashes = new Set(
+            apiKeys
+                .filter(key => key && key.trim().length > 0)
+                .map(key => this.hashKey(key))
+        );
+        this.adminKeyHashes = new Set(
+            adminKeys
+                .filter(k => k && k.trim().length > 0)
+                .map(k => this.hashKey(k))
+        );
 
-        if (this.authorizedKeys.size === 0) {
+        if (this.authorizedKeyHashes.size === 0) {
             logger.warn('No API keys configured - all requests will be rejected');
         } else {
-            logger.info({ count: this.authorizedKeys.size }, 'ApiKeyAuth initialized');
+            logger.info({ count: this.authorizedKeyHashes.size }, 'ApiKeyAuth initialized');
         }
+    }
+
+    /**
+     * Compute SHA-256 hash of the API key
+     */
+    private hashKey(key: string): string {
+        return crypto.createHash('sha256').update(key.trim()).digest('hex');
     }
 
     /**
@@ -42,16 +58,19 @@ export class ApiKeyAuth {
                 });
             }
 
-            if (!this.authorizedKeys.has(apiKey)) {
+            const incomingKeyHash = this.hashKey(apiKey);
+
+            if (!this.authorizedKeyHashes.has(incomingKeyHash)) {
                 return res.status(403).json({
                     error: 'Forbidden',
                     message: 'Invalid API key'
                 });
             }
 
-            // Attach apiKey and admin flag to request for downstream handlers
-            (req as any).apiKey = apiKey;
-            (req as any).isAdmin = this.adminKeys.has(apiKey) || false;
+            // Attach apiKey (partial/Redacted for logs) and admin flag
+            // We do NOT store the full apiKey in the request object to avoid propagation
+            (req as any).apiKeyShape = apiKey.substring(0, 8) + '...';
+            (req as any).isAdmin = this.adminKeyHashes.has(incomingKeyHash) || false;
 
             next();
         };
@@ -64,13 +83,13 @@ export class ApiKeyAuth {
      */
     addKey(apiKey: string): void {
         if (apiKey && apiKey.trim().length > 0) {
-            this.authorizedKeys.add(apiKey);
-            logger.info({ totalKeys: this.authorizedKeys.size }, 'Added new API key');
+            this.authorizedKeyHashes.add(this.hashKey(apiKey));
+            logger.info({ totalKeys: this.authorizedKeyHashes.size }, 'Added new API key');
         }
     }
 
     isAdminKey(apiKey: string): boolean {
-        return this.adminKeys.has(apiKey);
+        return this.adminKeyHashes.has(this.hashKey(apiKey));
     }
 
     /**
@@ -79,8 +98,8 @@ export class ApiKeyAuth {
      * @param apiKey - The API key to remove
      */
     removeKey(apiKey: string): void {
-        if (this.authorizedKeys.delete(apiKey)) {
-            logger.info({ totalKeys: this.authorizedKeys.size }, 'Removed API key');
+        if (this.authorizedKeyHashes.delete(this.hashKey(apiKey))) {
+            logger.info({ totalKeys: this.authorizedKeyHashes.size }, 'Removed API key');
         }
     }
 
@@ -88,7 +107,7 @@ export class ApiKeyAuth {
      * Get count of authorized keys
      */
     getKeyCount(): number {
-        return this.authorizedKeys.size;
+        return this.authorizedKeyHashes.size;
     }
 }
 

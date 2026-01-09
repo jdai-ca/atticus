@@ -15,26 +15,41 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ConfigLoader');
 
+/** Configuration for an LLM provider */
 export interface ProviderConfig {
+    /** Unique identifier for the provider (e.g., 'openai') */
     id: string;
+    /** Human-readable name of the provider */
     name: string;
+    /** Description of the provider */
     description: string;
+    /** Base API endpoint URL */
     endpoint: string;
+    /** ID of the default model to use */
     defaultModel: string;
+    /** Authentication settings */
     authentication?: {
         apiKeyFormat?: string;
         apiKeyLabel?: string;
     };
+    /** List of supported models */
     models: ModelConfig[];
 }
 
+/** Configuration for a specific LLM model */
 export interface ModelConfig {
+    /** Unique identifier for the model (e.g., 'gpt-4') */
     id: string;
+    /** Human-readable name of the model */
     name: string;
+    /** Description of the model capabilities */
     description: string;
+    /** Maximum context window size in tokens */
     maxContextWindow: number;
+    /** Whether the model is enabled for use */
     enabled: boolean;
-    providerId: string; // Back-reference for convenience
+    /** ID of the provider (back-reference) */
+    providerId: string;
 }
 
 // New Interfaces for Advanced Logic

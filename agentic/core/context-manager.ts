@@ -1,6 +1,7 @@
 import { PIIResult } from '../types';
 import { ConfigLoader } from '../services/config-loader';
 import { piiScanner, RiskLevel, Jurisdiction, PIIDetection } from '../services/pii-scanner';
+import { SUPPORTED_JURISDICTIONS } from '../config/constants';
 
 export class ContextManager {
     private configLoader: ConfigLoader;
@@ -35,9 +36,16 @@ export class ContextManager {
 
     public scanForPII(text: string, jurisdictions: string[] = []): PIIResult {
         // Map string[] to Jurisdiction[] type safely, filtering invalid ones if needed
-        const validJurisdictions = jurisdictions.filter(j => ['CA', 'US', 'MX', 'EU', 'UK'].includes(j)) as Jurisdiction[];
+        const validJurisdictions = jurisdictions.filter(j => (SUPPORTED_JURISDICTIONS as readonly string[]).includes(j)) as Jurisdiction[];
 
         const scanResult = piiScanner.scan(text, validJurisdictions);
+
+        // Map RiskLevel enum to lowercase string for PIIResult
+        const mapRiskLevel = (level: RiskLevel): 'low' | 'medium' | 'high' | 'critical' | 'none' => {
+            const levelStr = level.toLowerCase();
+            if (levelStr === 'moderate') return 'medium';
+            return levelStr as 'low' | 'medium' | 'high' | 'critical' | 'none';
+        };
 
         // Map PIIScanner result to our PIIResult type
         return {
@@ -48,7 +56,7 @@ export class ContextManager {
                 riskLevel: f.riskLevel.toLowerCase(),
                 description: f.description
             })),
-            riskLevel: scanResult.riskLevel.toLowerCase() as any, // 'none' | 'low' | ...
+            riskLevel: mapRiskLevel(scanResult.riskLevel),
             summary: scanResult.summary
         };
     }

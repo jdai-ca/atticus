@@ -2,8 +2,12 @@ import { ConfigLoader } from '../services/config-loader';
 import { ContextManager } from './context-manager';
 import { PromptBuilder } from './prompt-builder';
 import { ModelExecutor } from './executor';
-import { Message, ModelInfo, PipelineResponse, ConversationContext } from '../types';
+import { Message, ModelInfo, PipelineResponse, ConversationContext, Attachment } from '../types';
 import { auditLogger } from '../services/audit-logger';
+import { createLogger } from '../utils/logger';
+import { ATTACHMENT_CONFIG, PII_CONFIG } from '../config/constants';
+
+const logger = createLogger('Orchestrator');
 
 export class AgenticPipeline {
     private configLoader: ConfigLoader;
@@ -26,7 +30,7 @@ export class AgenticPipeline {
         options?: { temperature?: number; maxTokens?: number; topP?: number },
         analysisModel?: ModelInfo,
         analysisOptions?: { temperature?: number; maxTokens?: number; topP?: number },
-        attachments?: Array<{ filename?: string; contentType?: string; contentBase64?: string }>
+        attachments?: Attachment[]
     ): Promise<PipelineResponse> {
         // Generate IDs for audit trail
         const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -36,23 +40,39 @@ export class AgenticPipeline {
         let attachmentTextCombined = '';
         try {
             // Use require in a try/catch to avoid TypeScript module resolution failures in test environments
-            let attachmentModule: any = null;
+            interface AttachmentModule {
+                processAttachments: (attachments?: Attachment[]) => Promise<Array<{
+                    filename?: string;
+                    size?: number;
+                    textPreview?: string;
+                    images?: unknown[];
+                    error?: string;
+                }>>;
+            }
+
+            let attachmentModule: AttachmentModule | null = null;
             try {
                 // eslint-disable-next-line @typescript-eslint/no-var-requires
                 attachmentModule = require('../services/attachment-processor');
             } catch (e) {
+                logger.debug({ err: e }, 'Attachment processor module not available');
                 attachmentModule = null;
             }
 
-            const processed: any[] = attachmentModule && attachmentModule.processAttachments
+            const processed = attachmentModule && attachmentModule.processAttachments
                 ? await attachmentModule.processAttachments(attachments)
                 : [];
-            const metas = processed.map((p: any) => ({ filename: p.filename, size: p.size, hasImages: (p.images && p.images.length > 0), error: p.error }));
+            const metas = processed.map(p => ({
+                filename: p.filename,
+                size: p.size,
+                hasImages: (p.images && p.images.length > 0),
+                error: p.error
+            }));
 
             // Build a combined text preview for context and PII scanning
             for (const p of processed) {
                 if (p && p.textPreview) {
-                    attachmentTextCombined += `\n\n[Attachment: ${p.filename}]\n` + String(p.textPreview).substring(0, 2000);
+                    attachmentTextCombined += `\n\n[Attachment: ${p.filename}]\n` + String(p.textPreview).substring(0, ATTACHMENT_CONFIG.MAX_TEXT_PREVIEW_LENGTH);
                 }
             }
 
@@ -66,9 +86,11 @@ export class AgenticPipeline {
                     'Attachments processed',
                     { attachments: metas }
                 );
-            } catch (_) {}
+            } catch (auditError) {
+                logger.debug({ err: auditError }, 'Failed to log attachment processing audit event');
+            }
         } catch (err) {
-            console.warn('Attachment processing failed', err);
+            logger.warn({ err }, 'Attachment processing failed');
         }
 
         // 2. Context Building
@@ -88,7 +110,7 @@ export class AgenticPipeline {
                     findingsCount: piiResult.findings.length,
                     riskLevel: piiResult.riskLevel,
                     detectedTypes: piiResult.findings.map(f => f.type),
-                    messagePreview: userContent.substring(0, 100)
+                    messagePreview: userContent.substring(0, PII_CONFIG.MESSAGE_PREVIEW_LENGTH)
                 },
                 piiResult.riskLevel === 'critical' || piiResult.riskLevel === 'high'
             );
@@ -105,7 +127,7 @@ export class AgenticPipeline {
                     error: `PII Detected (${piiResult.riskLevel.toUpperCase()} RISK): Request blocked. Found: ${highRiskFindings}. Please remove sensitive information.`
                 };
             }
-            console.warn(`[PII WARNING] Detected ${piiResult.riskLevel} risk PII in request.`);
+            logger.warn({ riskLevel: piiResult.riskLevel, findingsCount: piiResult.findings.length }, 'PII detected in request');
         }
 
         // 3. Prompt Construction

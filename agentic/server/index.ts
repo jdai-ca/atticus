@@ -13,19 +13,23 @@ import { auditLogger } from '../services/audit-logger';
 import client from 'prom-client';
 import telemetry from '../telemetry';
 import { AgenticPipeline } from '../core/orchestrator';
-import { Message, ModelInfo } from '../types';
+import { Message, ModelInfo, ChatRequest } from '../types';
 import { ApiKeyAuth, loadApiKeysFromEnv, loadAdminKeysFromEnv } from './auth';
 import { createLogger } from '../utils/logger';
 import { KeyManager } from '../services/key-manager';
 import { AuditEventType, AuditSeverity } from '../services/audit-logger';
+import { SERVER_CONFIG, RATE_LIMIT_CONFIG, MODEL_PARAMS } from '../config/constants';
 
 const logger = createLogger('Server');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = SERVER_CONFIG.PORT;
 
 // CORS: restrict origins via AGENTIC_CORS_ORIGINS (comma separated). Defaults to localhost.
-const allowedOrigins = (process.env.AGENTIC_CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',').map(s => s.trim());
+const allowedOrigins = (process.env.AGENTIC_CORS_ORIGINS || SERVER_CONFIG.DEFAULT_CORS_ORIGINS)
+    .split(',')
+    .map(s => s.trim());
+
 app.use(cors({
     origin: (origin, cb) => {
         if (!origin) return cb(null, true); // allow server-to-server or curl
@@ -35,12 +39,12 @@ app.use(cors({
 }));
 
 // Body size limit to protect provider quotas
-app.use(express.json({ limit: process.env.AGENTIC_JSON_LIMIT || '256kb' }));
+app.use(express.json({ limit: SERVER_CONFIG.JSON_BODY_LIMIT }));
 
 // Basic rate limiting
 const limiter = rateLimit({
-    windowMs: Number(process.env.AGENTIC_RATE_LIMIT_WINDOW_MS) || 60_000, // 1 minute
-    max: Number(process.env.AGENTIC_RATE_LIMIT_MAX) || 60, // 60 requests per window
+    windowMs: RATE_LIMIT_CONFIG.WINDOW_MS,
+    max: RATE_LIMIT_CONFIG.MAX_REQUESTS,
     standardHeaders: true,
     legacyHeaders: false
 });
@@ -70,19 +74,6 @@ const pipeline = new AgenticPipeline();
 const keyManager = new KeyManager();
 const startTime = Date.now();
 
-interface ChatRequest {
-    message: string;
-    history: Message[];
-    models: ModelInfo[];
-    jurisdictions?: string[];
-    temperature?: number;
-    maxTokens?: number;
-    topP?: number;
-    analysisModel?: ModelInfo;
-    analysisOptions?: any;
-    attachments?: Array<{ filename?: string; contentType?: string; contentBase64?: string }>;
-}
-
 // Apply API key authentication to all /api/* endpoints
 app.use('/api/*', apiKeyAuth.middleware());
 
@@ -108,9 +99,9 @@ app.post('/api/chat', async (req, res) => {
         }
 
         // Normalize incoming model objects to `ModelInfo` shape and validate
-        const normalizedModels = (models || []).map((m: any) => ({
-            providerId: m.providerId || m.provider,
-            modelId: m.modelId || m.model,
+        const normalizedModels = (models || []).map((m: Partial<ModelInfo> & { provider?: string; model?: string }) => ({
+            providerId: m.providerId || m.provider || '',
+            modelId: m.modelId || m.model || '',
             endpoint: m.endpoint
         }));
 
@@ -119,16 +110,16 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 responses: [],
-                error: `Unknown model(s): ${invalidModels.map(m=>m.modelId).join(', ')}`
+                error: `Unknown model(s): ${invalidModels.map(m => m.modelId).join(', ')}`
             });
         }
 
         // Validate optional parameters
-        if (temperature !== undefined && (typeof temperature !== 'number' || temperature < 0 || temperature > 2)) {
+        if (temperature !== undefined && (typeof temperature !== 'number' || temperature < MODEL_PARAMS.MIN_TEMPERATURE || temperature > MODEL_PARAMS.MAX_TEMPERATURE)) {
             return res.status(400).json({
                 success: false,
                 responses: [],
-                error: 'Temperature must be a number between 0 and 2'
+                error: `Temperature must be a number between ${MODEL_PARAMS.MIN_TEMPERATURE} and ${MODEL_PARAMS.MAX_TEMPERATURE}`
             });
         }
 
@@ -140,16 +131,12 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        if (topP !== undefined && (typeof topP !== 'number' || topP < 0 || topP > 1)) {
+        if (topP !== undefined && (typeof topP !== 'number' || topP < MODEL_PARAMS.MIN_TOP_P || topP > MODEL_PARAMS.MAX_TOP_P)) {
             return res.status(400).json({
                 success: false,
                 responses: [],
-                error: 'topP must be a number between 0 and 1'
+                error: `topP must be a number between ${MODEL_PARAMS.MIN_TOP_P} and ${MODEL_PARAMS.MAX_TOP_P}`
             });
-        }
-
-        if (!message || !models || models.length === 0) {
-            return res.status(400).json({ error: 'Message and at least one model are required.' });
         }
 
         // Process Request (PII scanning happens inside the pipeline)
@@ -161,9 +148,9 @@ app.post('/api/chat', async (req, res) => {
 
         // Normalize analysisModel if provided
         const normalizedAnalysisModel = analysisModel ? {
-            providerId: (analysisModel as any).providerId || (analysisModel as any).provider,
-            modelId: (analysisModel as any).modelId || (analysisModel as any).model
-        } as any : undefined;
+            providerId: (analysisModel as Partial<ModelInfo> & { provider?: string }).providerId || (analysisModel as Partial<ModelInfo> & { provider?: string }).provider || '',
+            modelId: (analysisModel as Partial<ModelInfo> & { model?: string }).modelId || (analysisModel as Partial<ModelInfo> & { model?: string }).model || ''
+        } as ModelInfo : undefined;
 
         const result = await pipeline.processRequest(
             message,
@@ -191,8 +178,8 @@ app.post('/api/chat', async (req, res) => {
                 'API request failed',
                 { error: String(error) }
             );
-        } catch (_) {
-            // best-effort
+        } catch (auditError) {
+            logger.debug({ err: auditError }, 'Failed to log audit event');
         }
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
@@ -201,11 +188,14 @@ app.post('/api/chat', async (req, res) => {
 // Return effective model availability for the calling key
 app.get('/api/keys/me/models', apiKeyAuth.middleware(), (req, res) => {
     try {
-        const callerKey = (req as any).apiKey as string;
+        const callerKeyShape = (req as any).apiKeyShape as string;
         const isAdmin = (req as any).isAdmin as boolean;
         const targetKey = typeof req.query.key === 'string' ? String(req.query.key) : undefined;
 
         if (targetKey && !isAdmin) return res.status(403).json({ error: 'Admin required to query other keys' });
+
+        // Use targetKey if provided (and admin), otherwise use the shape of the caller's key for display
+        const displayKey = targetKey || callerKeyShape;
 
         // For now, policy per key is not implemented. We'll return configured models and mark enabled based on model config.
         const allModels = pipeline.getAllModels();
@@ -223,7 +213,7 @@ app.get('/api/keys/me/models', apiKeyAuth.middleware(), (req, res) => {
             };
         });
 
-        res.json({ key: targetKey || callerKey, models });
+        res.json({ key: displayKey, models });
     } catch (error) {
         logger.error({ error }, 'Failed to list models for key');
         res.status(500).json({ error: 'Failed to list models' });
@@ -270,7 +260,9 @@ app.get('/audit/export', apiKeyAuth.middleware(), async (req, res) => {
                 'Audit export failed',
                 { error: String(error), conversationId: convId }
             );
-        } catch (_) {}
+        } catch (auditError) {
+            logger.debug({ err: auditError }, 'Failed to log audit event for export failure');
+        }
         res.status(500).json({ error: 'Failed to export audit logs' });
     }
 });
@@ -294,7 +286,9 @@ app.post('/api/keys', apiKeyAuth.middleware(), (req, res) => {
             'API key added',
             { addedKeyHash: String(key).slice(0, 8) }
         );
-    } catch (_) {}
+    } catch (auditError) {
+        logger.debug({ err: auditError }, 'Failed to log KEY_ADDED audit event');
+    }
     res.json({ added: true, total: apiKeyAuth.getKeyCount() });
 });
 
@@ -311,7 +305,9 @@ app.delete('/api/keys', apiKeyAuth.middleware(), (req, res) => {
             'API key removed',
             { removedKeyHash: String(key).slice(0, 8) }
         );
-    } catch (_) {}
+    } catch (auditError) {
+        logger.debug({ err: auditError }, 'Failed to log KEY_REMOVED audit event');
+    }
     res.json({ removed: true, total: apiKeyAuth.getKeyCount() });
 });
 

@@ -1,4 +1,4 @@
-import { Message, ModelInfo } from '../types';
+import { Message, ModelInfo, ProviderRequestBody, ProviderResponse, AnthropicResponse, CohereResponse } from '../types';
 import OpenAI from 'openai';
 import { ConfigLoader } from '../services/config-loader';
 import { KeyManager } from '../services/key-manager';
@@ -65,40 +65,40 @@ export class ModelExecutor {
             const providerTimer = providerDuration.startTimer({ provider: model.providerId, model: model.modelId });
             try {
                 switch (model.providerId) {
-                case 'openai':
-                    responseMsg = await this.callOpenAI(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'azure-openai':
-                    responseMsg = await this.callAzureOpenAI(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'anthropic':
-                    responseMsg = await this.callAnthropic(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'google':
-                    responseMsg = await this.callGoogle(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'mistral':
-                    responseMsg = await this.callMistral(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'groq':
-                    responseMsg = await this.callGroq(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'perplexity':
-                    responseMsg = await this.callPerplexity(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'cohere':
-                    responseMsg = await this.callCohere(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'cerebras':
-                    responseMsg = await this.callCerebras(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                case 'xai':
-                    responseMsg = await this.callXAI(systemPrompt, history, userMessage, model, startTime, options);
-                    break;
-                default:
-                    console.warn(`Unknown provider ${model.providerId}, falling back to mock.`);
-                    responseMsg = await this.callMockProvider(systemPrompt, history, userMessage, model, startTime);
-            }
+                    case 'openai':
+                        responseMsg = await this.callOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'azure-openai':
+                        responseMsg = await this.callAzureOpenAI(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'anthropic':
+                        responseMsg = await this.callAnthropic(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'google':
+                        responseMsg = await this.callGoogle(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'mistral':
+                        responseMsg = await this.callMistral(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'groq':
+                        responseMsg = await this.callGroq(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'perplexity':
+                        responseMsg = await this.callPerplexity(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'cohere':
+                        responseMsg = await this.callCohere(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'cerebras':
+                        responseMsg = await this.callCerebras(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    case 'xai':
+                        responseMsg = await this.callXAI(systemPrompt, history, userMessage, model, startTime, options);
+                        break;
+                    default:
+                        logger.warn({ providerId: model.providerId }, 'Unknown provider, falling back to mock');
+                        responseMsg = await this.callMockProvider(systemPrompt, history, userMessage, model, startTime);
+                }
             } finally {
                 try {
                     providerTimer();
@@ -172,15 +172,16 @@ export class ModelExecutor {
             this.openai = new OpenAI({ apiKey });
         }
 
-        const messages: any[] = [
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
             { role: 'system', content: systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })),
+            ...history.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
             { role: 'user', content: userMessage.content }
         ];
 
-        const requestBody: any = {
+        const requestBody: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = {
             model: model.modelId,
             messages: messages,
+            stream: false,
         };
 
         if (options?.temperature !== undefined) requestBody.temperature = options.temperature;
@@ -224,15 +225,16 @@ export class ModelExecutor {
             defaultHeaders: { 'api-key': apiKey }
         });
 
-        const messages: any[] = [
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
             { role: 'system', content: systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })),
+            ...history.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
             { role: 'user', content: userMessage.content }
         ];
 
-        const requestBody: any = {
+        const requestBody: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = {
             model: model.modelId,
             messages: messages,
+            stream: false,
         };
         if (options?.temperature !== undefined) requestBody.temperature = options.temperature;
         if (options?.maxTokens !== undefined) requestBody.max_tokens = options.maxTokens;
@@ -273,15 +275,16 @@ export class ModelExecutor {
             baseURL: baseUrl,
         });
 
-        const messages: any[] = [
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
             { role: 'system', content: systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })),
+            ...history.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
             { role: 'user', content: userMessage.content }
         ];
 
-        const requestBody: any = {
+        const requestBody: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = {
             model: model.modelId,
             messages: messages,
+            stream: false,
         };
         if (options?.temperature !== undefined) requestBody.temperature = options.temperature;
         if (options?.maxTokens !== undefined) requestBody.max_tokens = options.maxTokens;
@@ -410,11 +413,19 @@ export class ModelExecutor {
         if (!apiKey) throw new Error('Anthropic API Key not found');
 
         const messages = [
-            ...history.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
-            { role: 'user', content: userMessage.content }
+            ...history.map(m => ({ role: m.role === 'assistant' ? 'assistant' as const : 'user' as const, content: m.content })),
+            { role: 'user' as const, content: userMessage.content }
         ];
 
-        const body: any = {
+        interface AnthropicRequestBody {
+            model: string;
+            messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+            system: string;
+            max_tokens?: number;
+            temperature?: number;
+        }
+
+        const body: AnthropicRequestBody = {
             model: model.modelId,
             messages: messages,
             system: systemPrompt
@@ -436,7 +447,7 @@ export class ModelExecutor {
             throw new Error(`Anthropic API Error: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json() as any;
+        const data = await response.json() as AnthropicResponse;
         return {
             role: 'assistant',
             content: data.content[0].text,
@@ -458,11 +469,20 @@ export class ModelExecutor {
         if (!apiKey) throw new Error('Cohere API Key not found');
 
         const chatHistory = history.map(m => ({
-            role: m.role === 'assistant' ? 'CHATBOT' : 'USER',
+            role: m.role === 'assistant' ? 'CHATBOT' as const : 'USER' as const,
             message: m.content
         }));
 
-        const payload: any = {
+        interface CohereRequestBody {
+            model: string;
+            message: string;
+            chat_history: Array<{ role: 'USER' | 'CHATBOT'; message: string }>;
+            preamble: string;
+            max_tokens?: number;
+            temperature?: number;
+        }
+
+        const payload: CohereRequestBody = {
             model: model.modelId,
             message: userMessage.content,
             chat_history: chatHistory,
@@ -484,7 +504,7 @@ export class ModelExecutor {
             throw new Error(`Cohere API Error: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json() as any;
+        const data = await response.json() as CohereResponse;
         return {
             role: 'assistant',
             content: data.text,

@@ -33,8 +33,8 @@ export abstract class BaseProviderAdapter implements ProviderAdapter {
         systemPrompt?: string,
         temperature?: number,
         maxTokens?: number
-    ): any;
-    protected abstract parseResponse(data: any, model: ModelInfo): Message;
+    ): unknown;
+    protected abstract parseResponse(data: unknown, model: ModelInfo): Message;
 
     async sendRequest(
         model: ModelInfo,
@@ -68,9 +68,9 @@ export abstract class BaseProviderAdapter implements ProviderAdapter {
 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => ({}));
-                    const error: any = new Error(`API request failed: ${res.status} ${res.statusText}`);
-                    error.status = res.status;
-                    error.response = { data: errorData };
+                    const error = new Error(`API request failed: ${res.status} ${res.statusText}`);
+                    (error as any).status = res.status;
+                    (error as any).response = { data: errorData };
                     throw error;
                 }
 

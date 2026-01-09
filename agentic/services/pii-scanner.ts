@@ -615,6 +615,13 @@ export class PIIScanner {
         return `Detected ${findings.length} instances of PII across categories: ${cats}. Highest risk: ${this.calculateOverallRisk(findings)}.`;
     }
 
+    /**
+     * Scans the provided text for PII based on configured patterns and jurisdictions.
+     * 
+     * @param text - The text content to scan
+     * @param jurisdictions - Optional list of jurisdictions to filter patterns by
+     * @returns detailed scan results with findings and overall risk
+     */
     public scan(text: string, jurisdictions?: Jurisdiction[]): PIIScanResult {
         const findings: PIIDetection[] = [];
         const detectedCategories = new Set<PIIType>();

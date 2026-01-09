@@ -103,3 +103,146 @@ export interface PipelineResponse {
         error?: string;
     };
 }
+
+/**
+ * Analysis options for secondary analysis pass
+ */
+export interface AnalysisOptions {
+    /** Temperature for analysis model */
+    temperature?: number;
+    /** Max tokens for analysis response */
+    maxTokens?: number;
+    /** Top-p sampling for analysis */
+    topP?: number;
+    /** Custom analysis prompt override */
+    customPrompt?: string;
+}
+
+/**
+ * Request options for model execution
+ */
+export interface RequestOptions {
+    /** Temperature parameter (0-2) */
+    temperature?: number;
+    /** Maximum tokens to generate */
+    maxTokens?: number;
+    /** Top-p sampling parameter (0-1) */
+    topP?: number;
+}
+
+/**
+ * Attachment metadata
+ */
+export interface Attachment {
+    /** Original filename */
+    filename?: string;
+    /** MIME content type */
+    contentType?: string;
+    /** Base64-encoded content */
+    contentBase64?: string;
+}
+
+/**
+ * Chat request payload
+ */
+export interface ChatRequest {
+    /** User message content */
+    message: string;
+    /** Conversation history */
+    history: Message[];
+    /** Models to query */
+    models: ModelInfo[];
+    /** Legal jurisdictions for context */
+    jurisdictions?: string[];
+    /** Temperature parameter */
+    temperature?: number;
+    /** Max tokens parameter */
+    maxTokens?: number;
+    /** Top-p parameter */
+    topP?: number;
+    /** Optional analysis model */
+    analysisModel?: ModelInfo;
+    /** Analysis options */
+    analysisOptions?: AnalysisOptions;
+    /** File attachments */
+    attachments?: Attachment[];
+}
+
+/**
+ * Provider request body (generic structure)
+ */
+export interface ProviderRequestBody {
+    model: string;
+    messages: Array<{
+        role: string;
+        content: string;
+    }>;
+    temperature?: number;
+    max_tokens?: number;
+    top_p?: number;
+    [key: string]: unknown;
+}
+
+/**
+ * Provider response structure (OpenAI-compatible)
+ */
+export interface ProviderResponse {
+    id: string;
+    object: string;
+    created: number;
+    model: string;
+    choices: Array<{
+        index: number;
+        message: {
+            role: string;
+            content: string;
+        };
+        finish_reason: string;
+    }>;
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
+}
+
+/**
+ * Anthropic-specific response structure
+ */
+export interface AnthropicResponse {
+    id: string;
+    type: string;
+    role: string;
+    content: Array<{
+        type: string;
+        text: string;
+    }>;
+    model: string;
+    stop_reason: string;
+    usage?: {
+        input_tokens: number;
+        output_tokens: number;
+    };
+}
+
+/**
+ * Cohere-specific response structure
+ */
+export interface CohereResponse {
+    text: string;
+    generation_id: string;
+    chat_history?: Array<{
+        role: string;
+        message: string;
+    }>;
+    finish_reason?: string;
+    meta?: {
+        api_version?: {
+            version: string;
+        };
+        billed_units?: {
+            input_tokens: number;
+            output_tokens: number;
+        };
+    };
+}

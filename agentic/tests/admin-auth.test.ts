@@ -24,7 +24,8 @@ describe('ApiKeyAuth admin support', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect((mockReq as any).isAdmin).toBe(true);
-        expect((mockReq as any).apiKey).toBe('admin-1');
+        expect((mockReq as any).apiKeyShape).toBe('admin-1...');
+        expect((mockReq as any).apiKey).toBeUndefined();
         expect(mockNext).toHaveBeenCalled();
     });
 
@@ -34,7 +35,8 @@ describe('ApiKeyAuth admin support', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect((mockReq as any).isAdmin).toBe(false);
-        expect((mockReq as any).apiKey).toBe('key1');
+        expect((mockReq as any).apiKeyShape).toBe('key1...');
+        expect((mockReq as any).apiKey).toBeUndefined();
         expect(mockNext).toHaveBeenCalled();
     });
 
