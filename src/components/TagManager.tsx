@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Tag, Search, Star, TrendingUp, Grid } from "lucide-react";
+import { useTranslation } from "../i18n/LanguageContext";
 import {
   TagMetadata,
   TagCategory,
@@ -108,9 +109,10 @@ export const TagManager: React.FC<TagManagerProps> = ({
   onClose,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<TagCategory | "all">(
-    "all"
+    "all",
   );
   const [autocompleteResults, setAutocompleteResults] = useState<
     TagAutocompleteResult[]
@@ -225,16 +227,16 @@ export const TagManager: React.FC<TagManagerProps> = ({
       return tagsArray.filter((t) => existingTags.includes(t.id));
     }
     return tagsArray.filter(
-      (t) => existingTags.includes(t.id) && t.category === selectedCategory
+      (t) => existingTags.includes(t.id) && t.category === selectedCategory,
     );
   };
 
   // Group suggestions by confidence
   const highConfidenceSuggestions = suggestedTags.filter(
-    (s) => s.confidence >= 0.7
+    (s) => s.confidence >= 0.7,
   );
   const mediumConfidenceSuggestions = suggestedTags.filter(
-    (s) => s.confidence >= 0.4 && s.confidence < 0.7
+    (s) => s.confidence >= 0.4 && s.confidence < 0.7,
   );
   void mediumConfidenceSuggestions; // May be used for UI in future
 
@@ -259,7 +261,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
               <button
                 onClick={() => onRemoveTag(tagId)}
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-1"
-                title="Remove tag"
+                title={t.tags.removeTag}
               >
                 <X className="w-3 h-3" />
               </button>
@@ -273,10 +275,10 @@ export const TagManager: React.FC<TagManagerProps> = ({
             /* Could open full dialog */
           }}
           className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded-md border border-dashed border-gray-600 hover:border-gray-500 transition-colors"
-          title="Add tag"
+          title={t.tags.addTag}
         >
           <Tag className="w-3 h-3" />
-          <span>Add tag</span>
+          <span>{t.tags.addTag}</span>
         </button>
       </div>
     );
@@ -288,12 +290,12 @@ export const TagManager: React.FC<TagManagerProps> = ({
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-gray-900/50">
         <div className="flex items-center gap-2">
           <Tag className="w-5 h-5 text-legal-gold" />
-          <h3 className="text-lg font-semibold text-white">Tag Manager</h3>
+          <h3 className="text-lg font-semibold text-white">{t.tags.title}</h3>
         </div>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-white transition-colors"
-          title="Close"
+          title={t.close}
         >
           <X className="w-5 h-5" />
         </button>
@@ -358,7 +360,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
                     </div>
                   </button>
                 );
-              }
+              },
             )}
           </div>
         )}
@@ -367,7 +369,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
         {showCreateNew && (
           <div className="mt-2 bg-gray-700 rounded-lg border border-dashed border-gray-600 p-3">
             <div className="text-sm text-gray-300 mb-2">
-              Create new tag:{" "}
+              {t.tags.createNew}:{" "}
               <span className="font-semibold text-white">#{searchQuery}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -456,7 +458,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
                       </span>
                     </button>
                   );
-                }
+                },
               )}
             </div>
           </div>
@@ -515,7 +517,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
                     <button
                       onClick={() => onRemoveTag(tag.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-1"
-                      title="Remove tag"
+                      title={t.tags.removeTag}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -532,10 +534,8 @@ export const TagManager: React.FC<TagManagerProps> = ({
           recentTags.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Tag className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No tags applied yet</p>
-              <p className="text-xs mt-1">
-                Search or browse categories to add tags
-              </p>
+              <p className="text-sm">{t.tags.noTagsYet}</p>
+              <p className="text-xs mt-1">{t.tags.searchOrBrowse}</p>
             </div>
           )}
       </div>

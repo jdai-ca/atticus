@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "../i18n/LanguageContext";
 import { APITrace } from "../types";
 
 interface APIErrorInspectorProps {
@@ -10,6 +11,7 @@ export default function APIErrorInspector({
   apiTrace,
   onClose,
 }: APIErrorInspectorProps) {
+  const { t } = useTranslation();
   const copyToClipboard = () => {
     const text = JSON.stringify(apiTrace, null, 2);
     navigator.clipboard.writeText(text);
@@ -38,17 +40,17 @@ export default function APIErrorInspector({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">
-                API Error Inspector
+                {t.apiInspector.title}
               </h2>
               <p className="text-sm text-gray-400">
-                Request ID: {apiTrace.requestId}
+                {t.apiInspector.requestId}: {apiTrace.requestId}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
-            title="Close"
+            title={t.close}
             aria-label="Close inspector"
           >
             <X className="w-6 h-6" />
@@ -183,7 +185,7 @@ export default function APIErrorInspector({
                 onClick={copyToClipboard}
                 className="text-xs px-3 py-1 bg-purple-600 hover:bg-purple-500 rounded text-white transition-colors"
               >
-                Copy to Clipboard
+                {t.apiInspector.copyToClipboard}
               </button>
             </div>
             <pre className="text-xs text-gray-300 overflow-x-auto bg-gray-950 p-3 rounded border border-gray-800">

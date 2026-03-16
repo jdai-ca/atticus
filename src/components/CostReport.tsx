@@ -7,12 +7,14 @@ import {
   getCostTier,
   getCostTierClasses,
 } from "../utils/costCalculator";
+import { useTranslation } from "../i18n/LanguageContext";
 
 interface CostReportProps {
   apiTrace: APITrace;
 }
 
 export default function CostReport({ apiTrace }: CostReportProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Only show if we have usage and cost data
@@ -37,9 +39,12 @@ export default function CostReport({ apiTrace }: CostReportProps) {
           <DollarSign className={`h-3 w-3 ${tierClasses.text}`} />
           <span className={tierClasses.text}>
             {formatCost(cost.totalCost)} • {formatTokens(usage.totalTokens)}{" "}
-            tokens
+            {t.costReport.tokens}
           </span>
-          <span className="text-gray-400">({apiTrace.durationMs}ms)</span>
+          <span className="text-gray-400">
+            ({apiTrace.durationMs}
+            {t.costReport.milliseconds})
+          </span>
         </div>
         {isExpanded ? (
           <ChevronUp className="h-3 w-3 text-gray-400" />
@@ -61,21 +66,21 @@ export default function CostReport({ apiTrace }: CostReportProps) {
           {/* Token usage breakdown */}
           <div className="space-y-1">
             <div className="flex justify-between">
-              <span className="text-gray-400">Input tokens:</span>
+              <span className="text-gray-400">{t.inputTokens}:</span>
               <span className={tierClasses.text}>
                 {formatTokens(usage.promptTokens)} × ${cost.inputTokenPrice}/1M
                 = {formatCost(cost.inputCost)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Output tokens:</span>
+              <span className="text-gray-400">{t.outputTokens}:</span>
               <span className={tierClasses.text}>
                 {formatTokens(usage.completionTokens)} × $
                 {cost.outputTokenPrice}/1M = {formatCost(cost.outputCost)}
               </span>
             </div>
             <div className="flex justify-between pt-1 border-t border-gray-700">
-              <span className="text-gray-300 font-medium">Total cost:</span>
+              <span className="text-gray-300 font-medium">{t.totalCost}:</span>
               <span className={`${tierClasses.text} font-medium`}>
                 {formatCost(cost.totalCost)}
               </span>

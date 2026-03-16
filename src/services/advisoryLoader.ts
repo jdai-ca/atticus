@@ -13,6 +13,7 @@ import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import advisorySchema from '../schemas/advisory-config.schema.json';
 import { createLogger } from './logger';
+import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const logger = createLogger('AdvisoryLoader');
 
@@ -27,8 +28,8 @@ interface AdvisoryConfigFile {
 
 class AdvisoryConfigLoader {
     private readonly validate: ValidateFunction;
-    private readonly CACHE_KEY = 'advisory-config';
-    private readonly VERSION_KEY = 'advisory-config-version';
+    private getCacheKey(language: Language) { return `advisory-config-${language}`; }
+    private getVersionKey(language: Language) { return `advisory-config-version-${language}`; }
 
     constructor() {
         // Initialize JSON Schema validator
@@ -39,19 +40,20 @@ class AdvisoryConfigLoader {
 
     /**
      * Load advisory area configuration with fallback strategy
+     * @param language - The language to load (en, fr, es). Defaults to 'en'
      */
-    async loadConfig(): Promise<LegalPracticeArea[]> {
+    async loadConfig(language: Language = 'en'): Promise<LegalPracticeArea[]> {
         // 1. Load bundled config (always available)
-        const bundled = await this.loadBundledConfig();
-        logger.info('Bundled config loaded', { areasCount: bundled.practiceAreas.length });
+        const bundled = await this.loadBundledConfig(language);
+        logger.info('Bundled config loaded', { areasCount: bundled.practiceAreas.length, language });
 
         // 2. Try to load from cache
-        const cached = this.loadCachedConfig();
+        const cached = this.loadCachedConfig(language);
         let current = this.selectNewerConfig(bundled, cached);
         logger.info('Using config', { version: current.version, areasCount: current.practiceAreas.length });
 
         // 3. Try remote update (non-blocking, won't delay app startup)
-        this.updateFromRemote(current.version).catch(err => {
+        this.updateFromRemote(current.version, language).catch(err => {
             logger.warn('Remote update failed', { error: err.message });
         });
 
@@ -61,17 +63,25 @@ class AdvisoryConfigLoader {
 
     /**
      * Load bundled configuration (always available)
+     * @param language - The language to load (en, fr, es)
      */
-    private async loadBundledConfig(): Promise<AdvisoryConfigFile> {
+    private async loadBundledConfig(language: Language = 'en'): Promise<AdvisoryConfigFile> {
         try {
             let yamlText: string;
+            const filename = getLocalizedConfigFilename('advisory', language);
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                logger.debug('Loading bundled config via Electron IPC');
-                const result = await (globalThis as any).electronAPI.loadBundledConfig('advisory.yaml');
+                logger.debug('Loading bundled config via Electron IPC', { filename });
+                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
                     throw new Error(errorMessage);
                 }
@@ -79,9 +89,15 @@ class AdvisoryConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                logger.debug('Loading bundled config via fetch');
-                const response = await fetch('/config/advisory.yaml');
+                logger.debug('Loading bundled config via fetch', { filename });
+                const response = await fetch(`/config/${filename}`);
                 if (!response.ok) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
                 }
                 yamlText = await response.text();
@@ -93,7 +109,7 @@ class AdvisoryConfigLoader {
                 throw new Error('Bundled config validation failed');
             }
 
-            logger.info('Bundled config loaded', { version: config.version });
+            logger.info('Bundled config loaded', { version: config.version, language });
             return config;
         } catch (error) {
             logger.error('Failed to load bundled config', { error });
@@ -104,10 +120,12 @@ class AdvisoryConfigLoader {
 
     /**
      * Load cached configuration from localStorage
+     * @param language - The language to load (en, fr, es)
      */
-    private loadCachedConfig(): AdvisoryConfigFile | null {
+    private loadCachedConfig(language: Language = 'en'): AdvisoryConfigFile | null {
         try {
-            const cached = localStorage.getItem(this.CACHE_KEY);
+            const cacheKey = this.getCacheKey(language);
+            const cached = localStorage.getItem(cacheKey);
             if (!cached) {
                 return null;
             }
@@ -116,11 +134,11 @@ class AdvisoryConfigLoader {
 
             if (!this.validateConfig(config)) {
                 logger.warn('Cached config failed validation');
-                localStorage.removeItem(this.CACHE_KEY);
+                localStorage.removeItem(cacheKey);
                 return null;
             }
 
-            logger.info('Cached config loaded', { version: config.version });
+            logger.info('Cached config loaded', { version: config.version, language });
             return config;
         } catch (error) {
             logger.warn('Error loading cached config', { error });
@@ -130,11 +148,13 @@ class AdvisoryConfigLoader {
 
     /**
      * Attempt to fetch and cache remote configuration
+     * @param currentVersion - The current config version
+     * @param language - The language to update (en, fr, es)
      */
-    private async updateFromRemote(currentVersion: string): Promise<void> {
+    private async updateFromRemote(currentVersion: string, language: Language = 'en'): Promise<void> {
         try {
             // Load bundled config to get update URL and check if customized
-            const bundled = await this.loadBundledConfig();
+            const bundled = await this.loadBundledConfig(language);
 
             // Skip remote update if configuration has been customized by user
             if (bundled.customized === true) {
@@ -169,7 +189,7 @@ class AdvisoryConfigLoader {
             // Only update if remote is newer
             if (this.isNewerVersion(remoteConfig.version, currentVersion)) {
                 logger.info('New version available', { remoteVersion: remoteConfig.version, currentVersion });
-                this.cacheConfig(remoteConfig);
+                this.cacheConfig(remoteConfig, language);
             } else {
                 logger.debug('Current advisory version is up to date', { version: currentVersion });
             }
@@ -231,11 +251,18 @@ class AdvisoryConfigLoader {
     /**
      * Cache configuration to localStorage
      */
-    private cacheConfig(config: AdvisoryConfigFile): void {
+    /**
+     * Cache configuration to localStorage
+     * @param config - The configuration to cache
+     * @param language - The language of the configuration
+     */
+    private cacheConfig(config: AdvisoryConfigFile, language: Language = 'en'): void {
         try {
-            localStorage.setItem(this.CACHE_KEY, JSON.stringify(config));
-            localStorage.setItem(this.VERSION_KEY, config.version);
-            logger.debug('Config cached', { version: config.version });
+            const cacheKey = this.getCacheKey(language);
+            const versionKey = this.getVersionKey(language);
+            localStorage.setItem(cacheKey, JSON.stringify(config));
+            localStorage.setItem(versionKey, config.version);
+            logger.debug('Config cached', { version: config.version, language });
         } catch (error) {
             logger.warn('Failed to cache advisory configuration', { error });
         }
@@ -247,7 +274,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.19',
+            minAppVersion: '0.9.20',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

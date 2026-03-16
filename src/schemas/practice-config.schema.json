@@ -45,6 +45,22 @@
             "items": {
                 "$ref": "#/definitions/PracticeArea"
             }
+        },
+        "legalFramework": {
+            "type": "object",
+            "description": "Advanced legal practice framework configuration (optional)"
+        },
+        "advisoryFramework": {
+            "type": "object",
+            "description": "Advanced business advisory framework configuration (optional)"
+        },
+        "analysis": {
+            "type": "object",
+            "description": "Analysis configuration and system prompts (optional)"
+        },
+        "analysisProfiles": {
+            "type": "object",
+            "description": "Analysis profile configurations (optional)"
         }
     },
     "definitions": {
@@ -130,5 +146,5 @@
             "additionalProperties": false
         }
     },
-    "additionalProperties": false
+    "additionalProperties": true
 }

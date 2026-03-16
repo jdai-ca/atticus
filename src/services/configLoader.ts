@@ -19,6 +19,7 @@ import { ProviderTemplate, AIProvider } from '../types';
 import providerSchema from '../schemas/provider-config.schema.json';
 import { isDevelopmentMode } from '../utils/devMode';
 import { createLogger } from './logger';
+import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const ajv = new Ajv({ allErrors: true });
 const logger = createLogger('ConfigLoader');
@@ -78,18 +79,19 @@ export class ConfigLoader {
 
     /**
      * Load provider configuration with fallback strategy
+     * @param language - The language to load (en, fr, es). Defaults to 'en'
      */
-    async loadConfig(): Promise<ProviderTemplate[]> {
+    async loadConfig(language: Language = 'en'): Promise<ProviderTemplate[]> {
         // 1. Load bundled config (always available)
-        const bundled = await this.loadBundledConfig();
+        const bundled = await this.loadBundledConfig(language);
 
         // 2. Try to load from cache (skip in development for hot-reload)
-        const cached = isDevelopmentMode() ? null : this.loadCachedConfig();
+        const cached = isDevelopmentMode() ? null : this.loadCachedConfig(language);
         let current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         if (!isDevelopmentMode()) {
-            this.updateFromRemote(current.version).catch(err => {
+            this.updateFromRemote(current.version, language).catch(err => {
                 logger.warn('Remote update failed', { error: err.message });
             });
         }
@@ -99,16 +101,24 @@ export class ConfigLoader {
 
     /**
      * Load bundled configuration (always available)
+     * @param language - The language to load (en, fr, es)
      */
-    private async loadBundledConfig(): Promise<ProviderConfigFile> {
+    private async loadBundledConfig(language: Language = 'en'): Promise<ProviderConfigFile> {
         try {
             let yamlText: string;
+            const filename = getLocalizedConfigFilename('providers', language);
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                const result = await (globalThis as any).electronAPI.loadBundledConfig('providers.yaml');
+                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
                     throw new Error(errorMessage);
                 }
@@ -116,8 +126,14 @@ export class ConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                const response = await fetch('/config/providers.yaml');
+                const response = await fetch(`/config/${filename}`);
                 if (!response.ok) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
                 }
                 yamlText = await response.text();
@@ -138,10 +154,12 @@ export class ConfigLoader {
 
     /**
      * Load cached configuration from localStorage
+     * @param language - The language to load (en, fr, es)
      */
-    private loadCachedConfig(): ProviderConfigFile | null {
+    private loadCachedConfig(language: Language = 'en'): ProviderConfigFile | null {
         try {
-            const cached = localStorage.getItem('provider-config');
+            const cacheKey = `provider-config-${language}`;
+            const cached = localStorage.getItem(cacheKey);
             if (!cached) {
                 return null;
             }
@@ -150,7 +168,7 @@ export class ConfigLoader {
 
             if (!this.validateConfig(config)) {
                 logger.warn('Cached config validation failed, ignoring');
-                localStorage.removeItem('provider-config');
+                localStorage.removeItem(cacheKey);
                 return null;
             }
 
@@ -163,11 +181,13 @@ export class ConfigLoader {
 
     /**
      * Attempt to fetch and cache remote configuration
+     * @param currentVersion - The current config version
+     * @param language - The language to load (en, fr, es)
      */
-    private async updateFromRemote(currentVersion: string): Promise<void> {
+    private async updateFromRemote(currentVersion: string, language: Language = 'en'): Promise<void> {
         try {
             // Load bundled config to get update URL
-            const bundled = await this.loadBundledConfig();
+            const bundled = await this.loadBundledConfig(language);
             if (!bundled.updateUrl) {
                 return;
             }
@@ -200,7 +220,7 @@ export class ConfigLoader {
                     newVersion: config.version,
                     previousVersion: currentVersion
                 });
-                this.cacheConfig(config);
+                this.cacheConfig(config, language);
                 this.notifyConfigUpdate(config.version);
             }
         } catch (error) {
@@ -238,7 +258,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.19';
+        return '0.9.20';
     }
 
     /**
@@ -271,12 +291,15 @@ export class ConfigLoader {
 
     /**
      * Cache configuration to localStorage
+     * @param config - The configuration to cache
+     * @param language - The language of the configuration
      */
-    private cacheConfig(config: ProviderConfigFile): void {
+    private cacheConfig(config: ProviderConfigFile, language: Language = 'en'): void {
         try {
-            localStorage.setItem('provider-config', JSON.stringify(config));
-            localStorage.setItem('provider-config-version', config.version);
-            localStorage.setItem('provider-config-updated', new Date().toISOString());
+            const cacheKey = `provider-config-${language}`;
+            localStorage.setItem(cacheKey, JSON.stringify(config));
+            localStorage.setItem(`${cacheKey}-version`, config.version);
+            localStorage.setItem(`${cacheKey}-updated`, new Date().toISOString());
         } catch (error) {
             logger.warn('Failed to cache provider configuration', { error });
         }

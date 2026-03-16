@@ -13,6 +13,10 @@ import {
   X,
   Scale,
   BarChart3,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpToLine,
+  ArrowDownToLine,
 } from "lucide-react";
 import {
   Message,
@@ -23,6 +27,7 @@ import {
   Attachment,
   FileUploadResult,
 } from "../types";
+import { useTranslation } from "../i18n/LanguageContext";
 // Removed direct API import - now using secure IPC
 import { detectPracticeArea } from "../modules/practiceArea";
 import { detectAdvisoryArea } from "../modules/advisoryArea";
@@ -63,6 +68,7 @@ export default function ChatWindow({
   openConfigDialog,
   onConfigDialogClose,
 }: ChatWindowProps = {}) {
+  const { t, language } = useTranslation();
   const {
     currentConversation,
     config,
@@ -88,13 +94,13 @@ export default function ChatWindow({
   const [fileProcessingStage, setFileProcessingStage] = useState("");
   const [fileProcessingComplete, setFileProcessingComplete] = useState(false);
   const [fileProcessingError, setFileProcessingError] = useState<string | null>(
-    null
+    null,
   );
   const [fileProcessingResult, setFileProcessingResult] =
     useState<SecurityAnalysisResult | null>(null);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [selectedJurisdictions, setSelectedJurisdictions] = useState<
     Set<Jurisdiction>
@@ -106,6 +112,8 @@ export default function ChatWindow({
     number | undefined
   >(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const lastJumpedMessageId = useRef<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Derive loading state for current conversation
@@ -114,7 +122,7 @@ export default function ChatWindow({
   // PII Scanner state
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
   const [piiScanResult, setPiiScanResult] = useState<PIIScanResult | null>(
-    null
+    null,
   );
   const [pendingMessage, setPendingMessage] = useState<string>("");
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -122,7 +130,7 @@ export default function ChatWindow({
 
   // API Error Inspector state
   const [inspectedApiTrace, setInspectedApiTrace] = useState<APITrace | null>(
-    null
+    null,
   );
 
   // Tag Dialog state
@@ -133,7 +141,7 @@ export default function ChatWindow({
 
   // Inline tag input state
   const [inlineTagMessageId, setInlineTagMessageId] = useState<string | null>(
-    null
+    null,
   );
   const [inlineTagInput, setInlineTagInput] = useState<string>("");
 
@@ -164,22 +172,43 @@ export default function ChatWindow({
     }
   }, [openConfigDialog, currentConversation, onConfigDialogClose]);
 
-  // Load analysis configuration
+  // Load analysis configuration based on language
   useEffect(() => {
     const loadAnalysisConfig = async () => {
       try {
-        const result = await (globalThis as any).electronAPI.loadBundledConfig(
-          "analysis.yaml"
+        // Try language-specific file first, fallback to English
+        const filename = `analysis.${language}.yaml`;
+        const fallbackFilename = "analysis.en.yaml";
+
+        let result = await (globalThis as any).electronAPI.loadBundledConfig(
+          filename,
         );
+
+        // If language-specific file not found, try English
+        if (!result.success && language !== "en") {
+          logger.debug(
+            `Language-specific analysis config not found, falling back to English`,
+            { language },
+          );
+          result = await (globalThis as any).electronAPI.loadBundledConfig(
+            fallbackFilename,
+          );
+        }
+
         if (result.success && result.data) {
           const parsed = yaml.load(result.data) as any;
           if (parsed?.analysis?.systemPrompt) {
             setAnalysisConfig({ systemPrompt: parsed.analysis.systemPrompt });
-            logger.info("Analysis configuration loaded successfully");
+            logger.info("Analysis configuration loaded successfully", {
+              language,
+            });
           }
         }
       } catch (error) {
-        logger.error("Failed to load analysis configuration", { error });
+        logger.error("Failed to load analysis configuration", {
+          error,
+          language,
+        });
         // Set default fallback if loading fails
         setAnalysisConfig({
           systemPrompt:
@@ -188,7 +217,7 @@ export default function ChatWindow({
       }
     };
     loadAnalysisConfig();
-  }, []);
+  }, [language]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -207,23 +236,27 @@ export default function ChatWindow({
       }
 
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (textareaRef.current) {
-            logger.debug("Focus attempt", { attempt: attempts + 1 });
-            textareaRef.current.focus();
+        setTimeout(
+          () => {
+            if (textareaRef.current) {
+              logger.debug("Focus attempt", { attempt: attempts + 1 });
+              textareaRef.current.focus();
 
-            // Verify focus was successful, if not try again
-            setTimeout(() => {
-              const isFocused = document.activeElement === textareaRef.current;
-              logger.debug("Focus check result", { isFocused });
-              if (!isFocused) {
-                attemptFocus(attempts + 1);
-              }
-            }, 50);
-          } else {
-            logger.warn("Textarea ref is null during focus attempt");
-          }
-        }, 100 + attempts * 50); // Increase delay with each attempt
+              // Verify focus was successful, if not try again
+              setTimeout(() => {
+                const isFocused =
+                  document.activeElement === textareaRef.current;
+                logger.debug("Focus check result", { isFocused });
+                if (!isFocused) {
+                  attemptFocus(attempts + 1);
+                }
+              }, 50);
+            } else {
+              logger.warn("Textarea ref is null during focus attempt");
+            }
+          },
+          100 + attempts * 50,
+        ); // Increase delay with each attempt
       });
     };
 
@@ -234,7 +267,7 @@ export default function ChatWindow({
   const showFileProcessingResult = (
     success: boolean,
     message: string,
-    result?: any
+    result?: any,
   ) => {
     if (success) {
       setFileProcessingComplete(true);
@@ -297,7 +330,7 @@ export default function ChatWindow({
     const tag = inlineTagInput.trim().toLowerCase().replace(/^#+/, ""); // Remove leading # if present
     if (tag) {
       const message = currentConversation?.messages.find(
-        (m) => m.id === messageId
+        (m) => m.id === messageId,
       );
       if (message) {
         const existingTags = message.tags || [];
@@ -315,7 +348,7 @@ export default function ChatWindow({
   // Handle removing a tag from a specific message
   const handleRemoveInlineTag = (messageId: string, tagToRemove: string) => {
     const message = currentConversation?.messages.find(
-      (m) => m.id === messageId
+      (m) => m.id === messageId,
     );
     if (message && message.tags) {
       useStore.getState().updateMessage(messageId, {
@@ -327,7 +360,7 @@ export default function ChatWindow({
   // Get models used in the current cluster
   const getModelsUsedInCluster = (
     startIndex: number,
-    endIndex: number
+    endIndex: number,
   ): Set<string> => {
     const usedModels = new Set<string>();
     if (!currentConversation) return usedModels;
@@ -349,7 +382,7 @@ export default function ChatWindow({
 
     config.providers.forEach((provider) => {
       const template = providerTemplates.find(
-        (t) => t.id === provider.provider
+        (t) => t.id === provider.provider,
       );
       if (!template) return;
 
@@ -429,7 +462,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       const [providerId, modelId] = selectedAnalysisModel.split(":");
       const provider = config.providers.find((p) => p.id === providerId);
       const template = providerTemplates.find(
-        (t) => t.id === provider?.provider
+        (t) => t.id === provider?.provider,
       );
       const model = template?.models.find((m) => m.id === modelId);
 
@@ -451,7 +484,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           const tokensPerResponse = 1024;
           analysisMaxTokens = Math.min(
             baseTokens + responses.length * tokensPerResponse,
-            32000 // Cap at 32k for safety
+            32000, // Cap at 32k for safety
           );
         }
       }
@@ -530,7 +563,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                         hasInputPrice: !!model?.inputTokenPrice,
                         hasOutputPrice: !!model?.outputTokenPrice,
                         usage: response.usage,
-                      }
+                      },
                     );
                   }
                   return undefined;
@@ -675,7 +708,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
   // Helper: Get valid selected models (filter out disabled ones)
   const getValidSelectedModels = (selectedModels: SelectedModel[]) => {
     return selectedModels.filter((sm) =>
-      isModelEnabled(sm.providerId, sm.modelId)
+      isModelEnabled(sm.providerId, sm.modelId),
     );
   };
 
@@ -700,7 +733,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     if (!currentConversation) return;
 
     const provider = config.providers.find(
-      (p) => p.id === currentConversation.provider
+      (p) => p.id === currentConversation.provider,
     );
     if (provider) {
       const modelId = getDefaultModelForProvider(provider.id);
@@ -747,7 +780,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         currentConversation.selectedJurisdictions.length > 0
       ) {
         setSelectedJurisdictions(
-          new Set(currentConversation.selectedJurisdictions)
+          new Set(currentConversation.selectedJurisdictions),
         );
       } else {
         setSelectedJurisdictions(new Set()); // Empty = no jurisdiction focus
@@ -762,10 +795,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
   // Helper: Get domain configuration for a model
   const getModelDomain = (
     provider: (typeof config.providers)[0],
-    modelId: string
+    modelId: string,
   ): ModelDomain => {
     const modelDomainConfig = provider.modelDomains?.find(
-      (d: any) => d.modelId === modelId
+      (d: any) => d.modelId === modelId,
     );
     return modelDomainConfig?.domains || "both";
   };
@@ -773,7 +806,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
   // Helper: Check if model matches domain filter
   const modelMatchesDomain = (
     modelDomain: ModelDomain,
-    filterDomain?: "practice" | "advisory"
+    filterDomain?: "practice" | "advisory",
   ): boolean => {
     if (!filterDomain) return true;
     return modelDomain === filterDomain || modelDomain === "both";
@@ -783,7 +816,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
   const getModelsForProvider = (
     provider: (typeof config.providers)[0],
     template: (typeof providerTemplates)[0],
-    filterDomain?: "practice" | "advisory"
+    filterDomain?: "practice" | "advisory",
   ) => {
     const models: Array<{
       providerId: string;
@@ -834,13 +867,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
     for (const provider of config.providers) {
       const template = providerTemplates.find(
-        (t) => t.id === provider.provider
+        (t) => t.id === provider.provider,
       );
       if (template) {
         const providerModels = getModelsForProvider(
           provider,
           template,
-          filterDomain
+          filterDomain,
         );
         allModels.push(...providerModels);
       }
@@ -902,12 +935,12 @@ ${separator}${responses.join("\n\n" + separator)}`;
    */
   const convertPDFToImagesForVision = async (
     pdfData: string,
-    fileName: string
+    fileName: string,
   ) => {
     try {
       logger.info(
         "[PDF Conversion] Converting PDF to images for vision model",
-        { fileName }
+        { fileName },
       );
 
       // Use the renderer process convertPDFToImages function directly
@@ -925,7 +958,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           "[PDF Conversion] Failed to convert PDF - no images returned",
           {
             fileName,
-          }
+          },
         );
         return null;
       }
@@ -944,17 +977,16 @@ ${separator}${responses.join("\n\n" + separator)}`;
    */
   const convertWordToImagesForVision = async (
     wordData: string,
-    fileName: string
+    fileName: string,
   ) => {
     try {
       logger.info(
         "[Word Conversion] Converting Word document to images for vision model",
-        { fileName }
+        { fileName },
       );
 
-      const result = await globalThis.window.electronAPI.convertWordToImages(
-        wordData
-      );
+      const result =
+        await globalThis.window.electronAPI.convertWordToImages(wordData);
 
       if (result.success && result.data) {
         logger.info("[Word Conversion] Successfully converted Word document", {
@@ -975,7 +1007,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         {
           fileName,
           error: error instanceof Error ? error.message : String(error),
-        }
+        },
       );
       return null;
     }
@@ -1008,7 +1040,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         setFileProcessingStage("Converting Excel spreadsheet...");
         const result = await globalThis.window.electronAPI.convertExcelToImages(
           data,
-          fileName
+          fileName,
         );
         if (result.success && result.data) {
           return {
@@ -1036,7 +1068,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         setFileProcessingStage("Converting CSV...");
         const result = await globalThis.window.electronAPI.convertCsvToImages(
           data,
-          fileName
+          fileName,
         );
         if (result.success && result.data) {
           return { images: result.data, type: "CSV" };
@@ -1089,7 +1121,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         const result = await globalThis.window.electronAPI.convertTextToImages(
           data,
           fileName,
-          ext
+          ext,
         );
         if (result.success && result.data) {
           return { images: result.data, type: "Text/Code" };
@@ -1115,9 +1147,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
       else if (ext === ".rtf") {
         logger.info("[Document Conversion] RTF detected", { fileName });
         setFileProcessingStage("Converting RTF document...");
-        const result = await globalThis.window.electronAPI.convertRtfToImages(
-          data
-        );
+        const result =
+          await globalThis.window.electronAPI.convertRtfToImages(data);
         if (result.success && result.data) {
           return { images: result.data, type: "RTF" };
         }
@@ -1127,9 +1158,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
       else if ([".tif", ".tiff"].includes(ext)) {
         logger.info("[Document Conversion] TIFF detected", { fileName });
         setFileProcessingStage("Converting TIFF image...");
-        const result = await globalThis.window.electronAPI.convertTiffToImages(
-          data
-        );
+        const result =
+          await globalThis.window.electronAPI.convertTiffToImages(data);
         if (result.success && result.data) {
           return { images: result.data, type: "TIFF" };
         }
@@ -1139,9 +1169,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
       else if ([".heic", ".heif"].includes(ext)) {
         logger.info("[Document Conversion] HEIC/HEIF detected", { fileName });
         setFileProcessingStage("Converting HEIC/HEIF image...");
-        const result = await globalThis.window.electronAPI.convertHeicToImages(
-          data
-        );
+        const result =
+          await globalThis.window.electronAPI.convertHeicToImages(data);
         if (result.success && result.data) {
           return { images: result.data, type: "HEIC/HEIF" };
         }
@@ -1153,7 +1182,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         setFileProcessingStage("Converting email message...");
         const result = await globalThis.window.electronAPI.convertEmailToImages(
           data,
-          fileName
+          fileName,
         );
         if (result.success && result.data) {
           return { images: result.data, type: "Email" };
@@ -1164,9 +1193,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
       else if (ext === ".epub") {
         logger.info("[Document Conversion] EPUB detected", { fileName });
         setFileProcessingStage("Converting EPUB ebook...");
-        const result = await globalThis.window.electronAPI.convertEpubToImages(
-          data
-        );
+        const result =
+          await globalThis.window.electronAPI.convertEpubToImages(data);
         if (result.success && result.data) {
           return {
             images: result.data,
@@ -1234,7 +1262,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           });
           showFileProcessingResult(
             false,
-            "Invalid file data. Please try uploading the file again."
+            "Invalid file data. Please try uploading the file again.",
           );
           return;
         }
@@ -1247,7 +1275,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           });
           showFileProcessingResult(
             false,
-            "Invalid file extension. Please try again."
+            "Invalid file extension. Please try again.",
           );
           return;
         }
@@ -1270,7 +1298,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           });
           showFileProcessingResult(
             false,
-            `Failed to process file: ${fileData.name}. The file data could not be decoded.`
+            `Failed to process file: ${fileData.name}. The file data could not be decoded.`,
           );
           return;
         }
@@ -1284,7 +1312,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           });
           showFileProcessingResult(
             false,
-            "Failed to process file buffer. Please try again."
+            "Failed to process file buffer. Please try again.",
           );
           return;
         }
@@ -1324,7 +1352,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             setFileProcessingProgress(0);
             setFileProcessingStage("");
             alert(
-              `⛔ File Upload Blocked\n\nSecurity Threat Detected: ${quickScanResult.reason}\n\nThis file cannot be uploaded for your protection.`
+              `⛔ File Upload Blocked\n\nSecurity Threat Detected: ${quickScanResult.reason}\n\nThis file cannot be uploaded for your protection.`,
             );
           }, 800);
           return;
@@ -1338,7 +1366,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           "[File Security] Quick scan passed, starting full analysis",
           {
             fileName: fileData.name,
-          }
+          },
         );
 
         const securityReport = await analyzeFile({
@@ -1392,7 +1420,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             }/100\n\nThis file has been BLOCKED due to critical security threats:\n\n${securityReport.recommendations
               .slice(0, 3)
               .join(
-                "\n"
+                "\n",
               )}\n\nFor your protection, this file cannot be uploaded.`;
             showFileProcessingResult(false, errorMsg);
           }, 800);
@@ -1406,7 +1434,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
           setPendingFile(fileData);
           setFileSecurityReports(
-            new Map(fileSecurityReports).set(fileData.name, securityReport)
+            new Map(fileSecurityReports).set(fileData.name, securityReport),
           );
 
           // Stop processing, show security warning dialog
@@ -1434,12 +1462,12 @@ ${separator}${responses.join("\n\n" + separator)}`;
               `File: ${fileData.name}\n` +
               `Risk Score: ${securityReport.riskScore}/100\n\n` +
               `Medium-risk content detected. Review recommended before proceeding.\n\n` +
-              `Do you want to upload this file anyway?`
+              `Do you want to upload this file anyway?`,
           );
 
           if (!proceed) {
             logger.info(
-              "[File Security] User declined quarantined file upload"
+              "[File Security] User declined quarantined file upload",
             );
             setIsProcessingFile(false);
             setFileProcessingProgress(0);
@@ -1455,7 +1483,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
         // Store security report with file
         setFileSecurityReports(
-          new Map(fileSecurityReports).set(fileData.name, securityReport)
+          new Map(fileSecurityReports).set(fileData.name, securityReport),
         );
 
         // Check if this is a PDF - convert to images for vision models
@@ -1469,7 +1497,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
           const pdfImages = await convertPDFToImagesForVision(
             fileData.data,
-            fileData.name
+            fileData.name,
           );
 
           if (pdfImages && pdfImages.length > 0) {
@@ -1493,13 +1521,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
               {
                 fileName: fileData.name,
                 pageCount: pdfImages.length,
-              }
+              },
             );
           } else {
             // Fallback: Add original PDF if conversion failed
             logger.warn(
               "[File Processing] PDF conversion failed, adding original PDF",
-              { fileName: fileData.name }
+              { fileName: fileData.name },
             );
             const attachmentWithId = {
               ...fileData,
@@ -1519,13 +1547,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
             "[File Processing] Word document detected, converting to images",
             {
               fileName: fileData.name,
-            }
+            },
           );
           setFileProcessingStage("Converting Word document to images...");
 
           const wordImages = await convertWordToImagesForVision(
             fileData.data,
-            fileData.name
+            fileData.name,
           );
 
           if (wordImages && wordImages.length > 0) {
@@ -1549,13 +1577,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
               {
                 fileName: fileData.name,
                 pageCount: wordImages.length,
-              }
+              },
             );
           } else {
             // Fallback: Add original Word doc if conversion failed
             logger.warn(
               "[File Processing] Word conversion failed, adding original document",
-              { fileName: fileData.name }
+              { fileName: fileData.name },
             );
             const attachmentWithId = {
               ...fileData,
@@ -1581,8 +1609,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 const pageName = conversionResult.sheets
                   ? `${fileData.name} - Sheet ${index + 1}`
                   : conversionResult.images.length > 1
-                  ? `${fileData.name} - Page ${index + 1}`
-                  : fileData.name;
+                    ? `${fileData.name} - Page ${index + 1}`
+                    : fileData.name;
 
                 return {
                   name: pageName,
@@ -1596,7 +1624,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                   originalFileName: fileData.name,
                   originalType: conversionResult.type,
                 };
-              }
+              },
             );
 
             setAttachments([...attachments, ...imageAttachments]);
@@ -1606,7 +1634,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
               {
                 fileName: fileData.name,
                 imageCount: conversionResult.images.length,
-              }
+              },
             );
           } else {
             // No conversion available or failed - add original file
@@ -1695,36 +1723,36 @@ ${separator}${responses.join("\n\n" + separator)}`;
         const isCode = fileData.name
           .toLowerCase()
           .match(
-            /\.(txt|log|json|xml|yaml|yml|html|htm|svg|js|ts|css|sql|py|java|c|cpp|h|cs|php|rb|go|rs|swift|kt|sh|bat|ps1|ini|conf|cfg|toml|properties)$/
+            /\.(txt|log|json|xml|yaml|yml|html|htm|svg|js|ts|css|sql|py|java|c|cpp|h|cs|php|rb|go|rs|swift|kt|sh|bat|ps1|ini|conf|cfg|toml|properties)$/,
           );
 
         const capabilityNote = isImage
           ? `\n\n🖼️  Vision-capable models will analyze the image content.`
           : isPDF
-          ? `\n\n📄 PDF will be converted to images for vision models to see filled form fields and content.`
-          : isWord
-          ? `\n\n📝 Word document will be converted to images to preserve formatting, tables, and layout.`
-          : isExcel
-          ? `\n\n📊 Excel spreadsheet will be converted to images - each sheet will be rendered separately.`
-          : isPowerPoint
-          ? `\n\n📊 PowerPoint presentation will be converted to images - each slide rendered separately.`
-          : isMarkdown
-          ? `\n\n📝 Markdown will be rendered and converted to an image with proper formatting.`
-          : isCsv
-          ? `\n\n📋 CSV will be rendered as a table and converted to an image.`
-          : isRtf
-          ? `\n\n📄 RTF document will be converted to an image with formatting preserved.`
-          : isTiff
-          ? `\n\n🖼️ TIFF image will be converted to PNG for vision model analysis.`
-          : isHeic
-          ? `\n\n🖼️ HEIC/HEIF image will be converted to PNG for vision model analysis.`
-          : isEmail
-          ? `\n\n📧 Email will be rendered showing headers, body, and attachment list.`
-          : isEpub
-          ? `\n\n📚 EPUB ebook will be converted to images - chapters rendered separately.`
-          : isCode
-          ? `\n\n💻 Code/text file will be rendered with syntax highlighting and converted to an image.`
-          : `\n\n📄 Document content will be included in your prompt.`;
+            ? `\n\n📄 PDF will be converted to images for vision models to see filled form fields and content.`
+            : isWord
+              ? `\n\n📝 Word document will be converted to images to preserve formatting, tables, and layout.`
+              : isExcel
+                ? `\n\n📊 Excel spreadsheet will be converted to images - each sheet will be rendered separately.`
+                : isPowerPoint
+                  ? `\n\n📊 PowerPoint presentation will be converted to images - each slide rendered separately.`
+                  : isMarkdown
+                    ? `\n\n📝 Markdown will be rendered and converted to an image with proper formatting.`
+                    : isCsv
+                      ? `\n\n📋 CSV will be rendered as a table and converted to an image.`
+                      : isRtf
+                        ? `\n\n📄 RTF document will be converted to an image with formatting preserved.`
+                        : isTiff
+                          ? `\n\n🖼️ TIFF image will be converted to PNG for vision model analysis.`
+                          : isHeic
+                            ? `\n\n🖼️ HEIC/HEIF image will be converted to PNG for vision model analysis.`
+                            : isEmail
+                              ? `\n\n📧 Email will be rendered showing headers, body, and attachment list.`
+                              : isEpub
+                                ? `\n\n📚 EPUB ebook will be converted to images - chapters rendered separately.`
+                                : isCode
+                                  ? `\n\n💻 Code/text file will be rendered with syntax highlighting and converted to an image.`
+                                  : `\n\n📄 Document content will be included in your prompt.`;
 
         // Wait a moment to show completion animation
         await new Promise((resolve) => setTimeout(resolve, 800));
@@ -1752,7 +1780,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         error instanceof Error ? error.message : "Unknown error occurred";
       showFileProcessingResult(
         false,
-        `File upload failed: ${errorMsg}\n\nPlease check the console for details.`
+        `File upload failed: ${errorMsg}\n\nPlease check the console for details.`,
       );
     }
   };
@@ -1780,19 +1808,19 @@ ${separator}${responses.join("\n\n" + separator)}`;
         jurisdictions: Array.from(selectedJurisdictions),
       },
       currentConversation.id,
-      messageId
+      messageId,
     );
 
     // PII Scan - MANDATORY security check for sensitive information
     // This scanner is always active and cannot be disabled for legal protection
     // Get active jurisdictions from conversation
     const activeJurisdictions: Jurisdiction[] = Array.from(
-      selectedJurisdictions
+      selectedJurisdictions,
     );
 
     const scanResult = piiScanner.scan(
       input,
-      activeJurisdictions.length > 0 ? activeJurisdictions : undefined
+      activeJurisdictions.length > 0 ? activeJurisdictions : undefined,
     );
 
     // AUDIT: PII scan performed
@@ -1806,7 +1834,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         detectedTypes: Array.from(scanResult.detectedCategories),
         jurisdictions: activeJurisdictions,
       },
-      input.substring(0, 100) // Preview only
+      input.substring(0, 100), // Preview only
     );
 
     if (scanResult.hasFindings) {
@@ -1827,7 +1855,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           displayedAt: new Date().toISOString(),
         },
         currentConversation.id,
-        messageId
+        messageId,
       );
 
       logger.info("PII detected, showing privacy warning", {
@@ -1846,7 +1874,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
   const buildSystemPrompt = (
     practiceAreaPrompt: string,
     advisoryArea: { id: string; systemPrompt: string },
-    jurisdictions: Jurisdiction[]
+    jurisdictions: Jurisdiction[],
   ): string => {
     let fullSystemPrompt = practiceAreaPrompt;
 
@@ -1867,7 +1895,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
   const createUserMessage = (
     messageText: string,
     practiceAreaName: string,
-    advisoryArea: { id: string; name: string }
+    advisoryArea: { id: string; name: string },
   ): Message => {
     return {
       id: `msg-${Date.now()}`,
@@ -1885,10 +1913,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
   const sendToProvider = async (
     selectedModel: SelectedModel,
     userMessage: Message,
-    fullSystemPrompt: string
+    fullSystemPrompt: string,
   ) => {
     const provider = config.providers.find(
-      (p) => p.id === selectedModel.providerId
+      (p) => p.id === selectedModel.providerId,
     );
     if (!provider) return null;
 
@@ -1933,7 +1961,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         fullMessages,
         fullSystemPrompt,
         maxContextWindow,
-        0.85 // Use 85% of max window
+        0.85, // Use 85% of max window
       );
 
     // Log context window info
@@ -2011,12 +2039,12 @@ ${separator}${responses.join("\n\n" + separator)}`;
               durationMs,
               timestamp: new Date().toISOString(),
             },
-          }
+          },
         );
 
         // For error case, we throw but the catch block will create the response with trace
         const error: any = new Error(
-          result.error?.message || "Chat request failed"
+          result.error?.message || "Chat request failed",
         );
         error.apiTrace = {
           requestId,
@@ -2053,7 +2081,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             timestamp: new Date().toISOString(),
             modelUsed: selectedModel.modelId,
           },
-        }
+        },
       );
 
       // Create API trace for success
@@ -2087,7 +2115,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                       hasInputPrice: !!model?.inputTokenPrice,
                       hasOutputPrice: !!model?.outputTokenPrice,
                       usage: response.usage,
-                    }
+                    },
                   );
                 }
                 return undefined;
@@ -2123,7 +2151,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
             isUserError: false,
             isNetworkError: false,
           },
-        }
+        },
       );
 
       logger.error("Provider request failed", {
@@ -2171,7 +2199,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       apiTrace?: any;
     } | null>,
     practiceAreaName: string,
-    advisoryArea: { id: string; name: string }
+    advisoryArea: { id: string; name: string },
   ): Message[] => {
     const messages: Message[] = [];
 
@@ -2220,7 +2248,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         // Extract filename without extension for keyword detection
         const filename = attachment.name.substring(
           0,
-          attachment.name.lastIndexOf(".")
+          attachment.name.lastIndexOf("."),
         );
         const filenameWords = filename.replaceAll(/[_-]/g, " ").toLowerCase();
 
@@ -2256,7 +2284,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     const fullSystemPrompt = buildSystemPrompt(
       practiceArea.systemPrompt,
       advisoryArea,
-      jurisdictions
+      jurisdictions,
     );
 
     // Get selected models
@@ -2266,7 +2294,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     const userMessage = createUserMessage(
       messageText,
       practiceArea.name,
-      advisoryArea
+      advisoryArea,
     );
 
     addMessage(userMessage, targetConversationId);
@@ -2282,7 +2310,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
           return await sendToProvider(
             selectedModel,
             userMessage,
-            fullSystemPrompt
+            fullSystemPrompt,
           );
         } catch (error) {
           // Log the error but don't fail the entire batch
@@ -2294,13 +2322,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
           // Return error response instead of throwing
           const provider = config.providers.find(
-            (p) => p.id === selectedModel.providerId
+            (p) => p.id === selectedModel.providerId,
           );
           const template = providerTemplates.find(
-            (t) => t.id === provider?.provider
+            (t) => t.id === provider?.provider,
           );
           const model = template?.models.find(
-            (m) => m.id === selectedModel.modelId
+            (m) => m.id === selectedModel.modelId,
           );
 
           return {
@@ -2336,7 +2364,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       const assistantMessages = createAssistantMessages(
         responses,
         practiceArea.name,
-        advisoryArea
+        advisoryArea,
       );
 
       for (const message of assistantMessages) {
@@ -2381,7 +2409,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
       await downloadMessagePDF(
         message,
         currentConversation.title,
-        currentConversation.id
+        currentConversation.id,
       );
       logger.info("Message exported to PDF", { messageId: message.id });
     } catch (error) {
@@ -2441,7 +2469,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     if (!currentConversation || !piiScanResult) return;
 
     const activeJurisdictions: Jurisdiction[] = Array.from(
-      selectedJurisdictions
+      selectedJurisdictions,
     );
 
     const messageId = `msg_${Date.now()}`;
@@ -2470,7 +2498,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         jurisdictions: activeJurisdictions,
       },
       pendingMessage.substring(0, 100),
-      "proceed"
+      "proceed",
     );
 
     setShowPrivacyWarning(false);
@@ -2485,7 +2513,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     if (!currentConversation || !piiScanResult) return;
 
     const activeJurisdictions: Jurisdiction[] = Array.from(
-      selectedJurisdictions
+      selectedJurisdictions,
     );
 
     const messageId = `msg_${Date.now()}_cancelled`;
@@ -2514,7 +2542,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         jurisdictions: activeJurisdictions,
       },
       pendingMessage.substring(0, 100),
-      "cancel"
+      "cancel",
     );
 
     setShowPrivacyWarning(false);
@@ -2532,7 +2560,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
     if (!currentConversation || !piiScanResult) return;
 
     const activeJurisdictions: Jurisdiction[] = Array.from(
-      selectedJurisdictions
+      selectedJurisdictions,
     );
 
     const messageId = `msg_${Date.now()}_anonymized`;
@@ -2561,7 +2589,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
         jurisdictions: activeJurisdictions,
       },
       pendingMessage.substring(0, 100),
-      "anonymize"
+      "anonymize",
     );
 
     setShowPrivacyWarning(false);
@@ -2592,8 +2620,8 @@ ${separator}${responses.join("\n\n" + separator)}`;
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
-          <p className="text-xl mb-2">Welcome to Atticus</p>
-          <p className="text-sm">Select a conversation or start a new one</p>
+          <p className="text-xl mb-2">{t.chatWindow.welcomeTitle}</p>
+          <p className="text-sm">{t.chatWindow.welcomeSubtitle}</p>
         </div>
       </div>
     );
@@ -2617,13 +2645,13 @@ ${separator}${responses.join("\n\n" + separator)}`;
                     .map((key) => {
                       const [providerId, modelId] = key.split(":");
                       const provider = config.providers.find(
-                        (p) => p.id === providerId
+                        (p) => p.id === providerId,
                       );
                       const template = providerTemplates.find(
-                        (t) => t.id === provider?.provider
+                        (t) => t.id === provider?.provider,
                       );
                       const model = template?.models.find(
-                        (m) => m.id === modelId
+                        (m) => m.id === modelId,
                       );
                       return (
                         <span
@@ -2790,7 +2818,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                           onClick={() =>
                             toggleModelSelection(
                               model.providerId,
-                              model.modelId
+                              model.modelId,
                             )
                           }
                           className={`w-full text-left px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors border-2 ${
@@ -2877,7 +2905,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                   <div className="space-y-2">
                     {JURISDICTIONS.map((jurisdiction) => {
                       const isSelected = selectedJurisdictions.has(
-                        jurisdiction.code
+                        jurisdiction.code,
                       );
                       return (
                         <button
@@ -2959,181 +2987,252 @@ ${separator}${responses.join("\n\n" + separator)}`;
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {currentConversation.messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-20">
-            <p className="text-lg mb-2">Start a conversation</p>
-            <p className="text-sm">
-              Atticus will automatically detect the practice & advisory area and
-              provide assistance
-            </p>
-          </div>
-        ) : (
-          currentConversation.messages.map((message, index) => {
-            // Determine if this is the last assistant message in a cluster
-            const isLastInCluster =
-              message.role === "assistant" &&
-              (index === currentConversation.messages.length - 1 ||
-                currentConversation.messages[index + 1]?.role === "user");
+      <div className="flex-1 relative overflow-hidden">
+        <div
+          ref={messagesContainerRef}
+          className="absolute inset-0 overflow-y-auto p-6 space-y-6"
+        >
+          {currentConversation.messages.length === 0 ? (
+            <div className="text-center text-gray-500 mt-20">
+              <p className="text-lg mb-2">{t.startConversation}</p>
+              <p className="text-sm">
+                {t.atticus} will automatically detect the practice & advisory
+                area and provide assistance
+              </p>
+            </div>
+          ) : (
+            currentConversation.messages.map((message, index) => {
+              // Determine if this is the last assistant message in a cluster
+              const isLastInCluster =
+                message.role === "assistant" &&
+                (index === currentConversation.messages.length - 1 ||
+                  currentConversation.messages[index + 1]?.role === "user");
 
-            // Find the start of this cluster (the user query)
-            let clusterStartIndex = index;
-            if (message.role === "assistant") {
-              for (let i = index; i >= 0; i--) {
-                if (currentConversation.messages[i].role === "user") {
-                  clusterStartIndex = i;
-                  break;
-                }
-              }
-            }
-
-            // Check if this is an analysis cluster (contains analysis messages)
-            const isAnalysisCluster =
-              isLastInCluster &&
-              (() => {
-                for (let i = clusterStartIndex; i <= index; i++) {
-                  if (
-                    currentConversation.messages[i].id.includes("_analysis")
-                  ) {
-                    return true;
+              // Find the start of this cluster (the user query)
+              let clusterStartIndex = index;
+              if (message.role === "assistant") {
+                for (let i = index; i >= 0; i--) {
+                  if (currentConversation.messages[i].role === "user") {
+                    clusterStartIndex = i;
+                    break;
                   }
                 }
-                return false;
-              })();
+              }
 
-            // For analysis clusters, find the original cluster that was analyzed
-            let originalClusterStart = clusterStartIndex;
-            let originalClusterEnd = index;
-            if (isAnalysisCluster && clusterStartIndex > 0) {
-              // The analysis query should reference the cluster before it
-              // Walk backwards to find the previous cluster
-              for (let i = clusterStartIndex - 1; i >= 0; i--) {
-                if (
-                  currentConversation.messages[i].role === "assistant" &&
-                  (i === 0 ||
-                    currentConversation.messages[i + 1]?.role === "user")
-                ) {
-                  // Found the end of the previous cluster
-                  originalClusterEnd = i;
-                  // Now find its start
-                  for (let j = i; j >= 0; j--) {
-                    if (currentConversation.messages[j].role === "user") {
-                      originalClusterStart = j;
-                      break;
+              // Check if this is an analysis cluster (contains analysis messages)
+              const isAnalysisCluster =
+                isLastInCluster &&
+                (() => {
+                  for (let i = clusterStartIndex; i <= index; i++) {
+                    if (
+                      currentConversation.messages[i].id.includes("_analysis")
+                    ) {
+                      return true;
                     }
                   }
-                  break;
+                  return false;
+                })();
+
+              // For analysis clusters, find the original cluster that was analyzed
+              let originalClusterStart = clusterStartIndex;
+              let originalClusterEnd = index;
+              if (isAnalysisCluster && clusterStartIndex > 0) {
+                // The analysis query should reference the cluster before it
+                // Walk backwards to find the previous cluster
+                for (let i = clusterStartIndex - 1; i >= 0; i--) {
+                  if (
+                    currentConversation.messages[i].role === "assistant" &&
+                    (i === 0 ||
+                      currentConversation.messages[i + 1]?.role === "user")
+                  ) {
+                    // Found the end of the previous cluster
+                    originalClusterEnd = i;
+                    // Now find its start
+                    for (let j = i; j >= 0; j--) {
+                      if (currentConversation.messages[j].role === "user") {
+                        originalClusterStart = j;
+                        break;
+                      }
+                    }
+                    break;
+                  }
                 }
               }
-            }
 
-            return (
-              <>
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
+              return (
+                <>
                   <div
-                    className={`max-w-3xl rounded-lg p-4 ${
-                      message.role === "user"
-                        ? "bg-legal-blue text-white"
-                        : "bg-gray-800 text-gray-100"
+                    key={message.id}
+                    data-message-id={message.id}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold">
-                          {message.role === "user" ? "You" : "Atticus"}
-                        </span>
-                        {/* Model badge for assistant messages */}
-                        {message.role === "assistant" && message.modelInfo && (
-                          <span className="inline-flex items-center gap-1 bg-gray-700 px-2 py-0.5 rounded text-xs text-legal-gold border border-legal-gold">
-                            <span className="text-sm">
-                              {providerTemplates.find(
-                                (t) =>
-                                  config.providers.find(
-                                    (p) =>
-                                      p.id === message.modelInfo?.providerId
-                                  )?.provider === t.id
-                              )?.icon || "🤖"}
+                    <div
+                      className={`w-3/4 rounded-lg p-4 ${
+                        message.role === "user"
+                          ? "bg-legal-blue text-white"
+                          : "bg-gray-800 text-gray-100"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold">
+                            {message.role === "user" ? t.you : t.atticus}
+                          </span>
+                          {/* Model badge for assistant messages */}
+                          {message.role === "assistant" &&
+                            message.modelInfo && (
+                              <span className="inline-flex items-center gap-1 bg-gray-700 px-2 py-0.5 rounded text-xs text-legal-gold border border-legal-gold">
+                                <span className="text-sm">
+                                  {providerTemplates.find(
+                                    (t) =>
+                                      config.providers.find(
+                                        (p) =>
+                                          p.id ===
+                                          message.modelInfo?.providerId,
+                                      )?.provider === t.id,
+                                  )?.icon || "🤖"}
+                                </span>
+                                <span className="font-medium">
+                                  {message.modelInfo.providerName}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span>{message.modelInfo.modelName}</span>
+                              </span>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {message.practiceArea && (
+                            <span className="text-xs px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-700">
+                              ⚖️ {message.practiceArea}
                             </span>
-                            <span className="font-medium">
-                              {message.modelInfo.providerName}
+                          )}
+                          {message.advisoryArea && (
+                            <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700">
+                              💼 {message.advisoryArea}
                             </span>
-                            <span className="text-gray-400">•</span>
-                            <span>{message.modelInfo.modelName}</span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {message.practiceArea && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-700">
-                            ⚖️ {message.practiceArea}
-                          </span>
-                        )}
-                        {message.advisoryArea && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-300 border border-amber-700">
-                            💼 {message.advisoryArea}
-                          </span>
-                        )}
-                        {/* Display tags */}
-                        {message.tags &&
-                          message.tags.length > 0 &&
-                          message.tags.map((tag) => {
-                            let tagStyles =
-                              "bg-gray-700/30 text-gray-300 border-gray-600";
-                            if (tag === "interesting") {
-                              tagStyles =
-                                "bg-yellow-900/30 text-yellow-300 border-yellow-700";
-                            } else if (tag === "important") {
-                              tagStyles =
-                                "bg-red-900/30 text-red-300 border-red-700";
-                            } else if (tag === "wisdom") {
-                              tagStyles =
-                                "bg-purple-900/30 text-purple-300 border-purple-700";
-                            }
+                          )}
+                          {/* Display tags */}
+                          {message.tags &&
+                            message.tags.length > 0 &&
+                            message.tags.map((tag) => {
+                              let tagStyles =
+                                "bg-gray-700/30 text-gray-300 border-gray-600";
+                              if (tag === "interesting") {
+                                tagStyles =
+                                  "bg-yellow-900/30 text-yellow-300 border-yellow-700";
+                              } else if (tag === "important") {
+                                tagStyles =
+                                  "bg-red-900/30 text-red-300 border-red-700";
+                              } else if (tag === "wisdom") {
+                                tagStyles =
+                                  "bg-purple-900/30 text-purple-300 border-purple-700";
+                              }
 
-                            return (
-                              <span
+                              return (
+                                <span
+                                  key={tag}
+                                  className={`text-xs px-2 py-0.5 rounded border ${tagStyles}`}
+                                >
+                                  #{tag}
+                                </span>
+                              );
+                            })}
+                        </div>
+                      </div>
+
+                      <div className="markdown-content">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+
+                      {/* Inline Tag Management */}
+                      <div className="mt-3 pt-3 border-t border-gray-700/50">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Existing tags with remove button */}
+                          {message.tags &&
+                            message.tags.length > 0 &&
+                            message.tags.map((tag) => (
+                              <div
                                 key={tag}
-                                className={`text-xs px-2 py-0.5 rounded border ${tagStyles}`}
+                                className="group flex items-center gap-1 px-2 py-1 rounded bg-gray-700/50 border border-gray-600 hover:border-gray-500 transition-colors"
                               >
-                                #{tag}
-                              </span>
-                            );
-                          })}
-                      </div>
-                    </div>
+                                <span className="text-xs text-gray-300">
+                                  #{tag}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleRemoveInlineTag(message.id, tag)
+                                  }
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400"
+                                  title="Remove tag"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
 
-                    <div className="markdown-content">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-
-                    {/* Inline Tag Management */}
-                    <div className="mt-3 pt-3 border-t border-gray-700/50">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Existing tags with remove button */}
-                        {message.tags &&
-                          message.tags.length > 0 &&
-                          message.tags.map((tag) => (
-                            <div
-                              key={tag}
-                              className="group flex items-center gap-1 px-2 py-1 rounded bg-gray-700/50 border border-gray-600 hover:border-gray-500 transition-colors"
-                            >
-                              <span className="text-xs text-gray-300">
-                                #{tag}
-                              </span>
+                          {/* Add tag button/input */}
+                          {inlineTagMessageId === message.id ? (
+                            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                              <div className="relative flex-1">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+                                  #
+                                </span>
+                                <input
+                                  type="text"
+                                  value={inlineTagInput}
+                                  onChange={(e) =>
+                                    setInlineTagInput(e.target.value)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleAddInlineTag(message.id);
+                                    } else if (e.key === "Escape") {
+                                      setInlineTagMessageId(null);
+                                      setInlineTagInput("");
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (!inlineTagInput.trim()) {
+                                      setInlineTagMessageId(null);
+                                    }
+                                  }}
+                                  placeholder="tag-name"
+                                  autoFocus
+                                  className="w-full bg-gray-700 text-white text-xs rounded pl-5 pr-2 py-1 focus:outline-none focus:ring-1 focus:ring-legal-blue"
+                                />
+                              </div>
                               <button
-                                onClick={() =>
-                                  handleRemoveInlineTag(message.id, tag)
-                                }
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400"
-                                title="Remove tag"
+                                onClick={() => handleAddInlineTag(message.id)}
+                                disabled={!inlineTagInput.trim()}
+                                className="px-2 py-1 bg-legal-blue hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-xs rounded transition-colors"
+                              >
+                                Add
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setInlineTagMessageId(null);
+                                  setInlineTagInput("");
+                                }}
+                                className="text-gray-400 hover:text-white transition-colors"
+                                title="Cancel"
                               >
                                 <svg
-                                  className="w-3 h-3"
+                                  className="w-4 h-4"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -3147,54 +3246,34 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                 </svg>
                               </button>
                             </div>
-                          ))}
-
-                        {/* Add tag button/input */}
-                        {inlineTagMessageId === message.id ? (
-                          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                            <div className="relative flex-1">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
-                                #
-                              </span>
-                              <input
-                                type="text"
-                                value={inlineTagInput}
-                                onChange={(e) =>
-                                  setInlineTagInput(e.target.value)
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleAddInlineTag(message.id);
-                                  } else if (e.key === "Escape") {
-                                    setInlineTagMessageId(null);
-                                    setInlineTagInput("");
-                                  }
-                                }}
-                                onBlur={() => {
-                                  if (!inlineTagInput.trim()) {
-                                    setInlineTagMessageId(null);
-                                  }
-                                }}
-                                placeholder="tag-name"
-                                autoFocus
-                                className="w-full bg-gray-700 text-white text-xs rounded pl-5 pr-2 py-1 focus:outline-none focus:ring-1 focus:ring-legal-blue"
-                              />
-                            </div>
+                          ) : (
                             <button
-                              onClick={() => handleAddInlineTag(message.id)}
-                              disabled={!inlineTagInput.trim()}
-                              className="px-2 py-1 bg-legal-blue hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-xs rounded transition-colors"
+                              onClick={() => setInlineTagMessageId(message.id)}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded border border-dashed border-gray-600 hover:border-gray-500 transition-colors"
+                              title={t.chatWindow.addTag}
                             >
-                              Add
+                              <span>🏷️</span>
+                              <span>{t.chatWindow.addTag}</span>
                             </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Cost Report - show token usage and cost for assistant messages */}
+                      {message.role === "assistant" && message.apiTrace && (
+                        <CostReport apiTrace={message.apiTrace} />
+                      )}
+
+                      {/* API Error Actions (Inspect & Resend) */}
+                      {message.role === "assistant" &&
+                        message.apiTrace?.status === "error" && (
+                          <div className="mt-3 pt-3 border-t border-red-500/30 flex flex-wrap gap-2">
                             <button
-                              onClick={() => {
-                                setInlineTagMessageId(null);
-                                setInlineTagInput("");
-                              }}
-                              className="text-gray-400 hover:text-white transition-colors"
-                              title="Cancel"
+                              onClick={() =>
+                                setInspectedApiTrace(message.apiTrace!)
+                              }
+                              className="flex items-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors border border-red-500/50 text-xs font-medium"
+                              title="Inspect API error details"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -3206,288 +3285,429 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                               </svg>
+                              <span>{t.chatWindow.inspectError}</span>
+                            </button>
+                            <button
+                              onClick={() => handleResendMessage(index - 1)}
+                              disabled={isLoading}
+                              className="flex items-center gap-2 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 rounded-lg transition-colors border border-blue-500/50 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Resend the previous message"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                              <span>{t.chatWindow.resendMessage}</span>
                             </button>
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => setInlineTagMessageId(message.id)}
-                            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded border border-dashed border-gray-600 hover:border-gray-500 transition-colors"
-                            title="Add tag to this message"
-                          >
-                            <span>🏷️</span>
-                            <span>Add tag</span>
-                          </button>
                         )}
-                      </div>
-                    </div>
 
-                    {/* Cost Report - show token usage and cost for assistant messages */}
-                    {message.role === "assistant" && message.apiTrace && (
-                      <CostReport apiTrace={message.apiTrace} />
-                    )}
-
-                    {/* API Error Actions (Inspect & Resend) */}
-                    {message.role === "assistant" &&
-                      message.apiTrace?.status === "error" && (
-                        <div className="mt-3 pt-3 border-t border-red-500/30 flex flex-wrap gap-2">
-                          <button
-                            onClick={() =>
-                              setInspectedApiTrace(message.apiTrace!)
-                            }
-                            className="flex items-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors border border-red-500/50 text-xs font-medium"
-                            title="Inspect API error details"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                              />
-                            </svg>
-                            <span>Inspect Error</span>
-                          </button>
-                          <button
-                            onClick={() => handleResendMessage(index - 1)}
-                            disabled={isLoading}
-                            className="flex items-center gap-2 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 text-blue-300 rounded-lg transition-colors border border-blue-500/50 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Resend the previous message"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </svg>
-                            <span>Resend Message</span>
-                          </button>
-                        </div>
-                      )}
-
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-600">
-                        {message.attachments.map((att) => (
-                          <div
-                            key={att.id}
-                            className="text-xs flex items-center gap-2"
-                          >
-                            <Paperclip className="w-3 h-3" />
-                            <span>{att.name}</span>
+                      {message.attachments &&
+                        message.attachments.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-600">
+                            {message.attachments.map((att) => (
+                              <div
+                                key={att.id}
+                                className="text-xs flex items-center gap-2"
+                              >
+                                <Paperclip className="w-3 h-3" />
+                                <span>{att.name}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        )}
 
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="text-xs text-gray-400">
-                        {DateUtils.formatMessageTimestamp(message.timestamp)}
-                      </div>
-                      <button
-                        onClick={() => handleExportMessage(message)}
-                        className="text-xs text-gray-400 hover:text-legal-gold transition-colors flex items-center gap-1"
-                        title="Export this message to PDF"
-                      >
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-xs text-gray-400">
+                          {DateUtils.formatMessageTimestamp(message.timestamp)}
+                        </div>
+                        <button
+                          onClick={() => handleExportMessage(message)}
+                          className="text-xs text-gray-400 hover:text-legal-gold transition-colors flex items-center gap-1"
+                          title="Export this message to PDF"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span>Export PDF</span>
-                      </button>
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <span>{t.chatWindow.exportPDF}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Cluster Action Bar - appears after the last message in each cluster */}
-                {isLastInCluster && (
-                  <div
-                    key={`action-bar-${message.id}`}
-                    className="flex justify-center my-6"
-                  >
-                    <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800 to-gray-750 rounded-xl px-6 py-3 shadow-lg border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300">
-                      {/* Show contextual label for analysis clusters */}
-                      {isAnalysisCluster && (
-                        <span className="text-xs text-gray-400 mr-2 px-2 py-1 bg-gray-700/50 rounded border border-gray-600">
-                          Actions for original cluster:
-                        </span>
-                      )}
+                  {/* Cluster Action Bar - appears after the last message in each cluster */}
+                  {isLastInCluster && (
+                    <div
+                      key={`action-bar-${message.id}`}
+                      className="flex justify-center my-6"
+                    >
+                      <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800 to-gray-750 rounded-xl px-6 py-3 shadow-lg border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300">
+                        {/* Show contextual label for analysis clusters */}
+                        {isAnalysisCluster && (
+                          <span className="text-xs text-gray-400 mr-2 px-2 py-1 bg-gray-700/50 rounded border border-gray-600">
+                            Actions for original cluster:
+                          </span>
+                        )}
 
-                      {/* Export Cluster to PDF */}
-                      <button
-                        onClick={async () => {
-                          // Determine what to export
-                          let startIdx, endIdx, exportType;
+                        {/* Export Cluster to PDF */}
+                        <button
+                          onClick={async () => {
+                            // Determine what to export
+                            let startIdx, endIdx, exportType;
 
-                          if (isAnalysisCluster) {
-                            // User is on an analysis cluster action bar
-                            // Export the original cluster that was analyzed
-                            startIdx = originalClusterStart;
-                            endIdx = originalClusterEnd;
-                            exportType = "cluster";
-                          } else {
-                            // Regular cluster - check if it contains analysis results
-                            const clusterMsgs = [];
-                            for (let i = clusterStartIndex; i <= index; i++) {
-                              clusterMsgs.push(currentConversation.messages[i]);
+                            if (isAnalysisCluster) {
+                              // User is on an analysis cluster action bar
+                              // Export the original cluster that was analyzed
+                              startIdx = originalClusterStart;
+                              endIdx = originalClusterEnd;
+                              exportType = "cluster";
+                            } else {
+                              // Regular cluster - check if it contains analysis results
+                              const clusterMsgs = [];
+                              for (let i = clusterStartIndex; i <= index; i++) {
+                                clusterMsgs.push(
+                                  currentConversation.messages[i],
+                                );
+                              }
+
+                              // Check if this cluster contains analysis results
+                              const hasAnalysisContent = clusterMsgs.some(
+                                (msg) => msg.metadata?.isAnalysis === true,
+                              );
+
+                              startIdx = clusterStartIndex;
+                              endIdx = index;
+                              exportType = hasAnalysisContent
+                                ? "analysis"
+                                : "cluster";
                             }
 
-                            // Check if this cluster contains analysis results
-                            const hasAnalysisContent = clusterMsgs.some(
-                              (msg) => msg.metadata?.isAnalysis === true
-                            );
+                            const clusterMessages = [];
+                            for (let i = startIdx; i <= endIdx; i++) {
+                              clusterMessages.push(
+                                currentConversation.messages[i],
+                              );
+                            }
 
-                            startIdx = clusterStartIndex;
-                            endIdx = index;
-                            exportType = hasAnalysisContent
-                              ? "analysis"
-                              : "cluster";
+                            // Export the cluster
+                            try {
+                              await downloadClusterPDF(
+                                clusterMessages,
+                                currentConversation.title,
+                                currentConversation.id,
+                                exportType as "cluster" | "analysis",
+                              );
+                              logger.info("Cluster exported to PDF", {
+                                messageCount: clusterMessages.length,
+                                exportType,
+                              });
+                            } catch (error) {
+                              logger.error("Failed to export cluster to PDF", {
+                                error,
+                              });
+                            }
+                          }}
+                          className="text-sm text-gray-300 hover:text-white transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700/70 font-medium"
+                          title={
+                            isAnalysisCluster
+                              ? "Export the original query/response cluster to PDF"
+                              : "Export this query/response cluster to PDF"
                           }
-
-                          const clusterMessages = [];
-                          for (let i = startIdx; i <= endIdx; i++) {
-                            clusterMessages.push(
-                              currentConversation.messages[i]
-                            );
-                          }
-
-                          // Export the cluster
-                          try {
-                            await downloadClusterPDF(
-                              clusterMessages,
-                              currentConversation.title,
-                              currentConversation.id,
-                              exportType as "cluster" | "analysis"
-                            );
-                            logger.info("Cluster exported to PDF", {
-                              messageCount: clusterMessages.length,
-                              exportType,
-                            });
-                          } catch (error) {
-                            logger.error("Failed to export cluster to PDF", {
-                              error,
-                            });
-                          }
-                        }}
-                        className="text-sm text-gray-300 hover:text-white transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700/70 font-medium"
-                        title={
-                          isAnalysisCluster
-                            ? "Export the original query/response cluster to PDF"
-                            : "Export this query/response cluster to PDF"
-                        }
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span>Export PDF</span>
-                      </button>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <span>{t.chatWindow.exportPDF}</span>
+                        </button>
 
-                      <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+                        <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
 
-                      {/* Add Tag Button */}
-                      <button
-                        onClick={() => {
-                          // For analysis clusters, tag the original cluster
-                          const startIdx = isAnalysisCluster
-                            ? originalClusterStart
-                            : clusterStartIndex;
-                          const endIdx = isAnalysisCluster
-                            ? originalClusterEnd
-                            : index;
+                        {/* Add Tag Button */}
+                        <button
+                          onClick={() => {
+                            // For analysis clusters, tag the original cluster
+                            const startIdx = isAnalysisCluster
+                              ? originalClusterStart
+                              : clusterStartIndex;
+                            const endIdx = isAnalysisCluster
+                              ? originalClusterEnd
+                              : index;
 
-                          setTagDialogClusterStart(startIdx);
-                          setTagDialogClusterEnd(endIdx);
-                          setShowTagDialog(true);
-                        }}
-                        className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
-                        title={
-                          isAnalysisCluster
-                            ? "Add or manage tags for the original cluster"
-                            : "Add or manage tags for this cluster"
-                        }
-                      >
-                        <span className="text-base">🏷️</span>
-                        <span>Add Tag</span>
-                      </button>
+                            setTagDialogClusterStart(startIdx);
+                            setTagDialogClusterEnd(endIdx);
+                            setShowTagDialog(true);
+                          }}
+                          className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
+                          title={
+                            isAnalysisCluster
+                              ? "Add or manage tags for the original cluster"
+                              : "Add or manage tags for this cluster"
+                          }
+                        >
+                          <span className="text-base">🏷️</span>
+                          <span>{t.chatWindow.manageTags}</span>
+                        </button>
 
-                      <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+                        <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
 
-                      {/* Analysis Button */}
-                      <button
-                        onClick={() => {
-                          // For analysis clusters, analyze the original cluster again
-                          const startIdx = isAnalysisCluster
-                            ? originalClusterStart
-                            : clusterStartIndex;
-                          const endIdx = isAnalysisCluster
-                            ? originalClusterEnd
-                            : index;
+                        {/* Analysis Button */}
+                        <button
+                          onClick={() => {
+                            // For analysis clusters, analyze the original cluster again
+                            const startIdx = isAnalysisCluster
+                              ? originalClusterStart
+                              : clusterStartIndex;
+                            const endIdx = isAnalysisCluster
+                              ? originalClusterEnd
+                              : index;
 
-                          setAnalysisClusterStart(startIdx);
-                          setAnalysisClusterEnd(endIdx);
-                          setShowAnalysisDialog(true);
-                        }}
-                        className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
-                        title={
-                          isAnalysisCluster
-                            ? "Run another analysis on the original cluster"
-                            : "Analyze this cluster for accuracy and consistency"
-                        }
-                      >
-                        <span className="text-base">🔍</span>
-                        <span>
-                          {isAnalysisCluster ? "Re-Analyze" : "Analysis"}
-                        </span>
-                      </button>
+                            setAnalysisClusterStart(startIdx);
+                            setAnalysisClusterEnd(endIdx);
+                            setShowAnalysisDialog(true);
+                          }}
+                          className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
+                          title={
+                            isAnalysisCluster
+                              ? "Run another analysis on the original cluster"
+                              : "Analyze this cluster for accuracy and consistency"
+                          }
+                        >
+                          <span className="text-base">🔍</span>
+                          <span>
+                            {isAnalysisCluster ? "Re-Analyze" : "Analysis"}
+                          </span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            );
-          })
-        )}
+                  )}
+                </>
+              );
+            })
+          )}
 
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <Loader2 className="w-5 h-5 animate-spin text-legal-gold" />
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-800 rounded-lg p-4">
+                <Loader2 className="w-5 h-5 animate-spin text-legal-gold" />
+              </div>
             </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Vertical Navigation Toolbar */}
+        {currentConversation && currentConversation.messages.length > 0 && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+            {/* Jump to Previous User Query */}
+            <button
+              onClick={() => {
+                if (!messagesContainerRef.current) return;
+                const container = messagesContainerRef.current;
+                const userMessages = currentConversation.messages
+                  .map((msg, idx) => ({ msg, idx }))
+                  .filter(({ msg }) => msg.role === "user");
+
+                if (userMessages.length === 0) return;
+
+                let targetIndex = -1;
+
+                // If we have a last jumped message, find the previous one
+                if (lastJumpedMessageId.current) {
+                  const currentIdx = userMessages.findIndex(
+                    ({ msg }) => msg.id === lastJumpedMessageId.current,
+                  );
+                  if (currentIdx > 0) {
+                    targetIndex = currentIdx - 1;
+                  } else if (currentIdx === 0) {
+                    // Already at first, stay there
+                    targetIndex = 0;
+                  }
+                }
+
+                // If no last jumped message or not found, use scroll position
+                if (targetIndex === -1) {
+                  const scrollTop = container.scrollTop;
+                  const viewportTop = scrollTop + 50;
+
+                  for (let i = userMessages.length - 1; i >= 0; i--) {
+                    const msgElement = container.querySelector(
+                      `[data-message-id="${userMessages[i].msg.id}"]`,
+                    );
+                    if (msgElement) {
+                      const elementTop = (msgElement as HTMLElement).offsetTop;
+                      if (elementTop < viewportTop) {
+                        targetIndex = i;
+                        break;
+                      }
+                    }
+                  }
+                  // If still not found, go to first
+                  if (targetIndex === -1) {
+                    targetIndex = 0;
+                  }
+                }
+
+                // Scroll to target
+                const targetMsg = container.querySelector(
+                  `[data-message-id="${userMessages[targetIndex].msg.id}"]`,
+                );
+                if (targetMsg) {
+                  lastJumpedMessageId.current =
+                    userMessages[targetIndex].msg.id;
+                  targetMsg.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }
+              }}
+              className="bg-legal-blue/90 hover:bg-legal-blue p-3 rounded-lg shadow-lg transition-colors border border-blue-500 backdrop-blur-sm"
+              title="Jump to previous query"
+              aria-label="Jump to previous query"
+            >
+              <ArrowUpToLine className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Scroll Up */}
+            <button
+              onClick={() => {
+                if (messagesContainerRef.current) {
+                  messagesContainerRef.current.scrollBy({
+                    top: -window.innerHeight * 0.8,
+                    behavior: "smooth",
+                  });
+                }
+              }}
+              className="bg-gray-700/90 hover:bg-gray-600 p-3 rounded-lg shadow-lg transition-colors border border-gray-600 backdrop-blur-sm"
+              title="Scroll up"
+              aria-label="Scroll up"
+            >
+              <ChevronUp className="w-5 h-5 text-gray-300" />
+            </button>
+
+            {/* Scroll Down */}
+            <button
+              onClick={() => {
+                if (messagesContainerRef.current) {
+                  messagesContainerRef.current.scrollBy({
+                    top: window.innerHeight * 0.8,
+                    behavior: "smooth",
+                  });
+                }
+              }}
+              className="bg-gray-700/90 hover:bg-gray-600 p-3 rounded-lg shadow-lg transition-colors border border-gray-600 backdrop-blur-sm"
+              title="Scroll down"
+              aria-label="Scroll down"
+            >
+              <ChevronDown className="w-5 h-5 text-gray-300" />
+            </button>
+
+            {/* Jump to Next User Query */}
+            <button
+              onClick={() => {
+                if (!messagesContainerRef.current) return;
+                const container = messagesContainerRef.current;
+                const userMessages = currentConversation.messages
+                  .map((msg, idx) => ({ msg, idx }))
+                  .filter(({ msg }) => msg.role === "user");
+
+                if (userMessages.length === 0) return;
+
+                let targetIndex = -1;
+
+                // If we have a last jumped message, find the next one
+                if (lastJumpedMessageId.current) {
+                  const currentIdx = userMessages.findIndex(
+                    ({ msg }) => msg.id === lastJumpedMessageId.current,
+                  );
+                  if (
+                    currentIdx !== -1 &&
+                    currentIdx < userMessages.length - 1
+                  ) {
+                    targetIndex = currentIdx + 1;
+                  } else if (currentIdx === userMessages.length - 1) {
+                    // Already at last, stay there
+                    targetIndex = currentIdx;
+                  }
+                }
+
+                // If no last jumped message or not found, use scroll position
+                if (targetIndex === -1) {
+                  const scrollTop = container.scrollTop;
+                  const viewportBottom =
+                    scrollTop + container.clientHeight - 50;
+
+                  for (let i = 0; i < userMessages.length; i++) {
+                    const msgElement = container.querySelector(
+                      `[data-message-id="${userMessages[i].msg.id}"]`,
+                    );
+                    if (msgElement) {
+                      const elementTop = (msgElement as HTMLElement).offsetTop;
+                      if (elementTop > viewportBottom) {
+                        targetIndex = i;
+                        break;
+                      }
+                    }
+                  }
+                  // If still not found, go to last
+                  if (targetIndex === -1) {
+                    targetIndex = userMessages.length - 1;
+                  }
+                }
+
+                // Scroll to target
+                const targetMsg = container.querySelector(
+                  `[data-message-id="${userMessages[targetIndex].msg.id}"]`,
+                );
+                if (targetMsg) {
+                  lastJumpedMessageId.current =
+                    userMessages[targetIndex].msg.id;
+                  targetMsg.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }
+              }}
+              className="bg-legal-blue/90 hover:bg-legal-blue p-3 rounded-lg shadow-lg transition-colors border border-blue-500 backdrop-blur-sm"
+              title="Jump to next query"
+              aria-label="Jump to next query"
+            >
+              <ArrowDownToLine className="w-5 h-5 text-white" />
+            </button>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
@@ -3734,21 +3954,23 @@ ${separator}${responses.join("\n\n" + separator)}`;
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 {fileProcessingError ? (
                   <>
-                    <X className="w-6 h-6 text-red-500" /> Upload Failed
+                    <X className="w-6 h-6 text-red-500" />{" "}
+                    {t.fileUpload.uploadFailed}
                   </>
                 ) : fileProcessingComplete ? (
                   <>
-                    <Check className="w-6 h-6 text-green-500" /> Upload Complete
+                    <Check className="w-6 h-6 text-green-500" />{" "}
+                    {t.fileUpload.uploadComplete}
                   </>
                 ) : isProcessingFile ? (
                   <>
                     <div className="animate-spin h-5 w-5 border-2 border-blue-400 border-t-transparent rounded-full"></div>
-                    Processing File
+                    {t.fileUpload.processingFile}
                   </>
                 ) : (
                   <>
                     <AlertCircle className="w-6 h-6 text-yellow-500" />{" "}
-                    High-Risk File Detected
+                    {t.fileUpload.highRiskFileDetected}
                   </>
                 )}
               </h3>
@@ -3898,13 +4120,17 @@ ${separator}${responses.join("\n\n" + separator)}`;
 
                     <div className="bg-gray-900 rounded p-3 space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Security Rating:</span>
+                        <span className="text-gray-400">
+                          {t.fileUpload.securityRating}:
+                        </span>
                         <span className="text-white font-medium">
                           {fileProcessingResult.riskScore}/100
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Threat Level:</span>
+                        <span className="text-gray-400">
+                          {t.fileUpload.threatLevel}:
+                        </span>
                         <span className="text-white font-medium">
                           {fileProcessingResult.threatLevel.toUpperCase()}
                         </span>
@@ -3998,10 +4224,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
                               report.threatLevel === "critical"
                                 ? "bg-red-900 text-red-200"
                                 : report.threatLevel === "high"
-                                ? "bg-orange-900 text-orange-200"
-                                : report.threatLevel === "medium"
-                                ? "bg-yellow-900 text-yellow-200"
-                                : "bg-green-900 text-green-200"
+                                  ? "bg-orange-900 text-orange-200"
+                                  : report.threatLevel === "medium"
+                                    ? "bg-yellow-900 text-yellow-200"
+                                    : "bg-green-900 text-green-200"
                             }`}
                           >
                             {report.threatLevel}
@@ -4022,7 +4248,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                       {/* Key Findings */}
                       {report.findings &&
                         Object.values(report.findings).some(
-                          (arr) => arr.length > 0
+                          (arr) => arr.length > 0,
                         ) && (
                           <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
                             <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
@@ -4041,10 +4267,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                           finding.severity === "CRITICAL"
                                             ? "text-red-500"
                                             : finding.severity === "HIGH"
-                                            ? "text-orange-500"
-                                            : finding.severity === "MEDIUM"
-                                            ? "text-yellow-500"
-                                            : "text-blue-500"
+                                              ? "text-orange-500"
+                                              : finding.severity === "MEDIUM"
+                                                ? "text-yellow-500"
+                                                : "text-blue-500"
                                         }`}
                                       >
                                         <Circle
@@ -4052,10 +4278,10 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                             finding.severity === "CRITICAL"
                                               ? "fill-red-500"
                                               : finding.severity === "HIGH"
-                                              ? "fill-orange-500"
-                                              : finding.severity === "MEDIUM"
-                                              ? "fill-yellow-500"
-                                              : "fill-blue-500"
+                                                ? "fill-orange-500"
+                                                : finding.severity === "MEDIUM"
+                                                  ? "fill-yellow-500"
+                                                  : "fill-blue-500"
                                           }`}
                                         />
                                       </span>
@@ -4073,7 +4299,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                                         )}
                                       </div>
                                     </div>
-                                  ))
+                                  )),
                               )}
                             </div>
                           </div>
@@ -4187,11 +4413,11 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 {(() => {
                   const availableModels = getAvailableAnalysisModels(
                     analysisClusterStart,
-                    analysisClusterEnd
+                    analysisClusterEnd,
                   );
                   const modelsUsed = getModelsUsedInCluster(
                     analysisClusterStart,
-                    analysisClusterEnd
+                    analysisClusterEnd,
                   );
 
                   if (availableModels.length === 0) {
@@ -4219,7 +4445,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                         }
                         className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-legal-blue"
                       >
-                        <option value="">Select a model...</option>
+                        <option value="">{t.chatWindow.selectModel}</option>
                         {availableModels.map((model) => (
                           <option key={model.key} value={model.key}>
                             {model.label} ({model.provider})
@@ -4292,7 +4518,7 @@ ${separator}${responses.join("\n\n" + separator)}`;
                 ) : (
                   <>
                     <span>🔍</span>
-                    <span>Run Analysis</span>
+                    <span>{t.chatWindow.runAnalysis}</span>
                   </>
                 )}
               </button>

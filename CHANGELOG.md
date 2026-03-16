@@ -5,6 +5,28 @@ All notable changes to Atticus will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.20] - 2026-03-15
+
+### Added
+
+- **Internationalization Support**: Full i18n implementation with English, Spanish, and French language support
+- **Language-Specific Configurations**: Separate YAML config files for advisory areas, legal practices, and analysis templates per language
+- **Locale-Aware Formatting**: Utilities for date and number formatting based on selected language
+- **Translation System**: Comprehensive translation framework with LanguageProvider and translatable UI strings
+
+### Changed
+
+- **Dependency Updates**: Upgraded jsPDF to v4.2.0, Electron to v41.0.2, and electron-builder to v26.8.1
+- **Configuration Loaders**: Refactored advisory, practice, and analysis loaders to support language-specific loading
+- **App Architecture**: Integrated language state management and translation system into main App component
+- **UI Components**: Updated all user interface components to use translatable strings instead of hardcoded text
+
+### Technical Improvements
+
+- **Modular i18n System**: Clean separation of translation logic with dedicated i18n module
+- **Fallback Strategy**: Robust config loading with language-specific fallbacks to English
+- **Type Safety**: Enhanced TypeScript support for language and translation types
+
 ## [0.9.19] - 2026-01-02
 
 ### Added

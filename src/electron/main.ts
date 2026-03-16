@@ -1538,10 +1538,18 @@ async function loadProviderWithApiKey(providerId: string): Promise<any> {
 // Load bundled config file (providers.yaml or practices.yaml)
 ipcMain.handle('load-bundled-config', async (_event, configName: string) => {
   try {
-    // Security: Allowlist of valid config files
-    const ALLOWED_CONFIGS = new Set(['providers.yaml', 'practices.yaml', 'advisory.yaml', 'analysis.yaml']);
+    // Security: Allowlist of valid config files (now includes language suffixes)
+    const ALLOWED_BASE_CONFIGS = ['providers', 'practices', 'advisory', 'analysis'];
+    const ALLOWED_LANGUAGES = ['en', 'fr', 'es'];
 
-    if (!ALLOWED_CONFIGS.has(configName)) {
+    // Parse filename to check if it's valid (e.g., "analysis.en.yaml", "providers.fr.yaml", or "providers.yaml")
+    const match = configName.match(/^([a-z-]+)(?:\.(en|fr|es))?\.yaml$/);
+    if (!match) {
+      throw new Error(`Invalid config file format: ${configName}`);
+    }
+
+    const [, baseConfig, language] = match;
+    if (!ALLOWED_BASE_CONFIGS.includes(baseConfig)) {
       throw new Error(`Invalid config file requested: ${configName}`);
     }
 
@@ -1600,10 +1608,15 @@ ipcMain.handle('load-bundled-config', async (_event, configName: string) => {
 // Fetch factory YAML from remote endpoint
 ipcMain.handle('fetch-factory-config', async (_event, configName: string) => {
   try {
-    // Security: Allowlist of valid config files
-    const ALLOWED_CONFIGS = new Set(['providers.yaml', 'practices.yaml', 'advisory.yaml', 'analysis.yaml']);
+    // Security: Allowlist of valid config files (now includes language suffixes)
+    const match = configName.match(/^([a-z-]+)\.(en|fr|es)\.yaml$/);
+    if (!match) {
+      throw new Error(`Invalid config file format: ${configName}`);
+    }
 
-    if (!ALLOWED_CONFIGS.has(configName)) {
+    const [, baseConfig] = match;
+    const ALLOWED_BASE_CONFIGS = ['providers', 'practices', 'advisory', 'analysis'];
+    if (!ALLOWED_BASE_CONFIGS.includes(baseConfig)) {
       throw new Error(`Invalid config file requested: ${configName}`);
     }
 
@@ -1659,10 +1672,15 @@ ipcMain.handle('fetch-factory-config', async (_event, configName: string) => {
 // Save bundled config file
 ipcMain.handle('save-bundled-config', async (_event, configName: string, content: string) => {
   try {
-    // Security: Allowlist of valid config files
-    const ALLOWED_CONFIGS = new Set(['providers.yaml', 'practices.yaml', 'advisory.yaml', 'analysis.yaml']);
+    // Security: Allowlist of valid config files (now includes language suffixes)
+    const match = configName.match(/^([a-z-]+)\.(en|fr|es)\.yaml$/);
+    if (!match) {
+      throw new Error(`Invalid config file format: ${configName}`);
+    }
 
-    if (!ALLOWED_CONFIGS.has(configName)) {
+    const [, baseConfig] = match;
+    const ALLOWED_BASE_CONFIGS = ['providers', 'practices', 'advisory', 'analysis'];
+    if (!ALLOWED_BASE_CONFIGS.includes(baseConfig)) {
       throw new Error(`Invalid config file: ${configName}`);
     }
 

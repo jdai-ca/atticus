@@ -8,6 +8,7 @@ import { advisoryAreaManager } from '../modules/advisoryArea';
 import { createLogger } from '../services/logger';
 import { DateUtils } from '../utils/dateUtils';
 import { migrateAllProviders } from '../utils/configMigration';
+import { Language } from '../i18n';
 
 const logger = createLogger('Store');
 
@@ -34,9 +35,9 @@ interface AppState {
   updateProvider: (id: string, updates: Partial<ProviderConfig>) => void;
   removeProvider: (id: string) => void;
   setActiveProvider: (id: string) => void;
-  loadProviderTemplates: () => Promise<void>;
-  loadPracticeAreas: () => Promise<void>;
-  loadAdvisoryAreas: () => Promise<void>;
+  loadProviderTemplates: (language?: Language) => Promise<void>;
+  loadPracticeAreas: (language?: Language) => Promise<void>;
+  loadAdvisoryAreas: (language?: Language) => Promise<void>;
 
   createConversation: (providerId: string) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
@@ -81,22 +82,22 @@ export const useStore = create<AppState>((set, get) => ({
 
   setConfig: (config) => set({ config }),
 
-  loadProviderTemplates: async () => {
+  loadProviderTemplates: async (language: Language = 'en') => {
     try {
       set({ isLoading: true, error: null });
-      const templates = await configLoader.loadConfig();
+      const templates = await configLoader.loadConfig(language);
       set({ providerTemplates: templates, isLoading: false });
-      logger.info('Loaded provider templates', { count: templates.length });
+      logger.info('Loaded provider templates', { count: templates.length, language });
     } catch (error) {
       logger.error('Failed to load provider templates', { error });
       set({ error: 'Failed to load provider configuration', isLoading: false });
     }
   },
 
-  loadPracticeAreas: async () => {
+  loadPracticeAreas: async (language: Language = 'en') => {
     try {
       set({ isLoading: true, error: null });
-      const practiceAreas = await practiceLoader.loadConfig();
+      const practiceAreas = await practiceLoader.loadConfig(language);
 
       // Load practice areas into the manager
       practiceAreaManager.loadPracticeAreas(practiceAreas);
@@ -113,12 +114,12 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  loadAdvisoryAreas: async () => {
+  loadAdvisoryAreas: async (language: Language = 'en') => {
     try {
       set({ isLoading: true, error: null });
-      logger.debug('Loading advisory areas');
-      const advisoryAreas = await advisoryLoader.loadConfig();
-      logger.info('Advisory areas loaded', { count: advisoryAreas.length });
+      logger.debug('Loading advisory areas', { language });
+      const advisoryAreas = await advisoryLoader.loadConfig(language);
+      logger.info('Advisory areas loaded', { count: advisoryAreas.length, language });
 
       // Load advisory areas into the manager
       advisoryAreaManager.loadAdvisoryAreas(advisoryAreas);

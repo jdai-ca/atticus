@@ -1,8 +1,8 @@
 version: "1.1.0"
-minAppVersion: "0.9.19"
-lastUpdated: "2025-10-14T00:00:00Z"
+minAppVersion: "0.9.20"
+lastUpdated: "2026-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
-license: "Copyright (c) 2025 John Kost, All Rights Reserved."
+license: "Copyright (c) 2026 John Kost, All Rights Reserved."
 customized: false
 
 providers:
@@ -11,9 +11,19 @@ providers:
     displayName: OpenAI
     description: GPT-5 collection of models
     endpoint: https://api.openai.com/v1/chat/completions
-    defaultModel: gpt-5.2
+    defaultModel: gpt-5.4
 
     models:
+      - id: gpt-5.4
+        name: GPT-5.4
+        description: Ultimate model with unmatched performance and capabilities
+        maxContextWindow: 1000000
+        defaultMaxTokens: 128000
+        maxMaxTokens: 128000
+        inputTokenPrice: 2.50
+        outputTokenPrice: 15.00
+        enabled: true
+
       - id: gpt-5.2
         name: GPT-5.2
         description: Latest and most advanced model with unparalleled capabilities
@@ -73,7 +83,7 @@ providers:
 
     authentication:
       apiKeyFormat: sk-...
-      apiKeyLabel: OpenAI API Key
+      apiKeyLabel: API OpenAI
       getApiKeyUrl: https://platform.openai.com/api-keys
 
     ui:
@@ -82,11 +92,41 @@ providers:
   - id: anthropic
     name: Anthropic
     displayName: Anthropic AI
-    description: Claude 4.5 family - Opus, Sonnet, and Haiku
+    description: Claude 4.x family - Opus, Sonnet, and Haiku
     endpoint: https://api.anthropic.com/v1/messages
-    defaultModel: claude-sonnet-4-5
+    defaultModel: claude-sonnet-4-6
 
     models:
+      - id: claude-opus-4-6
+        name: Claude 4.6 Opus
+        description: Latest, powerful model for highly complex tasks
+        maxContextWindow: 200000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 32000
+        inputTokenPrice: 5.00
+        outputTokenPrice: 25.00
+        enabled: true
+
+      - id: claude-opus-4-5
+        name: Claude 4.5 Opus
+        description: Powerful model for highly complex tasks
+        maxContextWindow: 200000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 32000
+        inputTokenPrice: 5.00
+        outputTokenPrice: 25.00
+        enabled: true
+
+      - id: claude-sonnet-4-6
+        name: Claude 4.6 Sonnet
+        description: Latest intelligent model, best for complex analysis and coding
+        maxContextWindow: 200000
+        defaultMaxTokens: 16384
+        maxMaxTokens: 64000
+        inputTokenPrice: 3.00
+        outputTokenPrice: 15.00
+        enabled: true
+
       - id: claude-sonnet-4-5
         name: Claude 4.5 Sonnet
         description: Most intelligent model, best for complex analysis and coding
@@ -107,16 +147,6 @@ providers:
         outputTokenPrice: 5.00
         enabled: true
 
-      - id: claude-opus-4-5
-        name: Claude 4.5 Opus
-        description: Powerful model for highly complex tasks
-        maxContextWindow: 200000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 32000
-        inputTokenPrice: 5.00
-        outputTokenPrice: 25.00
-        enabled: true
-
     capabilities:
       supportsMultimodal: true
       supportsRAG: true
@@ -126,7 +156,7 @@ providers:
 
     authentication:
       apiKeyFormat: sk-ant-...
-      apiKeyLabel: Anthropic API Key
+      apiKeyLabel: API Anthropic
       getApiKeyUrl: https://console.anthropic.com/settings/keys
 
     ui:
@@ -135,12 +165,12 @@ providers:
   - id: google
     name: Google
     displayName: Google AI
-    description: Gemini Pro, Flash, and other Gemini models
-    defaultModel: gemini-2.5-pro
+    description: Gemini Pro, Flash 3.x family of models via Google Cloud
+    defaultModel: gemini-3.1-pro-preview
 
     models:
-      - id: gemini-3-pro-preview
-        name: Gemini 3 Pro
+      - id: gemini-3.1-pro-preview
+        name: Gemini 3.1 Pro
         description: Latest next-gen model with advanced capabilities
         maxContextWindow: 1048576
         defaultMaxTokens: 65536
@@ -149,14 +179,24 @@ providers:
         outputTokenPrice: 18.00
         enabled: true
 
-      - id: gemini-2.5-pro
-        name: Gemini 2.5 Pro
-        description: Most capable model, 1M token context, multimodal
+      - id: gemini-3.1-flash-lite-preview
+        name: Gemini 3.1 Flash Lite
+        description: Lightweight and cost-effective, 1M token context
         maxContextWindow: 1048576
         defaultMaxTokens: 65536
         maxMaxTokens: 65536
-        inputTokenPrice: 2.50
-        outputTokenPrice: 15.00
+        inputTokenPrice: 0.25
+        outputTokenPrice: 0.50
+        enabled: true
+
+      - id: gemini-3-pro-preview
+        name: Gemini 3 Pro
+        description: Next-gen model with advanced capabilities
+        maxContextWindow: 1048576
+        defaultMaxTokens: 65536
+        maxMaxTokens: 65536
+        inputTokenPrice: 4.00
+        outputTokenPrice: 18.00
         enabled: true
 
       - id: gemini-3-flash-preview
@@ -166,27 +206,7 @@ providers:
         defaultMaxTokens: 65536
         maxMaxTokens: 65536
         inputTokenPrice: 0.50
-        outputTokenPrice: 3.00
-        enabled: true
-
-      - id: gemini-2.5-flash
-        name: Gemini 2.5 Flash
-        description: Fast and efficient, 1M token context, multimodal
-        maxContextWindow: 1048576
-        defaultMaxTokens: 65536
-        maxMaxTokens: 65536
-        inputTokenPrice: 0.30
-        outputTokenPrice: 2.50
-        enabled: true
-
-      - id: gemini-2.5-flash-lite
-        name: Gemini 2.5 Flash Lite
-        description: Lightweight and cost-effective, 1M token context
-        maxContextWindow: 1048576
-        defaultMaxTokens: 65536
-        maxMaxTokens: 65536
-        inputTokenPrice: 0.10
-        outputTokenPrice: 0.40
+        outputTokenPrice: 1.00
         enabled: true
 
     capabilities:
@@ -281,8 +301,8 @@ providers:
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000
         maxMaxTokens: 2000000
-        inputTokenPrice: 0.40
-        outputTokenPrice: 1.00
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.50
         enabled: true
 
       - id: grok-4-1-fast-non-reasoning
@@ -291,8 +311,8 @@ providers:
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000
         maxMaxTokens: 2000000
-        inputTokenPrice: 0.40
-        outputTokenPrice: 1.00
+        inputTokenPrice: 0.20
+        outputTokenPrice: 0.50
         enabled: true
 
     capabilities:

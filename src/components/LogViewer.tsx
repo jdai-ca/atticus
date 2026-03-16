@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { X, Download, Trash2, Search, Filter } from "lucide-react";
+import { useTranslation } from "../i18n/LanguageContext";
 import { logger, LogEntry, LogLevel } from "../services/logger";
 
 interface LogViewerProps {
@@ -7,6 +8,7 @@ interface LogViewerProps {
 }
 
 export default function LogViewer({ onClose }: LogViewerProps) {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filterLevel, setFilterLevel] = useState<LogLevel | "all">("all");
   const [filterContext, setFilterContext] = useState<string>("");
@@ -87,7 +89,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
   };
 
   const handleClear = () => {
-    if (confirm("Clear all logs? This cannot be undone.")) {
+    if (confirm(t.logViewer.clearConfirmation)) {
       logger.clearLogs();
       refreshLogs();
     }
@@ -140,7 +142,9 @@ export default function LogViewer({ onClose }: LogViewerProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold text-white">Log Viewer</h2>
+            <h2 className="text-xl font-semibold text-white">
+              {t.logViewer.title}
+            </h2>
             <span className="text-sm text-gray-400">
               {filteredLogs.length} of {logs.length} logs
             </span>
@@ -165,7 +169,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
             <button
               onClick={handleClear}
               className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              title="Clear all logs"
+              title={t.logViewer.clearAll}
             >
               <Trash2 className="w-5 h-5 text-gray-300" />
             </button>
@@ -253,7 +257,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
                 <div
                   key={`${log.timestamp}-${index}`}
                   className={`p-3 rounded-lg border ${getLevelBgColor(
-                    log.level
+                    log.level,
                   )}`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -261,7 +265,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
                       <div className="flex items-center gap-2 mb-1">
                         <span
                           className={`text-xs font-semibold uppercase ${getLevelColor(
-                            log.level
+                            log.level,
                           )}`}
                         >
                           {log.level}

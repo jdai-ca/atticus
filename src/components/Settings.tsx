@@ -14,6 +14,7 @@ import { JURISDICTIONS } from "../config/jurisdictions";
 import { piiScanner } from "../services/piiScanner";
 import packageJson from "../../package.json";
 import { createLogger } from "../services/logger";
+import { useTranslation } from "../i18n/LanguageContext";
 
 const logger = createLogger("Settings");
 
@@ -43,6 +44,7 @@ interface SettingsProps {
 }
 
 export default function Settings({ onClose }: SettingsProps) {
+  const { t } = useTranslation();
   const {
     config,
     providerTemplates,
@@ -56,13 +58,13 @@ export default function Settings({ onClose }: SettingsProps) {
     "providers" | "practice" | "advisory" | "analysis" | "privacy" | "about"
   >("providers");
   const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>(
-    {}
+    {},
   );
   const [editingEndpoints, setEditingEndpoints] = useState<
     Record<string, string>
   >({});
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(
-    {}
+    {},
   );
   const [expandedPracticeAreas, setExpandedPracticeAreas] = useState<
     Set<string>
@@ -78,10 +80,10 @@ export default function Settings({ onClose }: SettingsProps) {
   const [parsedAreas, setParsedAreas] = useState<any[]>([]);
   const [analysisPrompt, setAnalysisPrompt] = useState<string>("");
   const [expandedEditorCards, setExpandedEditorCards] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [keywordInputs, setKeywordInputs] = useState<Record<number, string>>(
-    {}
+    {},
   );
   const [isResetting, setIsResetting] = useState<string | null>(null);
 
@@ -103,7 +105,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Get configured provider for a template
   const getConfiguredProvider = (
-    templateId: AIProvider
+    templateId: AIProvider,
   ): ProviderConfig | undefined => {
     return config.providers.find((p) => p.provider === templateId);
   };
@@ -128,7 +130,7 @@ export default function Settings({ onClose }: SettingsProps) {
     // Build the configuration object
     const config = {
       version: "1.0.0",
-      minAppVersion: "0.9.19",
+      minAppVersion: "0.9.20",
       lastUpdated: now,
       updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
@@ -154,19 +156,19 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Reset to factory configuration
   const resetToFactory = async (
-    type: "practices" | "advisory" | "analysis" | "providers"
+    type: "practices" | "advisory" | "analysis" | "providers",
   ) => {
     const filename =
       type === "practices"
         ? "practices.yaml"
         : type === "advisory"
-        ? "advisory.yaml"
-        : type === "analysis"
-        ? "analysis.yaml"
-        : "providers.yaml";
+          ? "advisory.yaml"
+          : type === "analysis"
+            ? "analysis.yaml"
+            : "providers.yaml";
 
     const confirmed = confirm(
-      `Are you sure you want to reset ${type} configuration to factory defaults?\n\nThis will overwrite any customizations you've made.`
+      t.settingsContent.confirmResetFactory.replace("{type}", type),
     );
 
     if (!confirmed) return;
@@ -174,7 +176,7 @@ export default function Settings({ onClose }: SettingsProps) {
     try {
       setIsResetting(type);
       const result = await (globalThis as any).electronAPI.fetchFactoryConfig(
-        filename
+        filename,
       );
 
       if (result.success) {
@@ -183,9 +185,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
         // Verify the customized flag is false in factory config
         if (parsed.customized === true) {
-          alert(
-            "Warning: Downloaded configuration appears to be customized. Factory reset cancelled."
-          );
+          alert(t.alerts.factoryResetCancelled);
           setIsResetting(null);
           return;
         }
@@ -196,25 +196,25 @@ export default function Settings({ onClose }: SettingsProps) {
         ).electronAPI.saveBundledConfig(filename, result.data);
 
         if (saveResult.success) {
-          alert(`${type} configuration has been reset to factory defaults.`);
+          alert(t.alerts.resetSuccess.replace("{type}", type));
           // Reload the page to apply changes
           window.location.reload();
         } else {
           alert(
-            `Failed to save factory configuration: ${
-              saveResult.error?.message || "Unknown error"
-            }`
+            `${t.alerts.saveFailed}: ${
+              saveResult.error?.message || t.alerts.unknownError
+            }`,
           );
         }
       } else {
         alert(
-          `Failed to fetch factory configuration: ${
-            result.error?.message || "Unknown error"
-          }`
+          `${t.alerts.loadFailed}: ${
+            result.error?.message || t.alerts.unknownError
+          }`,
         );
       }
     } catch (error) {
-      alert(`Error resetting to factory: ${(error as Error).message}`);
+      alert(`${t.alerts.resetFailed}: ${(error as Error).message}`);
     } finally {
       setIsResetting(null);
     }
@@ -222,7 +222,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Load YAML file content
   const loadYamlContent = async (
-    type: "practices" | "advisory" | "analysis"
+    type: "practices" | "advisory" | "analysis",
   ) => {
     try {
       logger.debug(`Loading ${type} configuration`);
@@ -231,8 +231,8 @@ export default function Settings({ onClose }: SettingsProps) {
         type === "practices"
           ? "practices.yaml"
           : type === "advisory"
-          ? "advisory.yaml"
-          : "analysis.yaml";
+            ? "advisory.yaml"
+            : "analysis.yaml";
 
       // Check if electronAPI is available
       if (!(globalThis as any).electronAPI?.loadBundledConfig) {
@@ -244,7 +244,7 @@ export default function Settings({ onClose }: SettingsProps) {
       }
 
       const result = await (globalThis as any).electronAPI.loadBundledConfig(
-        filename
+        filename,
       );
 
       logger.debug(`Load result for ${filename}`, {
@@ -294,7 +294,12 @@ export default function Settings({ onClose }: SettingsProps) {
       const errorMsg = `Failed to load ${type}.yaml: ${
         (error as Error).message
       }`;
-      logger.error(`Exception loading ${type}`, { error });
+      logger.error(
+        `Exception                   <Loader2 className="w-8 h-8 animate-spin text-legal-gold mx-auto mb-2" />
+                  <p className="text-gray-400">{t.settingsAdditional.loadingAdvisoryAreas}</p>
+                </div>", "oldString": "                  <Loader2 className=\"w-8 h-8 animate-spin text-legal-gold mx-auto mb-2\" />\n                  <p className=\"text-gray-400\">Loading advisory areas...</p>\n                </div>"} ${type}`,
+        { error },
+      );
       setYamlLoadError(errorMsg);
     }
   };
@@ -332,14 +337,14 @@ export default function Settings({ onClose }: SettingsProps) {
         errors.push(
           `Area ${index + 1} (${
             area.id
-          }): Color must be a valid hex code (e.g., #3B82F6)`
+          }): Color must be a valid hex code (e.g., #3B82F6)`,
         );
       }
 
       // Validate keywords array exists
       if (!Array.isArray(area.keywords)) {
         errors.push(
-          `Area ${index + 1} (${area.id}): Keywords must be an array`
+          `Area ${index + 1} (${area.id}): Keywords must be an array`,
         );
       }
     }
@@ -358,13 +363,13 @@ export default function Settings({ onClose }: SettingsProps) {
       if (editingYamlType === "analysis") {
         // Validate analysis prompt
         if (!analysisPrompt.trim()) {
-          alert("Analysis system prompt cannot be empty");
+          alert(t.alerts.emptyPrompt);
           return;
         }
 
         // Serialize analysis.yaml
         serializedYaml = `version: 1.0.0
-minAppVersion: 0.9.19
+minAppVersion: 0.9.20
 lastUpdated: "${new Date().toISOString()}"
 updateUrl: https://jdai.ca/atticus/analysis.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
@@ -381,9 +386,7 @@ ${analysisPrompt
         const validation = validateAreas();
         if (!validation.valid) {
           alert(
-            `Cannot save due to validation errors:\n\n${validation.errors.join(
-              "\n"
-            )}`
+            `${t.alerts.validationErrors}:\n\n${validation.errors.join("\n")}`,
           );
           return;
         }
@@ -396,23 +399,23 @@ ${analysisPrompt
         editingYamlType === "practices"
           ? "practices.yaml"
           : editingYamlType === "advisory"
-          ? "advisory.yaml"
-          : "analysis.yaml";
+            ? "advisory.yaml"
+            : "analysis.yaml";
       const result = await (globalThis as any).electronAPI.saveBundledConfig(
         filename,
-        serializedYaml
+        serializedYaml,
       );
 
       if (result.success) {
         setShowYamlEditor(false);
-        alert(
-          `${filename} saved successfully! Please restart Atticus for changes to take effect.`
-        );
+        alert(`${filename} ${t.alerts.saveSuccess}`);
       } else {
-        alert(`Failed to save: ${result.error?.message || "Unknown error"}`);
+        alert(
+          `${t.alerts.saveFailed}: ${result.error?.message || t.alerts.unknownError}`,
+        );
       }
     } catch (error) {
-      alert(`Failed to save: ${(error as Error).message}`);
+      alert(`${t.alerts.saveFailed}: ${(error as Error).message}`);
     }
   };
 
@@ -440,7 +443,7 @@ ${analysisPrompt
     updated[index] = {
       ...updated[index],
       keywords: updated[index].keywords.filter(
-        (_: any, i: number) => i !== keywordIndex
+        (_: any, i: number) => i !== keywordIndex,
       ),
     };
     setParsedAreas(updated);
@@ -457,8 +460,8 @@ ${analysisPrompt
   const addNewArea = () => {
     const newArea = {
       id: `custom-area-${Date.now()}`,
-      name: "New Area",
-      description: "Description for new area",
+      name: t.settingsAreas.newArea,
+      description: t.settingsAreas.newAreaDescription,
       color: "#3B82F6",
       keywords: [],
       systemPrompt: "",
@@ -481,11 +484,11 @@ ${analysisPrompt
   // Get model domain configuration
   const getModelDomain = (
     provider: ProviderConfig | undefined,
-    modelId: string
+    modelId: string,
   ): ModelDomain => {
     if (!provider?.modelDomains) return "both";
     const domainConfig = provider.modelDomains.find(
-      (d) => d.modelId === modelId
+      (d) => d.modelId === modelId,
     );
     return domainConfig?.domains || "both";
   };
@@ -495,7 +498,7 @@ ${analysisPrompt
     e: React.ChangeEvent<HTMLInputElement>,
     modelId: string,
     existingProvider: ProviderConfig | undefined,
-    templateModels: Array<{ id: string }>
+    templateModels: Array<{ id: string }>,
   ) => {
     const currentEnabled =
       existingProvider?.enabledModels || templateModels.map((m) => m.id);
@@ -512,11 +515,11 @@ ${analysisPrompt
   const updateModelDomain = (
     provider: ProviderConfig,
     modelId: string,
-    domain: ModelDomain
+    domain: ModelDomain,
   ) => {
     const currentDomains = provider.modelDomains || [];
     const existingIndex = currentDomains.findIndex(
-      (d) => d.modelId === modelId
+      (d) => d.modelId === modelId,
     );
 
     let newDomains: ModelDomainConfig[];
@@ -534,7 +537,7 @@ ${analysisPrompt
   const handleSaveApiKey = (template: ProviderTemplate) => {
     const apiKey = editingApiKeys[template.id];
     if (!apiKey || apiKey.trim().length === 0) {
-      alert("Please enter a valid API key");
+      alert(t.alerts.invalidApiKey);
       return;
     }
 
@@ -546,7 +549,7 @@ ${analysisPrompt
     if (template.id === "azure-openai") {
       const finalEndpoint = customEndpoint || existingProvider?.endpoint;
       if (!finalEndpoint || finalEndpoint.trim().length === 0) {
-        alert("Please enter your Azure resource name");
+        alert(t.alerts.enterAzureResourceName);
         return;
       }
     }
@@ -607,7 +610,7 @@ ${analysisPrompt
     if (!existingProvider) return;
 
     const confirmed = globalThis.confirm(
-      `Remove API key for ${template.displayName}? This will delete the provider configuration.`
+      `Remove API key for ${template.displayName}? This will delete the provider configuration.`,
     );
     if (!confirmed) return;
 
@@ -648,15 +651,15 @@ ${analysisPrompt
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-800 rounded-lg w-full max-w-[1075px] max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-white">Settings</h2>
+          <h2 className="text-2xl font-bold text-white">{t.settings}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
             aria-label="Close settings"
-            title="Close settings"
+            title={t.close}
           >
             <X className="w-6 h-6" />
           </button>
@@ -672,7 +675,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            AI Providers
+            {t.settingsTabs.providers}
           </button>
           <button
             onClick={() => setActiveTab("practice")}
@@ -682,7 +685,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            Practice Areas
+            {t.settingsTabs.practice}
           </button>
           <button
             onClick={() => setActiveTab("advisory")}
@@ -692,7 +695,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            Advisory Areas
+            {t.settingsTabs.advisory}
           </button>
           <button
             onClick={() => setActiveTab("analysis")}
@@ -702,7 +705,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            Analysis
+            {t.settingsTabs.analysis}
           </button>
           <button
             onClick={() => setActiveTab("privacy")}
@@ -712,7 +715,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            Privacy & PII
+            {t.settingsTabs.privacy}
           </button>
           <button
             onClick={() => setActiveTab("about")}
@@ -722,7 +725,7 @@ ${analysisPrompt
                 : "text-gray-400 hover:text-gray-300"
             }`}
           >
-            About
+            {t.settingsTabs.about}
           </button>
         </div>
 
@@ -732,8 +735,7 @@ ${analysisPrompt
             <div>
               <div className="mb-6">
                 <p className="text-gray-400 text-sm">
-                  Simply paste your API key to activate an AI provider. All
-                  settings are pre-configured for you.
+                  {t.settingsProviders.introText}
                 </p>
               </div>
 
@@ -776,12 +778,12 @@ ${analysisPrompt
                               </h3>
                               {isConfigured && (
                                 <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded font-semibold border border-gray-600">
-                                  ✓ Configured
+                                  {t.settingsContent.configured}
                                 </span>
                               )}
                               {isActive && (
                                 <span className="text-xs bg-gray-600 text-gray-200 px-2 py-1 rounded font-semibold border border-gray-500">
-                                  Active
+                                  {t.settingsContent.active}
                                 </span>
                               )}
                             </div>
@@ -796,7 +798,7 @@ ${analysisPrompt
                                   htmlFor={`model-${template.id}`}
                                   className="block text-xs font-medium text-gray-400 mb-2"
                                 >
-                                  Default Model
+                                  {t.settingsContent.defaultModel}
                                 </label>
                                 <select
                                   id={`model-${template.id}`}
@@ -805,8 +807,14 @@ ${analysisPrompt
                                     handleModelChange(template, e.target.value)
                                   }
                                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-legal-blue"
-                                  aria-label={`Select default model for ${template.displayName}`}
-                                  title={`Select default model for ${template.displayName}`}
+                                  aria-label={t.settingsContent.selectDefaultModel.replace(
+                                    "{provider}",
+                                    template.displayName,
+                                  )}
+                                  title={t.settingsContent.selectDefaultModel.replace(
+                                    "{provider}",
+                                    template.displayName,
+                                  )}
                                 >
                                   {template.models.map((model) => (
                                     <option key={model.id} value={model.id}>
@@ -821,19 +829,18 @@ ${analysisPrompt
                             {isConfigured && (
                               <div className="mb-4">
                                 <div className="block text-xs font-medium text-gray-400 mb-2">
-                                  Available Models (check to enable, select
-                                  domain usage)
+                                  {t.settingsContent.availableModels}
                                 </div>
                                 <div className="bg-gray-800 rounded-lg p-3 space-y-2">
                                   {template.models.map((model) => {
                                     const isEnabled =
                                       !existingProvider?.enabledModels ||
                                       existingProvider.enabledModels.includes(
-                                        model.id
+                                        model.id,
                                       );
                                     const currentDomain = getModelDomain(
                                       existingProvider,
-                                      model.id
+                                      model.id,
                                     );
 
                                     return (
@@ -844,7 +851,10 @@ ${analysisPrompt
                                         <label
                                           className="flex items-start gap-3 cursor-pointer hover:bg-gray-600 p-2 rounded transition-colors"
                                           htmlFor={`model-${template.id}-${model.id}`}
-                                          aria-label={`Enable ${model.name} model`}
+                                          aria-label={t.settingsContent.enableModel.replace(
+                                            "{model}",
+                                            model.name,
+                                          )}
                                         >
                                           <input
                                             id={`model-${template.id}-${model.id}`}
@@ -855,7 +865,7 @@ ${analysisPrompt
                                                 e,
                                                 model.id,
                                                 existingProvider,
-                                                template.models
+                                                template.models,
                                               );
                                             }}
                                             className="mt-1 w-4 h-4 text-gray-400 bg-gray-700 border-gray-600 rounded focus:ring-gray-500 focus:ring-2"
@@ -873,7 +883,7 @@ ${analysisPrompt
                                         {isEnabled && (
                                           <div className="mt-2 ml-9 flex gap-2 items-center">
                                             <span className="text-xs text-gray-400">
-                                              Use for:
+                                              {t.settingsContent.useFor}
                                             </span>
                                             <div className="flex gap-1">
                                               <button
@@ -882,7 +892,7 @@ ${analysisPrompt
                                                     updateModelDomain(
                                                       existingProvider,
                                                       model.id,
-                                                      "practice"
+                                                      "practice",
                                                     );
                                                   }
                                                 }}
@@ -891,9 +901,11 @@ ${analysisPrompt
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
                                                     : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
-                                                title="Practice areas only"
+                                                title={
+                                                  t.settingsContent.practiceOnly
+                                                }
                                               >
-                                                ⚖️ Practice
+                                                {t.settingsContent.practice}
                                               </button>
                                               <button
                                                 onClick={() => {
@@ -901,7 +913,7 @@ ${analysisPrompt
                                                     updateModelDomain(
                                                       existingProvider,
                                                       model.id,
-                                                      "advisory"
+                                                      "advisory",
                                                     );
                                                   }
                                                 }}
@@ -910,9 +922,11 @@ ${analysisPrompt
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
                                                     : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
-                                                title="Advisory areas only"
+                                                title={
+                                                  t.settingsContent.advisoryOnly
+                                                }
                                               >
-                                                📊 Advisory
+                                                {t.settingsContent.advisory}
                                               </button>
                                               <button
                                                 onClick={() => {
@@ -920,7 +934,7 @@ ${analysisPrompt
                                                     updateModelDomain(
                                                       existingProvider,
                                                       model.id,
-                                                      "both"
+                                                      "both",
                                                     );
                                                   }
                                                 }}
@@ -929,9 +943,12 @@ ${analysisPrompt
                                                     ? "bg-gray-600 text-gray-200 border-gray-500"
                                                     : "bg-gray-700 text-gray-400 border-gray-600 hover:bg-gray-600"
                                                 }`}
-                                                title="Both practice and advisory"
+                                                title={
+                                                  t.settingsProviders
+                                                    .bothPracticeAdvisory
+                                                }
                                               >
-                                                🔄 Both
+                                                {t.settingsContent.both}
                                               </button>
                                             </div>
                                           </div>
@@ -941,10 +958,7 @@ ${analysisPrompt
                                   })}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">
-                                  Configure each model for practice areas
-                                  (legal), advisory areas (business consulting),
-                                  or both. This allows you to optimize specific
-                                  models for their strengths.
+                                  {t.settingsContent.configureModelNote}
                                 </p>
                               </div>
                             )}
@@ -956,12 +970,14 @@ ${analysisPrompt
                                   htmlFor={`endpoint-${template.id}`}
                                   className="block text-xs font-medium text-gray-400 mb-2"
                                 >
-                                  Azure Resource Name
+                                  {t.settingsContent.azureResourceName}
                                 </label>
                                 <input
                                   id={`endpoint-${template.id}`}
                                   type="text"
-                                  placeholder="your-resource-name"
+                                  placeholder={
+                                    t.settingsContent.resourceNamePlaceholder
+                                  }
                                   value={
                                     editingEndpoints[template.id] ||
                                     existingProvider?.endpoint ||
@@ -976,8 +992,7 @@ ${analysisPrompt
                                   className="w-full bg-gray-800 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-legal-blue"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Just the resource name from your Azure OpenAI
-                                  URL (e.g., "my-openai-resource")
+                                  {t.settingsContent.resourceNamePlaceholder}
                                 </p>
                               </div>
                             )}
@@ -987,7 +1002,9 @@ ${analysisPrompt
                               <div className="flex-1 min-w-0">
                                 <input
                                   type="password"
-                                  placeholder="Paste your API key here"
+                                  placeholder={
+                                    t.settingsProviders.pasteApiKeyHere
+                                  }
                                   value={editingApiKeys[template.id] || ""}
                                   onChange={(e) =>
                                     setEditingApiKeys((prev) => ({
@@ -1003,13 +1020,15 @@ ${analysisPrompt
                                 disabled={!editingApiKeys[template.id]?.trim()}
                                 className="w-24 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0 border border-gray-500"
                               >
-                                {isConfigured ? "Update" : "Activate"}
+                                {isConfigured
+                                  ? t.settingsProviders.update
+                                  : t.settingsProviders.activate}
                               </button>
                               {isConfigured && (
                                 <button
                                   onClick={() => handleClearApiKey(template)}
                                   className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0 border border-red-500"
-                                  title="Remove API key and provider configuration"
+                                  title={t.settingsProviders.removeApiKey}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -1023,7 +1042,10 @@ ${analysisPrompt
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-300 mt-2"
                             >
-                              Get your {template.apiKeyLabel} →
+                              {t.settingsContent.getYourApiKey.replace(
+                                "{apiKeyLabel}",
+                                template.apiKeyLabel,
+                              )}
                             </a>
 
                             {/* Set Active Button */}
@@ -1035,7 +1057,7 @@ ${analysisPrompt
                                   }
                                   className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
                                 >
-                                  Set as Active Provider
+                                  {t.settingsContent.setAsActiveProvider}
                                 </button>
                               </div>
                             )}
@@ -1049,23 +1071,13 @@ ${analysisPrompt
               {/* Help Text */}
               <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
                 <h4 className="text-sm font-semibold text-white mb-2">
-                  Need Help?
+                  {t.settingsContent.needHelp}
                 </h4>
                 <ul className="text-xs text-gray-400 space-y-1">
-                  <li>
-                    • Your API keys are stored securely on your local machine
-                  </li>
-                  <li>
-                    • You can configure multiple providers and switch between
-                    them
-                  </li>
-                  <li>
-                    • All API calls are made directly to the providers - no
-                    intermediaries
-                  </li>
-                  <li>
-                    • You incur costs directly with each provider based on usage
-                  </li>
+                  <li>{t.settingsContent.apiKeysStoredSecurely}</li>
+                  <li>{t.settingsContent.configureMultipleProviders}</li>
+                  <li>{t.settingsContent.apiCallsDirect}</li>
+                  <li>{t.settingsContent.incurCostsDirectly}</li>
                 </ul>
               </div>
             </div>
@@ -1075,28 +1087,29 @@ ${analysisPrompt
             <div>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-gray-400">
-                  Atticus automatically detects the practice area based on your
-                  conversation content. Here are the configured practice areas:
+                  {t.settingsContent.practiceAreasDetection}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => resetToFactory("practices")}
                     disabled={isResetting === "practices"}
                     className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
-                    title="Reset to factory defaults"
+                    title={t.settingsProviders.resetToDefaults}
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>
-                      {isResetting === "practices" ? "Resetting..." : "Reset"}
+                      {isResetting === "practices"
+                        ? t.settingsProviders.resetting
+                        : t.settingsProviders.reset}
                     </span>
                   </button>
                   <button
                     onClick={() => loadYamlContent("practices")}
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
-                    title="Edit practices.yaml"
+                    title={t.settingsProviders.editConfiguration}
                   >
                     <Edit3 className="w-4 h-4" />
-                    <span>Customize</span>
+                    <span>{t.settingsProviders.customize}</span>
                   </button>
                 </div>
               </div>
@@ -1136,7 +1149,7 @@ ${analysisPrompt
                               <button
                                 onClick={() => {
                                   const newExpanded = new Set(
-                                    expandedPracticeAreas
+                                    expandedPracticeAreas,
                                   );
                                   if (isExpanded) {
                                     newExpanded.delete(area.id);
@@ -1148,8 +1161,8 @@ ${analysisPrompt
                                 className="text-xs text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
                               >
                                 {isExpanded
-                                  ? "Show less"
-                                  : `+${area.keywords.length - 8} more`}
+                                  ? t.settingsAreas.showLess
+                                  : `+${area.keywords.length - 8} ${t.settingsAreas.showMore}`}
                               </button>
                             )}
                           </div>
@@ -1162,29 +1175,20 @@ ${analysisPrompt
               {/* Info Box */}
               <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
                 <h4 className="text-sm font-semibold text-white mb-2">
-                  Legal Practice Areas Coverage
+                  {t.settingsContent.legalPracticeAreasCoverage}
                 </h4>
                 <ul className="text-xs text-gray-400 space-y-1">
                   <li>
-                    • {config.legalPracticeAreas.length} specialized practice
-                    areas with{" "}
+                    • {config.legalPracticeAreas.length}{" "}
+                    {t.settingsContent.specializedPracticeAreas}{" "}
                     {config.legalPracticeAreas.reduce(
                       (sum, area) => sum + area.keywords.length,
-                      0
+                      0,
                     )}{" "}
-                    keywords
+                    {t.settingsContent.keywords}
                   </li>
-                  <li>
-                    • Automatic area detection and context-aware legal guidance
-                  </li>
-                  <li>
-                    • Covers corporate law, IP, employment, contracts,
-                    compliance, privacy, and more
-                  </li>
-                  <li>
-                    • Optimized for startup and entrepreneurship with 90%
-                    coverage
-                  </li>
+                  <li>{t.settingsContent.automaticAreaDetection}</li>
+                  <li>{t.settingsContent.coversLegalDomains}</li>
                 </ul>
               </div>
             </div>
@@ -1194,36 +1198,38 @@ ${analysisPrompt
             <div>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-gray-400">
-                  Atticus provides comprehensive business advisory capabilities
-                  to complement legal services. The system automatically detects
-                  advisory topics and adjusts guidance accordingly.
+                  {t.settingsContent.advisoryCapabilities}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => resetToFactory("advisory")}
                     disabled={isResetting === "advisory"}
                     className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
-                    title="Reset to factory defaults"
+                    title={t.settingsProviders.resetToDefaults}
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>
-                      {isResetting === "advisory" ? "Resetting..." : "Reset"}
+                      {isResetting === "advisory"
+                        ? t.settingsProviders.resetting
+                        : t.settingsProviders.reset}
                     </span>
                   </button>
                   <button
                     onClick={() => loadYamlContent("advisory")}
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
-                    title="Edit advisory.yaml"
+                    title={t.settingsProviders.editConfiguration}
                   >
                     <Edit3 className="w-4 h-4" />
-                    <span>Customize</span>
+                    <span>{t.settingsProviders.customize}</span>
                   </button>
                 </div>
               </div>
 
               {!config.advisoryAreas || config.advisoryAreas.length === 0 ? (
                 <div className="bg-gray-900 rounded-lg p-6 text-center">
-                  <p className="text-gray-400">Loading advisory areas...</p>
+                  <p className="text-gray-400">
+                    {t.settingsAdditional.loadingAdvisoryAreas}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1261,7 +1267,7 @@ ${analysisPrompt
                                 <button
                                   onClick={() => {
                                     const newExpanded = new Set(
-                                      expandedAdvisoryAreas
+                                      expandedAdvisoryAreas,
                                     );
                                     if (isExpanded) {
                                       newExpanded.delete(area.id);
@@ -1273,7 +1279,7 @@ ${analysisPrompt
                                   className="text-xs text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
                                 >
                                   {isExpanded
-                                    ? "Show less"
+                                    ? t.settingsAreas.showLess
                                     : `+${area.keywords.length - 8} more`}
                                 </button>
                               )}
@@ -1288,29 +1294,20 @@ ${analysisPrompt
               {/* Info Box */}
               <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-700">
                 <h4 className="text-sm font-semibold text-white mb-2">
-                  Business Advisory Coverage
+                  {t.settingsContent.businessAdvisoryCoverage}
                 </h4>
                 <ul className="text-xs text-gray-400 space-y-1">
                   <li>
-                    • {config.advisoryAreas?.length || 0} specialized advisory
-                    areas with{" "}
+                    • {config.advisoryAreas?.length || 0}{" "}
+                    {t.settingsContent.specializedAdvisoryAreas}{" "}
                     {config.advisoryAreas?.reduce(
                       (sum, area) => sum + area.keywords.length,
-                      0
+                      0,
                     ) || 0}{" "}
-                    keywords
+                    {t.settingsContent.keywords}
                   </li>
-                  <li>
-                    • Automatic topic detection and context-aware guidance
-                  </li>
-                  <li>
-                    • Covers strategy, finance, marketing, operations, HR,
-                    technology, risk, sustainability, and M&A
-                  </li>
-                  <li>
-                    • Complements legal practice areas for comprehensive
-                    business support
-                  </li>
+                  <li>{t.settingsContent.automaticTopicDetection}</li>
+                  <li>{t.settingsContent.coversAdvisoryDomains}</li>
                 </ul>
               </div>
             </div>
@@ -1325,14 +1322,14 @@ ${analysisPrompt
                     <span className="text-red-400 text-xl">⚠️</span>
                     <div>
                       <h4 className="text-red-400 font-semibold mb-1">
-                        Configuration Load Error
+                        {t.settingsContent.configurationLoadError}
                       </h4>
                       <p className="text-red-300 text-sm">{yamlLoadError}</p>
                       <button
                         onClick={() => setYamlLoadError(null)}
                         className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
                       >
-                        Dismiss
+                        {t.settingsContent.dismiss}
                       </button>
                     </div>
                   </div>
@@ -1341,22 +1338,19 @@ ${analysisPrompt
 
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-6">
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  🔍 Response Analysis Configuration
+                  {t.settingsContent.responseAnalysisConfig}
                 </h3>
                 <p className="text-gray-300 mb-4">
-                  Configure the system prompt used for multi-model response
-                  validation and analysis. This prompt guides the AI quality
-                  analyst when comparing responses from different models.
+                  {t.settingsContent.configureAnalysisPrompt}
                 </p>
 
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="text-lg font-semibold text-white">
-                      Analysis System Prompt
+                      {t.settingsContent.analysisSystemPrompt}
                     </h4>
                     <p className="text-sm text-gray-400 mt-1">
-                      Defines how AI models analyze and compare responses for
-                      consistency, accuracy, and quality.
+                      {t.settingsContent.definesAnalysis}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -1364,11 +1358,13 @@ ${analysisPrompt
                       onClick={() => resetToFactory("analysis")}
                       disabled={isResetting === "analysis"}
                       className="flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
-                      title="Reset to factory defaults"
+                      title={t.settingsProviders.resetToDefaults}
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>
-                        {isResetting === "analysis" ? "Resetting..." : "Reset"}
+                        {isResetting === "analysis"
+                          ? t.settingsProviders.resetting
+                          : t.settingsProviders.reset}
                       </span>
                     </button>
                     <button
@@ -1376,20 +1372,17 @@ ${analysisPrompt
                       className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                       <SettingsIcon className="h-4 w-4" />
-                      Customize
+                      {t.settingsProviders.customize}
                     </button>
                   </div>
                 </div>
 
                 <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                   <h5 className="text-sm font-semibold text-gray-300 mb-2">
-                    Current Configuration
+                    {t.settingsContent.currentConfiguration}
                   </h5>
                   <p className="text-xs text-gray-400 mb-3">
-                    Source:{" "}
-                    <code className="bg-gray-700 px-2 py-1 rounded">
-                      analysis.yaml
-                    </code>
+                    {t.settingsContent.sourceAnalysisYaml}
                   </p>
                   <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono bg-gray-900 p-3 rounded border border-gray-600 max-h-64 overflow-y-auto">
                     {`version: 1.0.0
@@ -1407,55 +1400,53 @@ multiple AI responses using an independent model.`}
                 <div className="mt-6 space-y-4">
                   <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-700/50">
                     <h5 className="text-sm font-semibold text-blue-400 mb-2">
-                      💡 What is Response Analysis?
+                      {t.settingsAnalysis.whatIsResponseAnalysis}
                     </h5>
                     <p className="text-xs text-gray-300">
-                      When you receive responses from multiple AI models, you
-                      can use an independent "judge" model to analyze and
-                      compare them. The analysis system prompt guides this judge
-                      model to evaluate consistency, accuracy, completeness, and
-                      quality of the responses.
+                      {t.settingsAnalysis.responseAnalysisDescription}
                     </p>
                   </div>
 
                   <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                     <h5 className="text-sm font-semibold text-gray-300 mb-2">
-                      Key Analysis Criteria
+                      {t.settingsAnalysis.keyAnalysisCriteria}
                     </h5>
                     <ul className="text-xs text-gray-300 space-y-2">
                       <li className="flex items-start gap-2">
                         <span className="text-gray-400 mt-0.5">1.</span>
                         <span>
-                          <strong>Consistency:</strong> Are the responses
-                          aligned with each other?
+                          <strong>{t.settingsAdditional.consistency}</strong>{" "}
+                          {t.settingsAnalysis.consistencyDescription}
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-gray-400 mt-0.5">2.</span>
                         <span>
-                          <strong>Accuracy:</strong> Identify potential
-                          inaccuracies or confabulations
+                          <strong>{t.settingsAdditional.accuracy}</strong>{" "}
+                          {t.settingsAnalysis.accuracyDescription}
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-gray-400 mt-0.5">3.</span>
                         <span>
-                          <strong>Completeness:</strong> What important points
-                          are missing?
+                          <strong>{t.settingsAdditional.completeness}</strong>{" "}
+                          {t.settingsAnalysis.completenessDescription}
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-gray-400 mt-0.5">4.</span>
                         <span>
-                          <strong>Quality Ranking:</strong> Rank responses from
-                          best to worst
+                          <strong>{t.settingsAdditional.qualityRanking}</strong>{" "}
+                          {t.settingsAnalysis.qualityRankingDescription}
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-gray-400 mt-0.5">5.</span>
                         <span>
-                          <strong>Recommendations:</strong> Which response(s) to
-                          trust most
+                          <strong>
+                            {t.settingsAdditional.recommendations}
+                          </strong>{" "}
+                          {t.settingsAnalysis.recommendationsDescription}
                         </span>
                       </li>
                     </ul>
@@ -1463,14 +1454,10 @@ multiple AI responses using an independent model.`}
 
                   <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-700/50">
                     <h5 className="text-sm font-semibold text-yellow-400 mb-2">
-                      ⚠️ Customization Note
+                      {t.settingsAnalysis.customizationNote}
                     </h5>
                     <p className="text-xs text-gray-300">
-                      The analysis prompt can be customized to emphasize
-                      specific criteria relevant to your use case (e.g., legal
-                      accuracy, technical precision, business viability). Click
-                      "Customize" to edit the system prompt in a structured
-                      editor.
+                      {t.settingsAnalysis.customizationDescription}
                     </p>
                   </div>
                 </div>
@@ -1483,8 +1470,10 @@ multiple AI responses using an independent model.`}
               {/* Copyright Notice */}
               <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-6 text-center">
                 <p className="text-sm text-gray-400">
-                  Copyright © 2025, John Kost, All Rights Reserved | v
-                  {packageJson.version}
+                  {t.settingsContent.copyrightVersion.replace(
+                    "{version}",
+                    packageJson.version,
+                  )}
                 </p>
               </div>
 
@@ -1492,26 +1481,20 @@ multiple AI responses using an independent model.`}
                 {/* Mission Section */}
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    🎯 Our Mission
+                    {t.settingsContent.ourMission}
                   </h3>
                   <p className="text-gray-300 leading-relaxed">
-                    Atticus aims to democratize access to high-quality legal and
-                    business advisory services by combining artificial
-                    intelligence with comprehensive domain expertise. We believe
-                    that entrepreneurs, startups, and businesses of all sizes
-                    deserve sophisticated legal and strategic guidance to
-                    navigate today's complex regulatory and business landscape.
+                    {t.settingsContent.missionStatement}
                   </p>
                 </div>
 
                 {/* Coverage Section */}
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    🌍 Global Coverage
+                    {t.settingsContent.globalCoverage}
                   </h3>
                   <p className="text-gray-300 mb-3">
-                    Atticus provides specialized support for startups and
-                    businesses operating in:
+                    {t.settingsContent.globalCoverageDescription}
                   </p>
                   <div className="grid grid-cols-4 gap-3 mb-4">
                     {JURISDICTIONS.map((jurisdiction) => (
@@ -1522,11 +1505,11 @@ multiple AI responses using an independent model.`}
                         <div className="text-2xl mb-2">{jurisdiction.flag}</div>
                         <div className="text-sm font-semibold text-white">
                           {jurisdiction.name === "European Union"
-                            ? "Europe"
+                            ? t.settingsContent.europe
                             : jurisdiction.name}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          {jurisdiction.coverage}% Coverage
+                          {jurisdiction.coverage}% {t.settingsContent.coverage}
                         </div>
                       </div>
                     ))}
@@ -1536,60 +1519,60 @@ multiple AI responses using an independent model.`}
                 {/* Capabilities Section */}
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    ⚡ Comprehensive Capabilities
+                    {t.settingsContent.comprehensiveCapabilities}
                   </h3>
                   <div className="grid grid-cols-2 gap-6 mb-4">
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold text-gray-300">
-                          Legal Practice Areas
+                          {t.settingsContent.legalPracticeAreas}
                         </h4>
                         <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
                           67
                         </span>
                       </div>
                       <ul className="text-xs text-gray-400 space-y-1">
-                        <li>• Corporate & Business Law</li>
-                        <li>• Intellectual Property</li>
-                        <li>• Employment & Labor Law</li>
-                        <li>• Startup & Entrepreneurship</li>
-                        <li>• Venture Capital Finance</li>
-                        <li>• Cross-Border Operations</li>
-                        <li>• Privacy & Data Protection</li>
-                        <li>• And 60 more specialized areas</li>
+                        <li>{t.settingsContent.corporateBusinessLaw}</li>
+                        <li>{t.settingsContent.intellectualProperty}</li>
+                        <li>{t.settingsContent.employmentLaborLaw}</li>
+                        <li>{t.settingsContent.startupEntrepreneurship}</li>
+                        <li>{t.settingsContent.ventureCapitalFinance}</li>
+                        <li>{t.settingsContent.crossBorderOperations}</li>
+                        <li>{t.settingsContent.privacyDataProtection}</li>
+                        <li>{t.settingsContent.andMoreAreas}</li>
                       </ul>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold text-gray-300">
-                          Business Advisory Areas
+                          {t.settingsContent.businessAdvisoryAreas}
                         </h4>
                         <span className="bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded">
                           67
                         </span>
                       </div>
                       <ul className="text-xs text-gray-400 space-y-1">
-                        <li>• Strategic Planning & Business Strategy</li>
-                        <li>• Financial Advisory & Corporate Finance</li>
-                        <li>• Marketing Strategy & Brand Development</li>
-                        <li>• Government Relations & Public Policy</li>
-                        <li>• Product Legal Compliance</li>
-                        <li>• M&A Advisory & Exit Planning</li>
-                        <li>• Digital Transformation & Technology</li>
-                        <li>• And 60 more advisory areas</li>
+                        <li>{t.settingsContent.strategicPlanning}</li>
+                        <li>{t.settingsContent.financialAdvisory}</li>
+                        <li>{t.settingsContent.marketingStrategy}</li>
+                        <li>{t.settingsContent.governmentRelations}</li>
+                        <li>{t.settingsContent.productLegalCompliance}</li>
+                        <li>{t.settingsContent.maAdvisory}</li>
+                        <li>{t.settingsContent.digitalTransformation}</li>
+                        <li>{t.settingsContent.andMoreAreas}</li>
                       </ul>
                     </div>
                   </div>
                   <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg p-3 border border-blue-700/30">
                     <div className="flex items-center justify-center gap-4 text-xs text-gray-300">
                       <span className="font-semibold">
-                        🎯 Total Expertise Coverage:
+                        {t.settingsContent.totalExpertiseCoverage}
                       </span>
                       <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-3 py-1 rounded">
-                        134 Specialized Areas
+                        {t.settingsContent.specializedAreas}
                       </span>
                       <span className="text-gray-400">
-                        Dual Practice + Advisory Mode
+                        {t.settingsContent.dualMode}
                       </span>
                     </div>
                   </div>
@@ -1598,46 +1581,45 @@ multiple AI responses using an independent model.`}
                 {/* Startup Focus Section */}
                 <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-6 border border-purple-700">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    🚀 Built for Startups
+                    {t.settingsContent.builtForStartups}
                   </h3>
                   <p className="text-gray-300 mb-3">
-                    With 90% optimization for startup and entrepreneurship
-                    needs, Atticus covers the entire startup lifecycle:
+                    {t.settingsContent.startupOptimization}
                   </p>
                   <div className="flex justify-between items-center bg-gray-900/50 rounded p-4">
                     <div className="text-center flex-1">
                       <div className="text-xs text-gray-400 mb-1">
-                        Idea Stage
+                        {t.settingsContent.ideaStage}
                       </div>
                       <div className="text-sm text-white font-semibold">
-                        Entity Formation
+                        {t.settingsContent.entityFormation}
                       </div>
                     </div>
                     <div className="text-gray-600">→</div>
                     <div className="text-center flex-1">
                       <div className="text-xs text-gray-400 mb-1">
-                        Seed Stage
+                        {t.settingsContent.seedStage}
                       </div>
                       <div className="text-sm text-white font-semibold">
-                        Fundraising
+                        {t.settingsContent.fundraising}
                       </div>
                     </div>
                     <div className="text-gray-600">→</div>
                     <div className="text-center flex-1">
                       <div className="text-xs text-gray-400 mb-1">
-                        Growth Stage
+                        {t.settingsContent.growthStage}
                       </div>
                       <div className="text-sm text-white font-semibold">
-                        Scaling
+                        {t.settingsContent.scaling}
                       </div>
                     </div>
                     <div className="text-gray-600">→</div>
                     <div className="text-center flex-1">
                       <div className="text-xs text-gray-400 mb-1">
-                        Exit Stage
+                        {t.settingsContent.exitStage}
                       </div>
                       <div className="text-sm text-white font-semibold">
-                        M&A / IPO
+                        {t.settingsContent.maIpo}
                       </div>
                     </div>
                   </div>
@@ -1646,33 +1628,24 @@ multiple AI responses using an independent model.`}
                 {/* Privacy & Security Section */}
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    🔒 Privacy & Security
+                    {t.settingsContent.privacyFirst}
                   </h3>
                   <ul className="text-sm text-gray-300 space-y-2">
                     <li className="flex items-start gap-2">
                       <span className="text-gray-400 mt-0.5">✓</span>
-                      <span>
-                        All data stored locally on your machine - no cloud
-                        storage
-                      </span>
+                      <span>{t.settingsContent.allDataLocal}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-400 mt-0.5">✓</span>
-                      <span>
-                        API calls made directly to your chosen providers - no
-                        intermediaries
-                      </span>
+                      <span>{t.settingsContent.apiCallsDirectNoIntermed}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-400 mt-0.5">✓</span>
-                      <span>Your API keys never leave your device</span>
+                      <span>{t.settingsAdditional.apiKeysNeverLeave}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-400 mt-0.5">✓</span>
-                      <span>
-                        Full control over your data and conversations (including
-                        API expenses)
-                      </span>
+                      <span>{t.settingsContent.fullDataControl}</span>
                     </li>
                   </ul>
                 </div>
@@ -1680,16 +1653,10 @@ multiple AI responses using an independent model.`}
                 {/* Disclaimer Section */}
                 <div className="bg-yellow-900/20 rounded-lg p-6 border border-yellow-700/50">
                   <h3 className="text-xl font-bold text-yellow-400 mb-3">
-                    ⚠️ Important Disclaimer
+                    {t.settingsContent.importantDisclaimer}
                   </h3>
                   <p className="text-sm text-gray-300 leading-relaxed">
-                    Atticus is an AI-powered assistant designed to provide
-                    general information and guidance. It does not provide legal
-                    advice, and its outputs should not be relied upon as a
-                    substitute for consultation with qualified legal or business
-                    professionals. Always consult with licensed attorneys,
-                    accountants, or other qualified advisors for specific legal,
-                    tax, or business matters affecting your situation.
+                    {t.settingsContent.disclaimerText}
                   </p>
                 </div>
 
@@ -1698,56 +1665,66 @@ multiple AI responses using an independent model.`}
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <h4 className="text-sm font-semibold text-gray-400 mb-2">
-                        System Statistics
+                        {t.settingsContent.systemStatistics}
                       </h4>
                       <ul className="text-xs text-gray-300 space-y-1">
                         <li>
-                          Total Practice Areas:{" "}
+                          {t.settingsContent.totalPracticeAreas}{" "}
                           <span className="text-gray-300 font-semibold">
                             {config.legalPracticeAreas?.length || 0}
                           </span>
                         </li>
                         <li>
-                          Total Advisory Areas:{" "}
+                          {t.settingsContent.totalAdvisoryAreas}{" "}
                           <span className="text-gray-300 font-semibold">
                             {config.advisoryAreas?.length || 0}
                           </span>
                         </li>
                         <li>
-                          Total Keywords:{" "}
+                          {t.settingsContent.totalKeywords}{" "}
                           <span className="text-gray-300 font-semibold">
                             {(
                               (config.legalPracticeAreas?.reduce(
                                 (sum, area) =>
                                   sum + (area.keywords?.length || 0),
-                                0
+                                0,
                               ) || 0) +
                               (config.advisoryAreas?.reduce(
                                 (sum, area) =>
                                   sum + (area.keywords?.length || 0),
-                                0
+                                0,
                               ) || 0)
                             ).toLocaleString()}
                           </span>
                         </li>
                         <li>
-                          Supported Providers:{" "}
+                          {t.settingsContent.supportedProviders}{" "}
                           <span className="text-gray-300 font-semibold">
-                            {providerTemplates.length} available,{" "}
-                            {config.providers.length} configured
+                            {providerTemplates.length}{" "}
+                            {
+                              t.settingsContent.providersAvailableConfigured.split(
+                                ",",
+                              )[0]
+                            }
+                            , {config.providers.length}{" "}
+                            {
+                              t.settingsContent.providersAvailableConfigured.split(
+                                ",",
+                              )[1]
+                            }
                           </span>
                         </li>
                       </ul>
                     </div>
                     <div>
                       <h4 className="text-sm font-semibold text-gray-400 mb-2">
-                        Built With
+                        {t.settingsContent.builtWith}
                       </h4>
                       <ul className="text-xs text-gray-300 space-y-1">
-                        <li>⚛️ React + TypeScript</li>
-                        <li>⚡ Electron Desktop App</li>
-                        <li>🎨 Tailwind CSS</li>
-                        <li>🤖 Multi-Provider AI Integration</li>
+                        <li>{t.settingsContent.reactTypescript}</li>
+                        <li>{t.settingsContent.electronApp}</li>
+                        <li>{t.settingsContent.tailwindCss}</li>
+                        <li>{t.settingsContent.multiProviderAi}</li>
                       </ul>
                     </div>
                   </div>
@@ -1761,11 +1738,10 @@ multiple AI responses using an independent model.`}
             <div>
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-white mb-2">
-                  Privacy & Data Protection
+                  {t.settingsContent.piiScanningTitle}
                 </h3>
                 <p className="text-gray-400 text-sm">
-                  PII (Personally Identifiable Information) scanning to help
-                  protect your sensitive data before sending it to AI providers.
+                  {t.settingsContent.piiScanningDescription}
                 </p>
               </div>
 
@@ -1775,25 +1751,18 @@ multiple AI responses using an independent model.`}
                   <div className="flex-1">
                     <h4 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                       <span>🛡️</span>
-                      <span>PII Scanner</span>
+                      <span>{t.settingsAdditional.piiScanner}</span>
                       <span className="text-xs bg-green-900/30 text-green-400 px-3 py-1 rounded border border-green-700 font-bold">
-                        ALWAYS ENABLED
+                        {t.settingsContent.alwaysEnabled}
                       </span>
                     </h4>
                     <p className="text-gray-400 text-sm mb-2">
-                      Automatically scans your messages for sensitive
-                      information like SSN, credit cards, emails, phone numbers,
-                      and more before sending to AI providers.
+                      {t.settingsContent.automaticallyScans}
                     </p>
                     <div className="bg-yellow-900/20 border border-yellow-700 rounded p-3 mt-3">
                       <p className="text-yellow-300 text-xs font-medium flex items-start gap-2">
                         <span>⚠️</span>
-                        <span>
-                          <strong>Legal Protection:</strong> PII scanning cannot
-                          be disabled. This mandatory security feature protects
-                          both you and Atticus from liability by ensuring you're
-                          always warned before sharing sensitive data.
-                        </span>
+                        <span>{t.settingsContent.legalProtectionFull}</span>
                       </p>
                     </div>
                   </div>
@@ -1802,7 +1771,7 @@ multiple AI responses using an independent model.`}
                 {/* Scanner Statistics - Always visible */}
                 <div className="bg-gray-800 rounded p-4 border border-gray-700">
                   <h5 className="text-sm font-semibold text-gray-300 mb-3">
-                    Scanner Coverage
+                    {t.settingsContent.scannerCoverage}
                   </h5>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     {(() => {
@@ -1813,25 +1782,33 @@ multiple AI responses using an independent model.`}
                             <div className="text-red-400 font-bold text-lg">
                               {stats.criticalPatterns}
                             </div>
-                            <div className="text-red-300">Critical</div>
+                            <div className="text-red-300">
+                              {t.settingsAnalysis.critical}
+                            </div>
                           </div>
                           <div className="bg-orange-900/20 border border-orange-800 rounded p-2">
                             <div className="text-orange-400 font-bold text-lg">
                               {stats.highPatterns}
                             </div>
-                            <div className="text-orange-300">High Risk</div>
+                            <div className="text-orange-300">
+                              {t.settingsContent.highRisk}
+                            </div>
                           </div>
                           <div className="bg-yellow-900/20 border border-yellow-800 rounded p-2">
                             <div className="text-yellow-400 font-bold text-lg">
                               {stats.moderatePatterns}
                             </div>
-                            <div className="text-yellow-300">Moderate</div>
+                            <div className="text-yellow-300">
+                              {t.settingsContent.moderate}
+                            </div>
                           </div>
                           <div className="bg-blue-900/20 border border-blue-800 rounded p-2">
                             <div className="text-blue-400 font-bold text-lg">
                               {stats.totalPatterns}
                             </div>
-                            <div className="text-blue-300">Total Patterns</div>
+                            <div className="text-blue-300">
+                              {t.settingsContent.totalPatterns}
+                            </div>
                           </div>
                         </>
                       );
@@ -1843,11 +1820,10 @@ multiple AI responses using an independent model.`}
               {/* What Gets Detected - Always visible */}
               <div className="bg-gray-900 rounded-lg p-6 border-2 border-gray-700">
                 <h4 className="text-lg font-semibold text-white mb-4">
-                  What Gets Detected
+                  {t.settingsContent.whatGetsDetected}
                 </h4>
                 <p className="text-gray-400 text-sm mb-4">
-                  Examples of sensitive data patterns that are automatically
-                  scanned:
+                  {t.settingsContent.examplesOfSensitiveData}
                 </p>
 
                 <div className="space-y-4">
@@ -1856,34 +1832,35 @@ multiple AI responses using an independent model.`}
                     <h5 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
                       <span>🔴</span>
                       <span>
-                        Critical Risk (
-                        {piiScanner.getStatistics().criticalPatterns} Patterns)
+                        {t.settingsContent.criticalRisk} (
+                        {piiScanner.getStatistics().criticalPatterns}{" "}
+                        {t.settingsContent.patterns})
                       </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
-                        • US Social Security Numbers (SSN)
+                        {t.settingsContent.usSsn}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Canadian Social Insurance (SIN)
+                        {t.settingsContent.canadianSin}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Mexican CURP Numbers
+                        {t.settingsContent.mexicanCurp}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Mexican RFC (Tax ID)
+                        {t.settingsContent.mexicanRfc}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • EU/UK National ID Numbers
+                        {t.settingsContent.euUkNationalId}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Credit Card Numbers (All Types)
+                        {t.settingsContent.creditCards}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Passwords & Credentials
+                        {t.settingsContent.passwordsCredentials}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • API Keys & Access Tokens
+                        {t.settingsContent.apiKeysTokens}
                       </div>
                     </div>
                   </div>
@@ -1893,46 +1870,47 @@ multiple AI responses using an independent model.`}
                     <h5 className="text-sm font-semibold text-orange-400 mb-2 flex items-center gap-2">
                       <span>🟠</span>
                       <span>
-                        High Risk ({piiScanner.getStatistics().highPatterns}{" "}
-                        Patterns)
+                        {t.settingsContent.highRiskCategory} (
+                        {piiScanner.getStatistics().highPatterns}{" "}
+                        {t.settingsContent.patterns})
                       </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
-                        • IBAN Account Numbers (EU/UK)
+                        {t.settingsContent.ibanAccounts}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • CLABE Codes (Mexico)
+                        {t.settingsContent.clabeCodes}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Canadian Health Card Numbers
+                        {t.settingsContent.canadianHealthCard}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • EU VAT Numbers
+                        {t.settingsContent.euVatNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Passport Numbers
+                        {t.settingsContent.passportNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Email Addresses
+                        {t.settingsContent.emailAddresses}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Phone Numbers (International)
+                        {t.settingsContent.phoneNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Bank Account Numbers
+                        {t.settingsContent.bankAccounts}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • US Routing Numbers
+                        {t.settingsContent.usRoutingNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Canadian Transit Numbers
+                        {t.settingsContent.canadianTransitNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • SWIFT/BIC Codes
+                        {t.settingsContent.swiftBicCodes}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Medical Record Numbers
+                        {t.settingsContent.medicalRecordNumbers}
                       </div>
                     </div>
                   </div>
@@ -1942,40 +1920,42 @@ multiple AI responses using an independent model.`}
                     <h5 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-2">
                       <span>🟡</span>
                       <span>
-                        Moderate Risk (
-                        {piiScanner.getStatistics().moderatePatterns} Patterns)
+                        {t.settingsContent.moderateRisk} (
+                        {piiScanner.getStatistics().moderatePatterns}{" "}
+                        {t.settingsContent.patterns})
                       </span>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-300">
                       <div className="bg-gray-800 rounded p-2">
-                        • Driver's License Numbers
+                        {t.settingsContent.driversLicense}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Tax IDs / EINs
+                        {t.settingsContent.taxIdsEins}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Legal Case Numbers
+                        {t.settingsContent.legalCaseNumbers}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Street Addresses
+                        {t.settingsContent.streetAddresses}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • ZIP/Postal Codes
+                        {t.settingsContent.zipPostalCodes}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • IP Addresses (IPv4/IPv6)
+                        {t.settingsContent.ipAddresses}
                       </div>
                       <div className="bg-gray-800 rounded p-2">
-                        • Full Names with Titles
+                        {t.settingsContent.fullNamesWithTitles}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 text-xs text-gray-400 italic">
-                  Note: The above are representative examples. The scanner uses{" "}
-                  {piiScanner.getStatistics().totalPatterns} total patterns
-                  covering variations and additional formats.
+                  {t.settingsContent.patternsNote.replace(
+                    "{count}",
+                    piiScanner.getStatistics().totalPatterns.toString(),
+                  )}
                 </div>
               </div>
 
@@ -1983,33 +1963,15 @@ multiple AI responses using an independent model.`}
               <div className="mt-6 bg-blue-900/20 border border-blue-700 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
                   <span>ℹ️</span>
-                  <span>Important Privacy Information</span>
+                  <span>{t.settingsContent.importantPrivacyInfoTitle}</span>
                 </h4>
                 <ul className="text-xs text-blue-200 space-y-1 list-disc list-inside">
-                  <li>
-                    All PII detection happens locally on your device - no data
-                    sent externally
-                  </li>
-                  <li>
-                    Scanner provides warnings but cannot prevent you from
-                    sending data
-                  </li>
-                  <li>
-                    You are ultimately responsible for protecting confidential
-                    information
-                  </li>
-                  <li>
-                    Each AI provider has different privacy policies - review
-                    them carefully
-                  </li>
-                  <li>
-                    Consider using example data or anonymizing details for
-                    sensitive queries
-                  </li>
-                  <li>
-                    Atticus developers never collect, store, or have access to
-                    your data
-                  </li>
+                  <li>{t.settingsContent.detectionLocal}</li>
+                  <li>{t.settingsContent.scannerWarningsOnly}</li>
+                  <li>{t.settingsContent.userResponsibility}</li>
+                  <li>{t.settingsContent.reviewProviderPolicies}</li>
+                  <li>{t.settingsContent.useExampleData}</li>
+                  <li>{t.settingsContent.noDataCollection}</li>
                 </ul>
               </div>
             </div>
@@ -2029,8 +1991,8 @@ multiple AI responses using an independent model.`}
                 {editingYamlType === "practices"
                   ? "practices.yaml"
                   : editingYamlType === "advisory"
-                  ? "advisory.yaml"
-                  : "analysis.yaml"}
+                    ? "advisory.yaml"
+                    : "analysis.yaml"}
               </h3>
               <button
                 onClick={() => {
@@ -2062,16 +2024,16 @@ multiple AI responses using an independent model.`}
 
                   <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Analysis System Prompt
+                      {t.settingsContent.analysisPromptLabel}
                     </label>
                     <textarea
                       value={analysisPrompt}
                       onChange={(e) => setAnalysisPrompt(e.target.value)}
                       className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white font-mono text-sm min-h-[400px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter the system prompt for response analysis..."
+                      placeholder={t.settingsAnalysis.systemPromptPlaceholder}
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      {analysisPrompt.length} characters
+                      {analysisPrompt.length} {t.settingsContent.characterCount}
                     </p>
                   </div>
                 </>
@@ -2090,7 +2052,7 @@ multiple AI responses using an independent model.`}
                       onClick={addNewArea}
                       className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
                     >
-                      <span>+</span> Add New Area
+                      <span>+</span> {t.settingsContent.addNewArea}
                     </button>
                   </div>
 
@@ -2118,7 +2080,11 @@ multiple AI responses using an independent model.`}
                                   setExpandedEditorCards(newSet);
                                 }}
                                 className="text-gray-400 hover:text-white transition-colors"
-                                aria-label={isExpanded ? "Collapse" : "Expand"}
+                                aria-label={
+                                  isExpanded
+                                    ? t.settingsContent.collapse
+                                    : t.settingsContent.expand
+                                }
                               >
                                 {isExpanded ? "▼" : "▶"}
                               </button>
@@ -2137,8 +2103,8 @@ multiple AI responses using an independent model.`}
                             <button
                               onClick={() => deleteArea(index)}
                               className="text-red-400 hover:text-red-300 transition-colors px-2"
-                              title="Delete area"
-                              aria-label="Delete area"
+                              title={t.settingsAreas.deleteArea}
+                              aria-label={t.settingsAreas.deleteArea}
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -2150,21 +2116,21 @@ multiple AI responses using an independent model.`}
                               {/* ID (Read-only) */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1">
-                                  ID (read-only)
+                                  {t.settingsContent.idReadOnly}
                                 </label>
                                 <input
                                   type="text"
                                   value={area.id}
                                   disabled
                                   className="w-full bg-gray-800 text-gray-500 text-sm px-3 py-2 rounded border border-gray-700 cursor-not-allowed"
-                                  aria-label="Area ID"
+                                  aria-label={t.settingsAreas.areaId}
                                 />
                               </div>
 
                               {/* Name */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1">
-                                  Name
+                                  {t.settingsContent.name}
                                 </label>
                                 <input
                                   type="text"
@@ -2173,18 +2139,18 @@ multiple AI responses using an independent model.`}
                                     updateAreaField(
                                       index,
                                       "name",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue"
-                                  placeholder="Area name"
+                                  placeholder={t.settingsAreas.areaName}
                                 />
                               </div>
 
                               {/* Description */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1">
-                                  Description
+                                  {t.settingsContent.description}
                                 </label>
                                 <textarea
                                   value={area.description}
@@ -2192,19 +2158,19 @@ multiple AI responses using an independent model.`}
                                     updateAreaField(
                                       index,
                                       "description",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
                                   rows={3}
-                                  placeholder="Area description"
+                                  placeholder={t.settingsAreas.areaDescription}
                                 />
                               </div>
 
                               {/* Color */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1">
-                                  Color
+                                  {t.settingsContent.color}
                                 </label>
                                 <div className="flex gap-2">
                                   <input
@@ -2214,12 +2180,12 @@ multiple AI responses using an independent model.`}
                                       updateAreaField(
                                         index,
                                         "color",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     className="w-12 h-10 bg-gray-800 rounded border border-gray-700 cursor-pointer"
-                                    title="Pick color"
-                                    aria-label="Color picker"
+                                    title={t.settingsAreas.pickColor}
+                                    aria-label={t.settingsAreas.areaColor}
                                   />
                                   <input
                                     type="text"
@@ -2228,7 +2194,7 @@ multiple AI responses using an independent model.`}
                                       updateAreaField(
                                         index,
                                         "color",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     className="flex-1 bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue font-mono"
@@ -2241,7 +2207,7 @@ multiple AI responses using an independent model.`}
                               {/* System Prompt */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1">
-                                  System Prompt
+                                  {t.settingsContent.systemPrompt}
                                 </label>
                                 <textarea
                                   value={area.systemPrompt || ""}
@@ -2249,29 +2215,30 @@ multiple AI responses using an independent model.`}
                                     updateAreaField(
                                       index,
                                       "systemPrompt",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none font-mono"
                                   rows={8}
-                                  placeholder="Enter the system prompt that will guide AI responses for this area..."
+                                  placeholder={
+                                    t.settingsAreas.systemPromptPlaceholder
+                                  }
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  This prompt defines the AI's expertise,
-                                  approach, and guidelines when responding to
-                                  queries in this area.
+                                  {t.settingsContent.systemPromptHelp}
                                 </p>
                               </div>
 
                               {/* Keywords */}
                               <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-2">
-                                  Keywords ({area.keywords.length})
+                                  {t.settingsContent.keywords} (
+                                  {area.keywords.length})
                                 </label>
                                 <div className="flex flex-wrap gap-2 mb-2 min-h-[2rem] bg-gray-800 p-2 rounded border border-gray-700">
                                   {area.keywords.length === 0 ? (
                                     <span className="text-xs text-gray-500 italic">
-                                      No keywords added yet
+                                      {t.settingsContent.noKeywordsYet}
                                     </span>
                                   ) : (
                                     area.keywords.map(
@@ -2285,7 +2252,7 @@ multiple AI responses using an independent model.`}
                                             onClick={() =>
                                               removeKeywordFromArea(
                                                 index,
-                                                kIndex
+                                                kIndex,
                                               )
                                             }
                                             className="text-gray-400 hover:text-red-400 transition-colors"
@@ -2295,7 +2262,7 @@ multiple AI responses using an independent model.`}
                                             <X className="w-3 h-3" />
                                           </button>
                                         </span>
-                                      )
+                                      ),
                                     )
                                   )}
                                 </div>
@@ -2324,7 +2291,9 @@ multiple AI responses using an independent model.`}
                                       }
                                     }}
                                     className="flex-1 bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue"
-                                    placeholder="Add keyword..."
+                                    placeholder={
+                                      t.settingsAreas.addKeywordPlaceholder
+                                    }
                                     aria-label="New keyword"
                                   />
                                   <button
@@ -2341,7 +2310,7 @@ multiple AI responses using an independent model.`}
                                     }}
                                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm font-medium transition-colors"
                                   >
-                                    Add
+                                    {t.settingsContent.addKeyword}
                                   </button>
                                 </div>
                               </div>
@@ -2358,12 +2327,12 @@ multiple AI responses using an independent model.`}
             {/* Footer */}
             <div className="flex items-center justify-between p-4 border-t border-gray-700">
               <div className="text-xs text-gray-400">
-                File:{" "}
+                {t.settingsContent.file}{" "}
                 {editingYamlType === "practices"
                   ? "practices.yaml"
                   : editingYamlType === "advisory"
-                  ? "advisory.yaml"
-                  : "analysis.yaml"}
+                    ? "advisory.yaml"
+                    : "analysis.yaml"}
               </div>
               <div className="flex gap-3">
                 <button
@@ -2373,14 +2342,14 @@ multiple AI responses using an independent model.`}
                   }}
                   className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t.cancel}
                 </button>
                 <button
                   onClick={saveYamlContent}
                   disabled={!!yamlLoadError}
                   className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
                 >
-                  Save Changes
+                  {t.settingsProviders.saveChanges}
                 </button>
               </div>
             </div>

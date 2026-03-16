@@ -1,10 +1,10 @@
 # Atticus - In-House AI Counsel
 
-A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, **67 specialized legal practice areas**, **67 MBA-level business advisory areas**, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities spanning the full spectrum of business disciplines. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings are a force multiplier.
+A powerful **local-first desktop application** that provides entrepreneurs with AI-powered legal assistance and business advisory through multiple AI models, **67 specialized legal practice areas**, **67 MBA-level business advisory areas**, intelligent multi-jurisdictional analysis with inter-provincial/interstate complexity awareness, and comprehensive business consulting capabilities spanning the full spectrum of business disciplines. With **offline resilience** and local data storage, your work remains accessible even when cloud services fail. The time & cost savings become a force multiplier.
 
 > **⚠️ IMPORTANT DISCLAIMER**: Atticus provides **information, not legal advice**. Always consult with licensed professionals for legal, financial, or business decisions. See [RISK.md](RISK.md) for comprehensive risk assessment.
 
-![Atticus Application Interface](docs/images/Screenshot-13.png)
+![Atticus Application Interface](docs/images/Screenshot-17.png)
 
 ## ⚠️ Important Documentation
 
@@ -33,7 +33,7 @@ Before using Atticus, please review these critical documents:
 2. **Run in development**:
 
    ```bash
-   npm run electron:dev
+   npm run dev
    ```
 
 3. **Configure providers** - Get API keys and set up in Settings
@@ -53,8 +53,11 @@ Before using Atticus, please review these critical documents:
   - [Legal Practice Area Detection](#️-legal-practice-area-detection)
   - [Business Advisory Detection](#-business-advisory-detection)
   - [Advanced Configuration: YAML System Prompt Editing](#️-advanced-configuration-yaml-system-prompt-editing)
+  - [Model Filtering & Customization](#-model-filtering--customization)
+  - [Rich Chat Interface](#-rich-chat-interface)
   - [Privacy & Security Features](#-privacy--security-features)
   - [Offline Resilience & Business Continuity](#-offline-resilience--business-continuity)
+  - [Internationalization Support](#-internationalization-support)
 - [Architecture & Design](#-architecture--design)
 - [Configuration](#-configuration)
 - [Development](#development)
@@ -73,11 +76,11 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 
 | Provider            | Models Available                                                                   | Key Capabilities                                         | Best For                                            |
 | ------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
-| **🤖 OpenAI**       | GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano                                             | Vision, 400K context, Function Calling                   | Next-gen reasoning, complex legal analysis          |
-| **🧠 Anthropic**    | Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.5 Opus                               | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing   |
-| **🔷 Google**       | Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite                            | Vision, 1M token context, Function Calling               | Massive context, multimodal analysis                |
+| **🤖 OpenAI**       | GPT-5.2, GPT-5.2, GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano                                             | Vision, 400K context, Function Calling                   | Next-gen reasoning, complex legal analysis          |
+| **🧠 Anthropic**    | Claude 4.5/4.6 Sonnet, Claude 4.5 Haiku, Claude 4.5/4.6 Opus                               | Vision, 200K context, Function Calling                   | Advanced analysis, document review, legal writing   |
+| **🔷 Google**       | Gemini 3/3.1 Pro, Gemini 3 Flash, Gemini 3.1 Flash Lite                            | Vision, 1M token context, Function Calling               | Massive context, multimodal analysis                |
 | **☁️ Azure OpenAI** | GPT-4o, GPT-4o mini, GPT-4                                                         | Vision, Function Calling, Enterprise SLA                 | Enterprise deployment, compliance requirements      |
-| **𝕏 xAI**           | Grok 4, Grok 4 Fast Reasoning, Grok 4 Fast Non-Reasoning                           | Vision, 2M token context, Real-time knowledge            | Current events, real-time analysis, massive context |
+| **𝕏 xAI**           | Grok 4, Grok 4.1 Fast Reasoning, Grok 4.1 Fast Non-Reasoning                           | Vision, 2M token context, Real-time knowledge            | Current events, real-time analysis, massive context |
 | **🌬️ Mistral**      | Mistral Large 2 (123B), Mistral Medium, Mistral Small, Mixtral 8x22B, Mixtral 8x7B | Function Calling, EU-based, 128K context                 | EU compliance, open models, cost-effective          |
 | **🧬 Cohere**       | Command R+, Command R, Command, Command Light                                      | RAG-optimized, 128K context, Function Calling            | Enterprise search, legal research, citations        |
 | **⚡ Groq**         | Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B               | Ultra-fast inference (500+ tokens/sec), Function Calling | Speed-critical tasks, rapid prototyping             |
@@ -89,24 +92,29 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 <details>
 <summary><strong>📋 Detailed Model Breakdown by Provider</strong></summary>
 
-### OpenAI (4 models)
+### OpenAI (6 models)
 
-- **GPT-5.1** - Next-generation model with superior reasoning and creativity (400K context) ⭐ _Default_
+- **GPT-5.4** - Ultimate model with unmatched performance and capabilities (1M context) ⭐ _Default_
+- **GPT-5.2** - Latest and most advanced model with unparalleled capabilities (400K context)
+- **GPT-5.1** - Next-generation model with superior reasoning and creativity (400K context)
 - **GPT-5** - Advanced model with enhanced capabilities (400K context)
 - **GPT-5 Mini** - Balanced performance and cost for general tasks (400K context)
 - **GPT-5 Nano** - Cost-effective version for general tasks (400K context)
 
-### Anthropic (3 models)
+### Anthropic (5 models)
 
-- **Claude 4.5 Sonnet** - Most intelligent model, best for complex analysis and coding (200K context) ⭐ _Default_
-- **Claude 4.5 Haiku** - Fastest and most compact model (200K context)
+- **Claude 4.6 Opus** - Most powerful model for highly complex tasks (200K context)
 - **Claude 4.5 Opus** - Powerful model for highly complex tasks (200K context)
+- **Claude 4.6 Sonnet** - Most intelligent model, best for complex analysis and coding (200K context) ⭐ _Default_
+- **Claude 4.5 Sonnet** - Advanced model for complex analysis and coding (200K context)
+- **Claude 4.5 Haiku** - Fastest and most compact model (200K context)
 
-### Google (3 models)
+### Google (4 models)
 
-- **Gemini 2.5 Pro** - Most capable model, 1M token context, multimodal ⭐ _Default_
-- **Gemini 2.5 Flash** - Fast and efficient, 1M token context, multimodal
-- **Gemini 2.5 Flash Lite** - Lightweight and cost-effective, 1M token context
+- **Gemini 3.1 Pro** - Most capable model, 1M token context, multimodal ⭐ _Default_
+- **Gemini 3.1 Flash Lite** - Lightweight and cost-effective, 1M token context
+- **Gemini 3 Pro** - Advanced model, 1M token context, multimodal
+- **Gemini 3 Flash** - Fast and efficient, 1M token context, multimodal
 
 ### Azure OpenAI (3 models)
 
@@ -117,8 +125,8 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 ### xAI (3 models)
 
 - **Grok 4** - Latest Grok model with real-time knowledge (256K context) ⭐ _Default_
-- **Grok 4 Fast Reasoning** - Grok with fast reasoning capabilities (2M context)
-- **Grok 4 Fast Non-Reasoning** - Grok with fast non-reasoning capabilities (2M context)
+- **Grok 4.1 Fast Reasoning** - Grok with fast reasoning capabilities (2M context)
+- **Grok 4.1 Fast Non-Reasoning** - Grok with fast non-reasoning capabilities (2M context)
 
 ### Mistral AI (5 models)
 
@@ -156,10 +164,10 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 - **Llama 3.3 70B** - Latest Llama with exceptional speed (2000 tokens/sec)
 - **Llama 3.1 8B** - Efficient Llama model with extreme speed (3000 tokens/sec)
 - **Qwen 3 32B** - Chinese-English bilingual model with fast inference (2000 tokens/sec)
-- **Qwen 3 235B** - Largest Qwen model with high capability (1000 tokens/sec)
+- **Qwen 3 235B Instruct** - Largest Qwen model with high capability (1000 tokens/sec)
 - **ZAI GLM 4.6** - Advanced GLM model optimized for speed (1500 tokens/sec)
 
-**Total: 43 models** across 10 providers (Updated November 2025)
+**Total: 45 models** across 10 providers (Updated March 2026)
 
 </details>
 
@@ -177,7 +185,7 @@ Access **10 leading AI providers** with **60+ models** through one unified inter
 
 **See exactly what you're spending on each query** with automatic token usage and cost reporting:
 
-![Token Cost Report](docs/images/Screenshot-14.png)
+![Token Cost Report](docs/images/Screenshot-18.png)
 _Real-time cost breakdown showing input/output token usage and pricing per query - complete transparency on API expenses_
 
 **Why Direct Provider APIs Save Money**:
@@ -207,13 +215,13 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 | **Enterprise Chatbot**        | Included in $50/mo fee | $50/mo               | $600/year       |
 | **Legal AI Service**          | $5 - $15 per query     | $250 - $750          | $3,000 - $9,000 |
 
-💡 **Pro Tip**: Most legal queries cost **$0.001 to $0.05** with direct API access. Even with multiple models selected, costs remain minimal compared to subscription services or specialized legal AI platforms.
+💡 **Pro Tip**: Most queries cost **$0.001 to $0.05** with direct API access. Even with multiple models selected, costs remain minimal compared to subscription services or specialized legal AI platforms.
 
 ### 💰 Cost Ledger & Expense Tracking
 
 **Track API costs with complete transparency** through the built-in Cost Ledger:
 
-![Cost Ledger Interface](docs/images/Screenshot-15.png)
+![Cost Ledger Interface](docs/images/Screenshot-19.png)
 
 - **Per-Message Breakdown** - See input/output token costs for every API call
 - **Real-Time Totals** - Track cumulative costs across entire conversations
@@ -227,7 +235,7 @@ Going directly to provider API endpoints (like OpenAI, Anthropic, Google) instea
 
 **Catch confabulations and validate accuracy** with independent AI analysis of response clusters:
 
-![Response Cluster Analysis](docs/images/Screenshot-09.png)
+![Response Cluster Analysis](docs/images/Screenshot-20.png)
 
 - **Multi-Model Validation** - Have an unused model independently analyze and judge responses from other models
 - **Consistency Checking** - Identify conflicting information across different AI responses
@@ -304,7 +312,7 @@ The system is **fully optimized for CUSMA/USMCA** (Canada-United States-Mexico A
 - CA + US + MX → CUSMA-specific guidance **with internal trade barrier considerations**
 - No selection → Global legal perspective
 
-![Thread Configuration Dialog](docs/images/Screenshot-12.png)
+![Thread Configuration Dialog](docs/images/Screenshot-21.png)
 _Comprehensive per-conversation configuration: select multiple AI models simultaneously and choose specific jurisdictions for legal analysis (Canada, US, Mexico, EU) for optimal results_
 
 ### ⚖️ Legal Practice Area Detection
@@ -507,7 +515,7 @@ Each area includes:
 
 **Full control over AI behavior** with direct YAML configuration editing for power users:
 
-![YAML System Prompt Editor](docs/images/Screenshot-10.png)
+![YAML System Prompt Editor](docs/images/Screenshot-22.png)
 _Advanced YAML editor in Settings allows direct modification of practice areas, advisory areas, and analysis configurations - customize system prompts, keywords, detection rules, and AI behavior at a granular level_
 
 **Comprehensive Editing Capabilities**:
@@ -519,12 +527,14 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
   - Adjust area names, descriptions, and color coding
   - Enable/disable specific practice areas
   - Add new practice areas with custom detection logic
+  - **🌍 Language Variants**: Edit `practices.en.yaml`, `practices.fr.yaml`, `practices.es.yaml` for localized guidance
 
 - **💼 Advisory Areas Configuration** - Edit all 67 business advisory areas
 
   - Customize consulting-grade system prompts for strategic guidance
   - Modify business keyword detection (3,500+ keywords)
   - Adjust advisory focus areas and descriptions
+  - **🌍 Language Variants**: Edit `advisory.en.yaml`, `advisory.fr.yaml`, `advisory.es.yaml` for localized guidance
   - Add new advisory domains with custom expertise
 
 - **🔍 Analysis Configuration** - Control AI response validation behavior
@@ -532,6 +542,7 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
   - Define accuracy assessment criteria
   - Configure consistency checking logic
   - Adjust confabulation detection sensitivity
+  - **🌍 Language Variants**: Edit `analysis.en.yaml`, `analysis.fr.yaml`, `analysis.es.yaml` for localized validation
 
 **Advanced Features**:
 
@@ -571,7 +582,8 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
 
 - **Development**: `c:\JDAI\atticus\public\config\`
 - **Production**: `%APPDATA%\atticus\config\` (Windows) after first edit
-- Files: `practices.yaml`, `advisory.yaml`, `analysis.yaml`, `providers.yaml`
+- **Language-Specific Files**: `practices.en.yaml`, `practices.fr.yaml`, `practices.es.yaml` (and same for `advisory.*`, `analysis.*`)
+- **Universal Files**: `providers.yaml` (no language variants needed)
 
 💡 **Pro Tip**: Use the expandable keyword viewer in the UI to understand detection patterns before editing. Make incremental changes and test with the validation scripts to ensure configuration integrity.
 
@@ -617,7 +629,7 @@ _Advanced YAML editor in Settings allows direct modification of practice areas, 
 - 📁 **Auto-save** - All conversations persist locally
 - ⌨️ **Keyboard shortcuts** - Enter to save, Escape to cancel
 
-![Multiple Conversation Threads](docs/images/Screenshot-16.png)
+![Multiple Conversation Threads](docs/images/Screenshot-23.png)
 _All conversations are stored locally on your device with full search capabilities, editable titles, and organized sidebar for easy access to your legal and business advisory history_
 
 ### 🔒 Privacy & Security
@@ -642,7 +654,39 @@ _All conversations are stored locally on your device with full search capabiliti
 
 💡 **Business Continuity**: When you need to reference legal research during a pitch, court preparation, or client call, cloud outages can't block access to your work. Your data stays with you, not trapped in someone else's datacenter.
 
-### 🏢 Why Use API Endpoints Instead of Consumer Apps?
+### � Internationalization Support
+
+Atticus supports **3 languages** with complete UI and configuration localization:
+
+- **English** 🇬🇧 - Primary language with full support
+- **Français** 🇫🇷 - Complete French interface and legal/business guidance
+- **Español** 🇪🇸 - Complete Spanish interface and legal/business guidance
+
+**Features:**
+- Automatic language detection and switching
+- Language-specific YAML configurations for practices, advisory, and analysis
+- Locale-aware date, number, and currency formatting
+- All 67 legal practice areas and 67 business advisory areas translated
+- Complete settings UI in all 3 languages
+- 2,300+ lines of professional translations
+
+**Architecture:**
+The internationalization system includes:
+- React Context Provider for language state (`LanguageContext.tsx`)
+- Comprehensive translations file (`translations.ts` with 2,239 lines)
+- Language-aware config loading (`configLanguage.ts`)
+- Locale-specific formatting utilities (`formatting.ts`)
+
+**Configuration Files:**
+Language-specific YAML files are available for localized guidance:
+- `practices.en.yaml`, `practices.fr.yaml`, `practices.es.yaml`
+- `advisory.en.yaml`, `advisory.fr.yaml`, `advisory.es.yaml`
+- `analysis.en.yaml`, `analysis.fr.yaml`, `analysis.es.yaml`
+- `providers.yaml` (universal, no language variants needed)
+
+💡 **Pro Tip**: Switch languages in Settings to experience Atticus in French or Spanish - all legal and business guidance adapts to your selected language!
+
+### ���🏢 Why Use API Endpoints Instead of Consumer Apps?
 
 Atticus uses **direct API access** to AI providers rather than consumer web apps (ChatGPT, Claude.ai, etc.). This architectural decision provides critical privacy and enterprise benefits:
 
@@ -653,7 +697,7 @@ Atticus uses **direct API access** to AI providers rather than consumer web apps
 
 **Real Impact**: Sensitive legal documents, financial data, trade secrets, and client information stay private. No risk of your proprietary strategies appearing in future model training.
 
-![PII Detection & Data Protection](docs/images/Screenshot-04.png)
+![PII Detection & Data Protection](docs/images/Screenshot-24.png)
 _Atticus automatically detects PII and sensitive information, providing real-time warnings and anonymization options to protect confidential data before sending to AI providers_
 
 #### **Enterprise Compliance**
@@ -763,13 +807,13 @@ npm install
 **Run in development mode:**
 
 ```bash
-npm run electron:dev
+npm run dev
 ```
 
 **Build for production:**
 
 ```bash
-npm run electron:build
+npm run build
 ```
 
 The built application will be in the `release` folder.
@@ -786,11 +830,11 @@ Atticus uses a **template-based provider system** with 9 pre-configured provider
 
    **Providers Tab** - Configure AI models:
 
-   - OpenAI (GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano)
-   - Anthropic (Claude 4.5 Sonnet, Claude 4.5 Haiku, Claude 4.5 Opus)
-   - Google (Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
+   - OpenAI (GPT-5.4, GPT-5.2, GPT-5.1, GPT-5, GPT-5 Mini, GPT-5 Nano)
+   - Anthropic (Claude 4.5/4.6 Sonnet, Claude 4.5 Haiku, Claude 4.5/4.6 Opus)
+   - Google (Gemini 3/3.1 Pro, Gemini 3 Flash, Gemini 3.1 Flash Lite)
    - Azure OpenAI (GPT-4o, GPT-4o mini, GPT-4)
-   - xAI (Grok 4, Grok 4 Fast Reasoning, Grok 4 Fast Non-Reasoning)
+   - xAI (Grok 4, Grok 4.1 Fast Reasoning, Grok 4.1 Fast Non-Reasoning)
    - Mistral AI (Mistral Large 2, Mistral Medium, Mistral Small, Mixtral 8x22B, Mixtral 8x7B)
    - Cohere (Command R+, Command R, Command, Command Light)
    - Groq (Llama 3.3 70B, Llama 3.1 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B)
@@ -846,7 +890,7 @@ Atticus uses a **template-based provider system** with 9 pre-configured provider
 - 🟢 **Configured** - Provider has an API key and is ready to use
 - 🟡 **Active** - Currently set as the default provider for new conversations
 
-![Provider Configuration Example - Gemini Models](docs/images/Screenshot-03.png)
+![Provider Configuration Example - Gemini Models](docs/images/Screenshot-25.png)
 _Example: Configuring Google Gemini models with domain specialization and selective model enabling_
 
 ### API Key Information
@@ -1043,7 +1087,13 @@ atticus/
 │   │   └── index.ts             # Global app state with conversation management
 │   ├── types/           # TypeScript type definitions
 │   │   └── index.ts             # Global types (Conversation, Jurisdiction, etc.)
+│   ├── i18n/            # ✨ Internationalization (NEW in v0.9.20)
+│   │   ├── LanguageContext.tsx   # React context for language state
+│   │   ├── translations.ts       # 2,239 lines of EN/FR/ES translations
+│   │   └── index.ts              # i18n exports and utilities
 │   ├── utils/           # Utility functions
+│   │   ├── configLanguage.ts     # ✨ Language-aware config loading
+│   │   └── formatting.ts         # ✨ Locale-aware formatting utilities
 │   ├── App.tsx          # Main React component
 │   ├── main.tsx         # React entry point
 │   └── index.css        # Global styles (Tailwind)
@@ -1075,7 +1125,7 @@ atticus/
 
 ## Legal Disclaimer
 
-**Atticus is an AI assistant tool and NOT a substitute for professional legal advice.**
+**Atticus is an AI assistant tool and NOT a substitute for professional legal or business advice.**
 
 - Always consult with a licensed attorney for legal matters
 - AI responses may contain errors or outdated information
@@ -1088,9 +1138,7 @@ atticus/
 ### Available Scripts
 
 - `npm run dev` - Start Vite dev server
-- `npm run electron:dev` - Start Electron in development mode
 - `npm run build` - Build for production
-- `npm run electron:build` - Build Electron app for distribution
 
 ## Troubleshooting
 
@@ -1115,7 +1163,7 @@ atticus/
 
 ## Contributing
 
-This is a sophisticated legal AI tool. For issues or improvements, please contact the development team.
+This is a sophisticated AI query tool. For issues or improvements, please contact the development team.
 
 ---
 
@@ -1225,7 +1273,69 @@ See `LICENSE` file for full details.
 
 ## Version History
 
-### v0.9.19 (Current)
+### v0.9.20 (Current - March 2026)
+
+**✨ Major Feature: Internationalization Support**
+
+- 🌍 **Multi-Language Support** - Full UI and configuration support for English, Français, and Español
+- 📝 **2,239 Lines of Translations** - Complete professional translations across all interface elements
+- 🎯 **Language-Specific Configurations** - Dedicated YAML files for each language:
+  - `practices.en.yaml`, `practices.fr.yaml`, `practices.es.yaml` - Legal practice areas in 3 languages
+  - `advisory.en.yaml`, `advisory.fr.yaml`, `advisory.es.yaml` - Business advisory areas in 3 languages
+  - `analysis.en.yaml`, `analysis.fr.yaml`, `analysis.es.yaml` - Analysis configurations in 3 languages
+- 🔧 **New i18n Architecture**:
+  - React Context Provider (`LanguageContext.tsx`) for language state management
+  - Comprehensive translations file (`translations.ts` with 2,239 lines)
+  - Language-aware config loading (`configLanguage.ts`)
+  - Locale-specific formatting utilities (`formatting.ts`) for dates, numbers, currencies
+- ✅ **Locale-Aware Formatting** - Automatic date, number, and currency formatting per language
+- 🇨🇦🇫🇷🇪🇸 **All 134 Specialized Domains Translated** - All 67 legal practice areas and 67 business advisory areas available in 3 languages
+
+**📦 AI Model Updates**
+
+- **Total Model Count**: Increased from 43 to **45 models** across 10 providers
+- **OpenAI (6 models)**: Added GPT-5.4 (1M context, ultimate performance) and GPT-5.2 (latest advanced model)
+- **Anthropic (5 models)**: Added Claude 4.6 Opus and Claude 4.6 Sonnet (latest generation)
+- **Google (4 models)**: Updated to Gemini 3/3.1 series (newer generation models)
+- **xAI (3 models)**: Updated Grok Fast variants to 4.1 generation
+- **Cerebras (6 models)**: Updated Qwen model naming to "Qwen 3 235B Instruct"
+
+**🎨 Model Configuration Enhancements**
+
+- Domain specialization now supports all 45 models
+- Language-aware model recommendations based on query type
+- Updated provider status badges with multi-language support
+- Improved model display names for international users
+
+**📚 Documentation Improvements**
+
+- Complete internationalization documentation added to README
+- Architecture section updated with i18n module details
+- Configuration documentation expanded to explain language-specific files
+- Model tables updated with latest versions and capabilities
+
+**🔒 Privacy & Compliance**
+
+- No changes to data privacy model - remains local-first
+- All translations follow EU AI Act transparency requirements
+- Localization maintains PII protection across all languages
+
+**⚙️ Technical Enhancements**
+
+- Improved language detection and switching
+- Optimized translation performance
+- Enhanced config loading for multi-language support
+- Maintains backward compatibility with existing configurations
+
+**Known Limitations**:
+
+- Automatic language detection based on OS locale
+- Some specialized legal/business terminology may have multiple valid translations
+- Manual language switching available in Settings
+
+---
+
+### v0.9.19 (Previous - February 2026)
 
 **Code Quality & Technical Debt Improvements**:
 

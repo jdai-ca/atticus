@@ -13,6 +13,7 @@ import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import practiceSchema from '../schemas/practice-config.schema.json';
 import { createLogger } from './logger';
+import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const logger = createLogger('PracticeLoader');
 
@@ -27,8 +28,8 @@ interface PracticeConfigFile {
 
 class PracticeConfigLoader {
     private readonly validate: ValidateFunction;
-    private readonly CACHE_KEY = 'practice-config';
-    private readonly VERSION_KEY = 'practice-config-version';
+    private getCacheKey(language: Language) { return `practice-config-${language}`; }
+    private getVersionKey(language: Language) { return `practice-config-version-${language}`; }
 
     constructor() {
         // Initialize JSON Schema validator
@@ -40,17 +41,18 @@ class PracticeConfigLoader {
 
     /**
      * Load practice area configuration with fallback strategy
+     * @param language - The language to load (en, fr, es). Defaults to 'en'
      */
-    async loadConfig(): Promise<LegalPracticeArea[]> {
+    async loadConfig(language: Language = 'en'): Promise<LegalPracticeArea[]> {
         // 1. Load bundled config (always available)
-        const bundled = await this.loadBundledConfig();
+        const bundled = await this.loadBundledConfig(language);
 
         // 2. Try to load from cache
-        const cached = this.loadCachedConfig();
+        const cached = this.loadCachedConfig(language);
         let current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
-        this.updateFromRemote(current.version).catch(err => {
+        this.updateFromRemote(current.version, language).catch(err => {
             logger.warn('Remote update failed', { error: err.message });
         });
 
@@ -59,17 +61,25 @@ class PracticeConfigLoader {
 
     /**
      * Load bundled configuration (always available)
+     * @param language - The language to load (en, fr, es)
      */
-    private async loadBundledConfig(): Promise<PracticeConfigFile> {
+    private async loadBundledConfig(language: Language = 'en'): Promise<PracticeConfigFile> {
         try {
             let yamlText: string;
+            const filename = getLocalizedConfigFilename('practices', language);
 
             // Check if running in Electron
             if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                logger.debug('Loading bundled config via Electron IPC');
-                const result = await (globalThis as any).electronAPI.loadBundledConfig('practices.yaml');
+                logger.debug('Loading bundled config via Electron IPC', { filename });
+                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     const errorMessage = result.error?.message || 'Failed to load config from Electron';
                     throw new Error(errorMessage);
                 }
@@ -77,9 +87,15 @@ class PracticeConfigLoader {
                 yamlText = result.data;
             } else {
                 // Running in browser/dev mode - use fetch
-                logger.debug('Loading bundled config via fetch');
-                const response = await fetch('/config/practices.yaml');
+                logger.debug('Loading bundled config via fetch', { filename });
+                const response = await fetch(`/config/${filename}`);
                 if (!response.ok) {
+                    // Try fallback to English if non-English language fails
+                    if (language !== 'en') {
+                        logger.warn(`Failed to load ${language} config, falling back to English`, { filename });
+                        return this.loadBundledConfig('en');
+                    }
+
                     throw new Error(`Failed to load bundled config: ${response.statusText}`);
                 }
                 yamlText = await response.text();
@@ -91,7 +107,7 @@ class PracticeConfigLoader {
                 throw new Error('Bundled config validation failed');
             }
 
-            logger.info('Bundled config loaded', { version: config.version });
+            logger.info('Bundled config loaded', { version: config.version, language });
             return config;
         } catch (error) {
             logger.error('Failed to load bundled config', { error });
@@ -102,10 +118,12 @@ class PracticeConfigLoader {
 
     /**
      * Load cached configuration from localStorage
+     * @param language - The language to load (en, fr, es)
      */
-    private loadCachedConfig(): PracticeConfigFile | null {
+    private loadCachedConfig(language: Language = 'en'): PracticeConfigFile | null {
         try {
-            const cached = localStorage.getItem(this.CACHE_KEY);
+            const cacheKey = this.getCacheKey(language);
+            const cached = localStorage.getItem(cacheKey);
             if (!cached) {
                 return null;
             }
@@ -114,11 +132,11 @@ class PracticeConfigLoader {
 
             if (!this.validateConfig(config)) {
                 logger.warn('Cached config failed validation');
-                localStorage.removeItem(this.CACHE_KEY);
+                localStorage.removeItem(cacheKey);
                 return null;
             }
 
-            logger.info('Loaded cached config', { version: config.version });
+            logger.info('Loaded cached config', { version: config.version, language });
             return config;
         } catch (error) {
             logger.warn('Failed to load cached config', { error });
@@ -128,11 +146,13 @@ class PracticeConfigLoader {
 
     /**
      * Update from remote URL if available
+     * @param currentVersion - The current config version
+     * @param language - The language to update (en, fr, es)
      */
-    private async updateFromRemote(currentVersion: string): Promise<void> {
+    private async updateFromRemote(currentVersion: string, language: Language = 'en'): Promise<void> {
         try {
             // Load bundled config to get update URL and check if customized
-            const bundled = await this.loadBundledConfig();
+            const bundled = await this.loadBundledConfig(language);
 
             // Skip remote update if configuration has been customized by user
             if (bundled.customized === true) {
@@ -171,7 +191,7 @@ class PracticeConfigLoader {
 
             if (this.compareVersions(config.version, currentVersion) > 0) {
                 logger.info('New config available', { newVersion: config.version, currentVersion });
-                this.cacheConfig(config);
+                this.cacheConfig(config, language);
 
                 // Notify user about update (optional)
                 this.notifyConfigUpdate(config.version);
@@ -214,7 +234,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.19';
+        const appVersion = '0.9.20';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -245,12 +265,16 @@ class PracticeConfigLoader {
 
     /**
      * Cache configuration in localStorage
+     * @param config - The configuration to cache
+     * @param language - The language of the configuration
      */
-    private cacheConfig(config: PracticeConfigFile): void {
+    private cacheConfig(config: PracticeConfigFile, language: Language = 'en'): void {
         try {
-            localStorage.setItem(this.CACHE_KEY, JSON.stringify(config));
-            localStorage.setItem(this.VERSION_KEY, config.version);
-            logger.debug('Config cached successfully', { version: config.version });
+            const cacheKey = this.getCacheKey(language);
+            const versionKey = this.getVersionKey(language);
+            localStorage.setItem(cacheKey, JSON.stringify(config));
+            localStorage.setItem(versionKey, config.version);
+            logger.debug('Config cached successfully', { version: config.version, language });
         } catch (error) {
             logger.warn('Failed to cache config', { error });
         }
@@ -275,7 +299,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.19',
+            minAppVersion: '0.9.20',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {
@@ -292,10 +316,11 @@ class PracticeConfigLoader {
 
     /**
      * Force reload from remote (useful for manual "Check for Updates")
+     * @param language - The language to update (en, fr, es)
      */
-    async forceUpdate(): Promise<boolean> {
+    async forceUpdate(language: Language = 'en'): Promise<boolean> {
         try {
-            const bundled = await this.loadBundledConfig();
+            const bundled = await this.loadBundledConfig(language);
             if (!bundled.updateUrl) {
                 return false;
             }
@@ -318,7 +343,7 @@ class PracticeConfigLoader {
                 throw new Error('Validation failed');
             }
 
-            this.cacheConfig(config);
+            this.cacheConfig(config, language);
             return true;
         } catch (error) {
             logger.error('Force update failed', { error });

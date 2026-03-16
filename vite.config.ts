@@ -18,17 +18,19 @@ const EXTERNAL_PACKAGES = [
 ];
 
 export default defineConfig({
+  root: 'src',
+  publicDir: '../public',
   plugins: [
     react(),
     electron([
       {
-        entry: 'src/electron/main.ts',
+        entry: 'electron/main.ts',
         onstart(options) {
           options.startup();
         },
         vite: {
           build: {
-            outDir: 'dist-electron',
+            outDir: '../dist-electron',
             rollupOptions: {
               external: (id) => {
                 // Externalize electron and all native SDKs plus their dependencies
@@ -42,13 +44,13 @@ export default defineConfig({
         }
       },
       {
-        entry: 'src/electron/preload.ts',
+        entry: 'electron/preload.ts',
         onstart(options) {
           options.reload();
         },
         vite: {
           build: {
-            outDir: 'dist-electron',
+            outDir: '../dist-electron',
             rollupOptions: {
               output: {
                 format: 'es'
@@ -69,6 +71,7 @@ export default defineConfig({
     include: ['pdfjs-dist']
   },
   build: {
-    outDir: 'dist'
+    outDir: '../dist',
+    emptyOutDir: true
   }
 });

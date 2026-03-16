@@ -6,6 +6,7 @@
  */
 
 import { AlertTriangle, X, Shield, Info, Circle } from "lucide-react";
+import { useTranslation } from "../i18n/LanguageContext";
 import { PIIScanResult, RiskLevel } from "../services/piiScanner";
 
 interface PrivacyWarningDialogProps {
@@ -23,14 +24,15 @@ export default function PrivacyWarningDialog({
   onAnonymize,
   showAnonymizeOption = false,
 }: PrivacyWarningDialogProps) {
+  const { t } = useTranslation();
   const critical = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.CRITICAL
+    (f) => f.riskLevel === RiskLevel.CRITICAL,
   );
   const high = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.HIGH
+    (f) => f.riskLevel === RiskLevel.HIGH,
   );
   const moderate = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.MODERATE
+    (f) => f.riskLevel === RiskLevel.MODERATE,
   );
 
   const getRiskColor = (level: RiskLevel): string => {
@@ -75,16 +77,18 @@ export default function PrivacyWarningDialog({
               <AlertTriangle className="w-6 h-6 text-red-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Privacy Warning</h2>
+              <h2 className="text-xl font-bold text-white">
+                {t.privacyDialog.title}
+              </h2>
               <p className="text-sm text-red-300">
-                Sensitive information detected
+                {t.privacyDialog.sensitiveInfoDetected}
               </p>
             </div>
           </div>
           <button
             onClick={onCancel}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-            title="Cancel"
+            title={t.cancel}
           >
             <X className="w-5 h-5 text-gray-400" />
           </button>
@@ -95,7 +99,7 @@ export default function PrivacyWarningDialog({
           {/* Summary */}
           <div
             className={`p-4 rounded-lg border-2 mb-6 ${getRiskColor(
-              scanResult.riskLevel
+              scanResult.riskLevel,
             )}`}
           >
             <div className="flex items-start gap-3">
@@ -260,14 +264,14 @@ export default function PrivacyWarningDialog({
                 onClick={onCancel}
                 className="flex-1 sm:flex-initial px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors border border-gray-600 font-medium"
               >
-                Cancel
+                {t.cancel}
               </button>
               {showAnonymizeOption && onAnonymize && (
                 <button
                   onClick={onAnonymize}
                   className="flex-1 sm:flex-initial px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors border border-blue-500 font-medium"
                 >
-                  Anonymize
+                  {t.privacyDialog.anonymize}
                 </button>
               )}
               <button
