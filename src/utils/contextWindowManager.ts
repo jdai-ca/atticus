@@ -54,7 +54,10 @@ function getSystemPromptTokenCount(systemPrompt?: string): number {
  */
 export function getTotalTokenCount(messages: Message[], systemPrompt?: string): number {
     const systemTokens = getSystemPromptTokenCount(systemPrompt);
-    const messageTokens = messages.reduce((sum, msg) => sum + getMessageTokenCount(msg), 0);
+    const messageTokens = messages.reduce(
+        (sum: number, msg: Message): number => sum + getMessageTokenCount(msg),
+        0,
+    );
     return systemTokens + messageTokens;
 }
 

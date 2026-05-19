@@ -3,7 +3,7 @@
  * Eliminates duplication across provider-specific API functions
  */
 
-import { SecureProviderConfig, ChatResponse } from '../types';
+import { SecureProviderConfig, ChatResponse, Message } from '../types';
 import {
     fetchWithTimeout,
     validateEndpoint,
@@ -24,8 +24,8 @@ export interface APIRequestConfig {
 }
 
 export interface ResponseParser {
-    validate: (data: any) => void;
-    extractContent: (data: any) => string;
+    validate: (data: unknown) => void;
+    extractContent: (data: unknown) => string;
     providerType: string;
 }
 
@@ -74,13 +74,13 @@ export async function sendAPIRequest(
  */
 export async function buildOpenAIRequestBody(
     provider: SecureProviderConfig,
-    messages: any[],
+    messages: Message[],
     systemPrompt?: string,
     temperature?: number,
     maxTokens?: number
-): Promise<{ messages: any[], body: unknown }> {
+): Promise<{ messages: unknown[], body: unknown }> {
     // First, augment messages with document text (before transformation)
-    const augmentedMessages = await Promise.all(messages.map(async msg => {
+    const augmentedMessages = await Promise.all(messages.map(async (msg): Promise<Message> => {
         if (msg.role !== 'system') {
             return await augmentMessageWithDocuments(msg);
         }
@@ -95,7 +95,7 @@ export async function buildOpenAIRequestBody(
     }
 
     // Build body
-    const body: any = {
+    const body: Record<string, unknown> = {
         model: provider.model,
         messages: apiMessages,
         max_completion_tokens: maxTokens,
@@ -103,7 +103,7 @@ export async function buildOpenAIRequestBody(
 
     // Only include temperature if provider supports it
     if (provider.supportsTemperature && temperature !== undefined) {
-        body.temperature = temperature;
+        body['temperature'] = temperature;
     }
 
     return {
@@ -117,7 +117,10 @@ export async function buildOpenAIRequestBody(
  */
 export const openAIParser: ResponseParser = {
     validate: validateOpenAIResponse,
-    extractContent: (data) => data.choices[0].message.content,
+    extractContent: (data: unknown): string => {
+        const d = data as { choices: Array<{ message: { content: string } }> };
+        return d.choices[0].message.content;
+    },
     providerType: 'openai',
 };
 
@@ -127,13 +130,13 @@ export const openAIParser: ResponseParser = {
  */
 export async function buildXAIRequestBody(
     provider: SecureProviderConfig,
-    messages: any[],
+    messages: Message[],
     systemPrompt?: string,
     temperature?: number,
     maxTokens?: number
-): Promise<{ messages: any[], body: unknown }> {
+): Promise<{ messages: unknown[], body: unknown }> {
     // First, augment messages with document text (before transformation)
-    const augmentedMessages = await Promise.all(messages.map(async msg => {
+    const augmentedMessages = await Promise.all(messages.map(async (msg): Promise<Message> => {
         if (msg.role !== 'system') {
             return await augmentMessageWithDocuments(msg);
         }
@@ -148,7 +151,7 @@ export async function buildXAIRequestBody(
     }
 
     // Build body
-    const body: any = {
+    const body: Record<string, unknown> = {
         model: provider.model,
         messages: apiMessages,
         max_completion_tokens: maxTokens,
@@ -156,7 +159,7 @@ export async function buildXAIRequestBody(
 
     // Only include temperature if provider supports it
     if (provider.supportsTemperature && temperature !== undefined) {
-        body.temperature = temperature;
+        body['temperature'] = temperature;
     }
 
     return {
@@ -170,7 +173,10 @@ export async function buildXAIRequestBody(
  */
 export const xAIParser: ResponseParser = {
     validate: validateOpenAIResponse,
-    extractContent: (data) => data.choices[0].message.content,
+    extractContent: (data: unknown): string => {
+        const d = data as { choices: Array<{ message: { content: string } }> };
+        return d.choices[0].message.content;
+    },
     providerType: 'xai',
 };
 
@@ -179,7 +185,10 @@ export const xAIParser: ResponseParser = {
  */
 export const anthropicParser: ResponseParser = {
     validate: validateAnthropicResponse,
-    extractContent: (data) => data.content[0].text,
+    extractContent: (data: unknown): string => {
+        const d = data as { content: Array<{ text: string }> };
+        return d.content[0].text;
+    },
     providerType: 'anthropic',
 };
 

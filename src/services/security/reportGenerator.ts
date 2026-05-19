@@ -10,9 +10,16 @@ import { RiskAssessment } from './riskScorer';
 import { FileTypeAnalysis } from './fileTypeDetector';
 import { ExtractedContent } from './contentExtractor';
 import { UploadedFile } from '../fileSecurityPipeline';
-import { createLogger } from '../logger';
+import { createLogger } from '../debugLogger';
 
 const logger = createLogger('SecurityReportGenerator');
+
+/**
+ * Generate a unique report ID using Web Crypto API (works in both Node.js and browser)
+ */
+function generateReportId(): string {
+  return `SEC-${globalThis.crypto.randomUUID()}`;
+}
 
 export interface RedactionSuggestion {
     location: {
@@ -78,7 +85,7 @@ export async function generateSecurityReport(data: {
     const { file, fileTypeAnalysis, extractedContent, findings, riskAssessment } = data;
 
     // Generate report ID
-    const reportId = `SEC-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    const reportId = generateReportId();
 
     // Generate redaction suggestions
     const redactionSuggestions = generateRedactionSuggestions(
@@ -443,7 +450,8 @@ export function exportReportAsText(report: SecurityReport): string {
 
     if (report.complianceViolations.length > 0) {
         text += '⚖️  COMPLIANCE VIOLATIONS\n';
-        report.complianceViolations.forEach(v => {
+        report.complianceViolations.forEach(
+            (v: typeof report.complianceViolations[number]): void => {
             text += `• ${v.framework} (${v.severity})\n`;
             if (v.reportingDeadline) {
                 text += `  Reporting Deadline: ${v.reportingDeadline}\n`;
@@ -451,16 +459,19 @@ export function exportReportAsText(report: SecurityReport): string {
             if (v.potentialPenalty) {
                 text += `  Potential Penalty: ${v.potentialPenalty}\n`;
             }
-        });
+            },
+        );
         text += '\n';
     }
 
     if (report.redactionSuggestions.length > 0) {
         text += '🔐 REDACTION SUGGESTIONS\n';
-        report.redactionSuggestions.slice(0, 10).forEach((s, i) => {
-            text += `${i + 1}. Line ${s.location.lineNumber || '?'}: ${s.reason}\n`;
-            text += `   Replace: "${s.originalText}" → "${s.suggestedReplacement}"\n`;
-        });
+        report.redactionSuggestions.slice(0, 10).forEach(
+            (s: typeof report.redactionSuggestions[number], i: number): void => {
+                text += `${i + 1}. Line ${s.location.lineNumber || '?'}: ${s.reason}\n`;
+                text += `   Replace: "${s.originalText}" → "${s.suggestedReplacement}"\n`;
+            },
+        );
         if (report.redactionSuggestions.length > 10) {
             text += `... and ${report.redactionSuggestions.length - 10} more\n`;
         }
@@ -468,7 +479,7 @@ export function exportReportAsText(report: SecurityReport): string {
     }
 
     text += '💡 RECOMMENDATIONS\n';
-    report.recommendations.forEach(r => {
+    report.recommendations.forEach((r: string): void => {
         text += `${r}\n`;
     });
 

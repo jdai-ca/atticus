@@ -19,7 +19,7 @@ import {
 } from './security/aiCountermeasureDetector';
 import { calculateRiskScore } from './security/riskScorer';
 import { generateSecurityReport, RedactionSuggestion, ComplianceViolation } from './security/reportGenerator';
-import { createLogger } from './logger';
+import { createLogger } from './debugLogger';
 
 const logger = createLogger('FileSecurityPipeline');
 
@@ -199,7 +199,7 @@ export async function quickScan(file: UploadedFile): Promise<{
 }
 
 function generateReportId(): string {
-    return `SEC-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    return `SEC-${crypto.randomUUID()}`;
 }
 
 /**

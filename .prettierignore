@@ -1,0 +1,6 @@
+dist-electron/
+dist/
+release/
+node_modules/
+public/
+*.min.js

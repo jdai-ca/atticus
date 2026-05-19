@@ -314,5 +314,5 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 ];
 
 export function getProviderTemplate(providerId: AIProvider): ProviderTemplate | undefined {
-    return PROVIDER_TEMPLATES.find(t => t.id === providerId);
+    return PROVIDER_TEMPLATES.find((t): boolean => t.id === providerId);
 }

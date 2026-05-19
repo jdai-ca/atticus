@@ -11,11 +11,10 @@
  * informed choices about data sharing.
  */
 
-import { createLogger } from './logger';
+import { createLogger } from './debugLogger';
+import type { Jurisdiction } from '../types';
 
 const logger = createLogger('PIIScanner');
-
-export type Jurisdiction = 'CA' | 'US' | 'MX' | 'EU' | 'UK';
 
 export enum PIIType {
     // Identity Information - Universal
@@ -690,7 +689,9 @@ export class PIIScanner {
         if (!jurisdictions || jurisdictions.length === 0) {
             return true;
         }
-        return patternConfig.jurisdictions.some(j => jurisdictions.includes(j));
+        return patternConfig.jurisdictions.some(
+            (j: Jurisdiction): boolean => jurisdictions.includes(j),
+        );
     }
 
     /**
@@ -700,7 +701,9 @@ export class PIIScanner {
         if (!jurisdictions || jurisdictions.length === 0) {
             return undefined;
         }
-        return patternConfig.jurisdictions.find(j => jurisdictions.includes(j));
+        return patternConfig.jurisdictions.find(
+            (j: Jurisdiction): boolean => jurisdictions.includes(j),
+        );
     }
 
     /**
@@ -803,7 +806,10 @@ export class PIIScanner {
      * Remove all non-digit characters from a string
      */
     private extractDigits(value: string): string {
-        return value.split('').filter(char => /\d/.test(char)).join('');
+        return value
+            .split('')
+            .filter((char: string): boolean => /\d/.test(char))
+            .join('');
     }
 
     /**
@@ -873,9 +879,15 @@ export class PIIScanner {
     private calculateOverallRisk(findings: PIIDetection[]): RiskLevel {
         if (findings.length === 0) return RiskLevel.LOW;
 
-        const hasCritical = findings.some(f => f.riskLevel === RiskLevel.CRITICAL);
-        const hasHigh = findings.some(f => f.riskLevel === RiskLevel.HIGH);
-        const hasModerate = findings.some(f => f.riskLevel === RiskLevel.MODERATE);
+        const hasCritical = findings.some(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.CRITICAL,
+        );
+        const hasHigh = findings.some(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.HIGH,
+        );
+        const hasModerate = findings.some(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.MODERATE,
+        );
 
         if (hasCritical) return RiskLevel.CRITICAL;
         if (hasHigh) return RiskLevel.HIGH;
@@ -891,8 +903,10 @@ export class PIIScanner {
             return 'No sensitive information detected.';
         }
 
-        const categoryNames = Array.from(categories).map(type => {
-            const pattern = PII_PATTERNS.find(p => p.type === type);
+        const categoryNames = Array.from(categories).map((type: PIIType): string => {
+            const pattern = PII_PATTERNS.find(
+                (p: typeof PII_PATTERNS[number]): boolean => p.type === type,
+            );
             return pattern?.description || type;
         });
 
@@ -908,9 +922,15 @@ export class PIIScanner {
     generateWarningMessage(result: PIIScanResult): string {
         if (!result.hasFindings) return '';
 
-        const critical = result.findings.filter(f => f.riskLevel === RiskLevel.CRITICAL);
-        const high = result.findings.filter(f => f.riskLevel === RiskLevel.HIGH);
-        const moderate = result.findings.filter(f => f.riskLevel === RiskLevel.MODERATE);
+        const critical = result.findings.filter(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.CRITICAL,
+        );
+        const high = result.findings.filter(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.HIGH,
+        );
+        const moderate = result.findings.filter(
+            (f: PIIDetection): boolean => f.riskLevel === RiskLevel.MODERATE,
+        );
 
         let message = '⚠️ **Privacy Warning**: Your message contains sensitive information:\n\n';
 
@@ -945,7 +965,9 @@ export class PIIScanner {
         message += '**Recommendations:**\n';
 
         // Add unique recommendations
-        const uniqueRecs = new Set(result.findings.map(f => f.recommendation));
+        const uniqueRecs = new Set(
+            result.findings.map((f: PIIDetection): string => f.recommendation),
+        );
         for (const rec of uniqueRecs) {
             message += `• ${rec}\n`;
         }
@@ -986,10 +1008,18 @@ export class PIIScanner {
     } {
         return {
             totalPatterns: PII_PATTERNS.length,
-            criticalPatterns: PII_PATTERNS.filter(p => p.riskLevel === RiskLevel.CRITICAL).length,
-            highPatterns: PII_PATTERNS.filter(p => p.riskLevel === RiskLevel.HIGH).length,
-            moderatePatterns: PII_PATTERNS.filter(p => p.riskLevel === RiskLevel.MODERATE).length,
-            lowPatterns: PII_PATTERNS.filter(p => p.riskLevel === RiskLevel.LOW).length,
+            criticalPatterns: PII_PATTERNS.filter(
+                (p: typeof PII_PATTERNS[number]): boolean => p.riskLevel === RiskLevel.CRITICAL,
+            ).length,
+            highPatterns: PII_PATTERNS.filter(
+                (p: typeof PII_PATTERNS[number]): boolean => p.riskLevel === RiskLevel.HIGH,
+            ).length,
+            moderatePatterns: PII_PATTERNS.filter(
+                (p: typeof PII_PATTERNS[number]): boolean => p.riskLevel === RiskLevel.MODERATE,
+            ).length,
+            lowPatterns: PII_PATTERNS.filter(
+                (p: typeof PII_PATTERNS[number]): boolean => p.riskLevel === RiskLevel.LOW,
+            ).length,
         };
     }
 }

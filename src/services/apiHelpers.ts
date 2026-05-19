@@ -26,7 +26,9 @@ export async function fetchWithTimeout(
     const { timeout = 30000, ...fetchOptions } = options;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const timeoutId = setTimeout((): void => {
+        controller.abort();
+    }, timeout);
 
     try {
         const response = await fetch(url, {
@@ -64,15 +66,16 @@ export function createApiError(
 /**
  * Validate OpenAI-compatible response structure
  */
-export function validateOpenAIResponse(data: any): void {
+export function validateOpenAIResponse(data: unknown): void {
     if (!data) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response data is null or undefined'
         );
     }
+    const d = data as Record<string, unknown>;
 
-    if (!data.choices || !Array.isArray(data.choices)) {
+    if (!d['choices'] || !Array.isArray(d['choices'])) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing choices array',
@@ -80,7 +83,7 @@ export function validateOpenAIResponse(data: any): void {
         );
     }
 
-    if (data.choices.length === 0) {
+    if ((d['choices'] as unknown[]).length === 0) {
         throw createApiError(
             'EMPTY_RESPONSE',
             'Provider returned empty choices array',
@@ -88,7 +91,9 @@ export function validateOpenAIResponse(data: any): void {
         );
     }
 
-    if (!data.choices[0].message || typeof data.choices[0].message.content !== 'string') {
+    const firstChoice = (d['choices'] as Record<string, unknown>[])[0];
+    const message = firstChoice?.['message'] as Record<string, unknown> | undefined;
+    if (!message || typeof message['content'] !== 'string') {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing message content',
@@ -100,15 +105,16 @@ export function validateOpenAIResponse(data: any): void {
 /**
  * Validate Anthropic response structure
  */
-export function validateAnthropicResponse(data: any): void {
+export function validateAnthropicResponse(data: unknown): void {
     if (!data) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response data is null or undefined'
         );
     }
+    const d = data as Record<string, unknown>;
 
-    if (!data.content || !Array.isArray(data.content)) {
+    if (!d['content'] || !Array.isArray(d['content'])) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing content array',
@@ -116,7 +122,7 @@ export function validateAnthropicResponse(data: any): void {
         );
     }
 
-    if (data.content.length === 0) {
+    if ((d['content'] as unknown[]).length === 0) {
         throw createApiError(
             'EMPTY_RESPONSE',
             'Provider returned empty content array',
@@ -124,7 +130,8 @@ export function validateAnthropicResponse(data: any): void {
         );
     }
 
-    if (typeof data.content[0].text !== 'string') {
+    const firstContent = (d['content'] as Record<string, unknown>[])[0];
+    if (typeof firstContent?.['text'] !== 'string') {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing text content',
@@ -136,15 +143,16 @@ export function validateAnthropicResponse(data: any): void {
 /**
  * Validate Google AI response structure
  */
-export function validateGoogleResponse(data: any): void {
+export function validateGoogleResponse(data: unknown): void {
     if (!data) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response data is null or undefined'
         );
     }
+    const d = data as Record<string, unknown>;
 
-    if (!data.candidates || !Array.isArray(data.candidates)) {
+    if (!d['candidates'] || !Array.isArray(d['candidates'])) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing candidates array',
@@ -152,7 +160,7 @@ export function validateGoogleResponse(data: any): void {
         );
     }
 
-    if (data.candidates.length === 0) {
+    if ((d['candidates'] as unknown[]).length === 0) {
         throw createApiError(
             'EMPTY_RESPONSE',
             'Provider returned empty candidates array',
@@ -160,8 +168,9 @@ export function validateGoogleResponse(data: any): void {
         );
     }
 
-    const candidate = data.candidates[0];
-    if (!candidate.content?.parts || !Array.isArray(candidate.content.parts)) {
+    const candidate = (d['candidates'] as Record<string, unknown>[])[0];
+    const candidateContent = candidate?.['content'] as Record<string, unknown> | undefined;
+    if (!candidateContent?.['parts'] || !Array.isArray(candidateContent['parts'])) {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing content parts',
@@ -169,7 +178,8 @@ export function validateGoogleResponse(data: any): void {
         );
     }
 
-    if (candidate.content.parts.length === 0 || typeof candidate.content.parts[0].text !== 'string') {
+    const parts = candidateContent['parts'] as Record<string, unknown>[];
+    if (parts.length === 0 || typeof parts[0]?.['text'] !== 'string') {
         throw createApiError(
             'INVALID_RESPONSE',
             'Response missing text content',
@@ -228,7 +238,7 @@ export function validateEndpoint(endpoint: string, allowLocalhost = false): void
 /**
  * Extract usage statistics from various provider response formats
  */
-export function extractUsage(data: any, provider: string): {
+export function extractUsage(data: unknown, provider: string): {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
@@ -240,26 +250,28 @@ export function extractUsage(data: any, provider: string): {
     };
 
     if (!data) return defaultUsage;
+    const d = data as Record<string, unknown>;
+    const usage = d['usage'] as Record<string, number> | undefined;
 
     // Anthropic format (check first before OpenAI format)
-    if (provider === 'anthropic' && data.usage) {
-        const cacheCreation = data.usage.cache_creation_input_tokens || 0;
-        const cacheRead = data.usage.cache_read_input_tokens || 0;
+    if (provider === 'anthropic' && usage) {
+        const cacheCreation = usage['cache_creation_input_tokens'] ?? 0;
+        const cacheRead = usage['cache_read_input_tokens'] ?? 0;
         return {
-            promptTokens: data.usage.input_tokens || 0,
-            completionTokens: data.usage.output_tokens || 0,
+            promptTokens: usage['input_tokens'] ?? 0,
+            completionTokens: usage['output_tokens'] ?? 0,
             // Include all token types in total for accurate accounting
-            totalTokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0) +
+            totalTokens: (usage['input_tokens'] ?? 0) + (usage['output_tokens'] ?? 0) +
                 cacheCreation + cacheRead,
         };
     }
 
     // OpenAI, Azure OpenAI, xAI, Mistral format
-    if (data.usage) {
+    if (usage) {
         return {
-            promptTokens: data.usage.prompt_tokens || 0,
-            completionTokens: data.usage.completion_tokens || 0,
-            totalTokens: data.usage.total_tokens || 0,
+            promptTokens: usage['prompt_tokens'] ?? 0,
+            completionTokens: usage['completion_tokens'] ?? 0,
+            totalTokens: usage['total_tokens'] ?? 0,
         };
     }
 

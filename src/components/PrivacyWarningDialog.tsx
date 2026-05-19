@@ -128,7 +128,7 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="space-y-2">
-                  {critical.map((finding) => (
+                  {critical.map((finding): JSX.Element => (
                     <div
                       key={`critical-${finding.type}-${finding.value}`}
                       className="bg-gray-900/50 rounded p-3"
@@ -167,7 +167,7 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="space-y-2">
-                  {high.map((finding) => (
+                  {high.map((finding): JSX.Element => (
                     <div
                       key={`high-${finding.type}-${finding.value}`}
                       className="bg-gray-900/50 rounded p-3"
@@ -200,7 +200,7 @@ export default function PrivacyWarningDialog({
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {moderate.map((finding) => (
+                  {moderate.map((finding): JSX.Element => (
                     <div
                       key={`moderate-${finding.type}-${finding.value}`}
                       className="bg-gray-900/50 rounded p-2 text-sm"

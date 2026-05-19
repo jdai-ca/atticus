@@ -12,7 +12,7 @@ import yaml from 'js-yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import practiceSchema from '../schemas/practice-config.schema.json';
-import { createLogger } from './logger';
+import { createLogger } from './debugLogger';
 import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const logger = createLogger('PracticeLoader');
@@ -52,8 +52,10 @@ class PracticeConfigLoader {
         let current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
-        this.updateFromRemote(current.version, language).catch(err => {
-            logger.warn('Remote update failed', { error: err.message });
+        this.updateFromRemote(current.version, language).catch((err: unknown): void => {
+            logger.warn('Remote update failed', {
+                error: err instanceof Error ? err.message : String(err),
+            });
         });
 
         return current.practiceAreas;
@@ -69,9 +71,9 @@ class PracticeConfigLoader {
             const filename = getLocalizedConfigFilename('practices', language);
 
             // Check if running in Electron
-            if ((globalThis as any).electronAPI?.loadBundledConfig) {
+            if (globalThis.window?.electronAPI?.loadBundledConfig) {
                 logger.debug('Loading bundled config via Electron IPC', { filename });
-                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
+                const result = await globalThis.window.electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
                     // Try fallback to English if non-English language fails
@@ -234,7 +236,7 @@ class PracticeConfigLoader {
      */
     private isCompatibleVersion(config: PracticeConfigFile): boolean {
         // Get app version from package.json default
-        const appVersion = '0.9.20';
+        const appVersion = '0.9.21';
         return this.compareVersions(appVersion, config.minAppVersion) >= 0;
     }
 
@@ -286,7 +288,7 @@ class PracticeConfigLoader {
     private notifyConfigUpdate(newVersion: string): void {
         logger.info('Practice area config updated', { version: newVersion });
         // Dispatch event for UI notification
-        (globalThis as any).dispatchEvent(new CustomEvent('practice-config-updated', {
+        (globalThis as typeof globalThis & { dispatchEvent: (event: Event) => boolean }).dispatchEvent(new CustomEvent('practice-config-updated', {
             detail: { version: newVersion }
         }));
     }
@@ -299,7 +301,7 @@ class PracticeConfigLoader {
         // This ensures the app can still function even if all config loading fails
         return {
             version: '1.0.0',
-            minAppVersion: '0.9.20',
+            minAppVersion: '0.9.21',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {
@@ -354,17 +356,17 @@ class PracticeConfigLoader {
     /**
      * Clear cached configuration
      */
-    clearCache(): void {
-        localStorage.removeItem(this.CACHE_KEY);
-        localStorage.removeItem(this.VERSION_KEY);
-        logger.info('Cache cleared');
+    clearCache(language: Language = 'en'): void {
+        localStorage.removeItem(this.getCacheKey(language));
+        localStorage.removeItem(this.getVersionKey(language));
+        logger.info('Cache cleared', { language });
     }
 
     /**
      * Get current configuration version
      */
-    getCurrentVersion(): string | null {
-        return localStorage.getItem(this.VERSION_KEY);
+    getCurrentVersion(language: Language = 'en'): string | null {
+        return localStorage.getItem(this.getVersionKey(language));
     }
 }
 

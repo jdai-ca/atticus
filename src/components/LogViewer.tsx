@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { X, Download, Trash2, Search, Filter } from "lucide-react";
 import { useTranslation } from "../i18n/LanguageContext";
-import { logger, LogEntry, LogLevel } from "../services/logger";
+import { logger, LogEntry, LogLevel } from "../services/debugLogger";
 
 interface LogViewerProps {
   onClose: () => void;
@@ -39,7 +39,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
   // Extract unique contexts
   const contexts = useMemo(() => {
     const contextSet = new Set<string>();
-    logs.forEach((log) => {
+    logs.forEach((log): void => {
       if (log.context && typeof log.context === "string") {
         contextSet.add(log.context);
       }
@@ -49,7 +49,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
 
   // Filter logs
   const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
+    return logs.filter((log): boolean => {
       // Level filter
       if (filterLevel !== "all" && log.level !== filterLevel) {
         return false;
@@ -219,7 +219,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
               className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Contexts</option>
-              {contexts.map((ctx) => (
+              {contexts.map((ctx): JSX.Element => (
                 <option key={ctx} value={ctx}>
                   {ctx}
                 </option>
@@ -253,7 +253,7 @@ export default function LogViewer({ onClose }: LogViewerProps) {
             filteredLogs
               .slice()
               .reverse()
-              .map((log, index) => (
+              .map((log, index): JSX.Element => (
                 <div
                   key={`${log.timestamp}-${index}`}
                   className={`p-3 rounded-lg border ${getLevelBgColor(

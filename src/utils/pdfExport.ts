@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import { Conversation, Message } from '../types';
 import { DateUtils } from './dateUtils';
 import packageJson from '../../package.json';
-import { createLogger } from '../services/logger';
+import { createLogger } from '../services/debugLogger';
 
 const logger = createLogger('PDFExport');
 
@@ -20,7 +20,7 @@ interface FormattedTextSegment {
 }
 
 // Helper function to sanitize text for PDF - removes hidden characters and normalizes text
-function sanitizeTextForPDF(text: string): string {
+export function sanitizeTextForPDF(text: string): string {
   let clean = text;
 
   // Remove zero-width characters and other invisible Unicode
@@ -52,7 +52,7 @@ function sanitizeTextForPDF(text: string): string {
 }
 
 // Helper function to strip markdown formatting from text
-function stripMarkdown(text: string): string {
+export function stripMarkdown(text: string): string {
   // First sanitize the text
   let cleanText = sanitizeTextForPDF(text);
 
@@ -100,7 +100,7 @@ function stripMarkdown(text: string): string {
   return cleanText;
 }
 
-function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegment[] {
+export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegment[] {
   const segments: FormattedTextSegment[] = [];
   const lines = markdown.split('\n');
   let inCodeBlock = false;
@@ -176,7 +176,7 @@ function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegment[] {
   return segments;
 }
 
-function formatFileSize(bytes: number): string {
+export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
@@ -231,7 +231,7 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
 
   // If not on conversation, extract from first user message
   if (practiceAreas.length === 0 && !advisoryArea || jurisdictions.length === 0) {
-    const firstMessage = conversation.messages.find(m => m.role === 'user');
+    const firstMessage = conversation.messages.find((m): boolean => m.role === 'user');
     if (firstMessage) {
       if (practiceAreas.length === 0 && firstMessage.practiceArea) {
         practiceAreas = [firstMessage.practiceArea].filter(Boolean) as string[];
@@ -266,7 +266,7 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
   // Show AI models used
   if (conversation.selectedModels && conversation.selectedModels.length > 0) {
     const models = conversation.selectedModels
-      .map(m => `${m.providerId}/${m.modelId}`)
+      .map((m): string => `${m.providerId}/${m.modelId}`)
       .join(', ');
     pdf.text(`AI Models: ${models}`, margin, yPosition);
     yPosition += 5;
@@ -688,7 +688,7 @@ export async function downloadPDF(conversation: Conversation): Promise<void> {
     // Use conversation ID with transcript type and timestamp
     const filename = `atticus-${conversation.id}-transcript-${Date.now()}.pdf`;
 
-    const result = await (globalThis as any).electronAPI.savePDF({
+    const result = await globalThis.window.electronAPI.savePDF({
       filename,
       data: pdfData,
     });
@@ -845,7 +845,7 @@ export async function downloadMessagePDF(
       filename = `atticus-${conversationId}-message-${role}-${Date.now()}.pdf`;
     }
 
-    const result = await (globalThis as any).electronAPI.savePDF({
+    const result = await globalThis.window.electronAPI.savePDF({
       filename,
       data: pdfData,
     });
@@ -890,7 +890,7 @@ export async function downloadClusterPDF(
     const pdfData = await exportClusterToPDF(messages, conversationTitle);
     const filename = `atticus-${conversationId}-${type}-${Date.now()}.pdf`;
 
-    const result = await (globalThis as any).electronAPI.savePDF({
+    const result = await globalThis.window.electronAPI.savePDF({
       filename,
       data: pdfData,
     });

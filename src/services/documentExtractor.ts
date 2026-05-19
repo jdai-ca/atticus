@@ -6,7 +6,7 @@
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
 import { Attachment } from '../types';
-import { logger } from './logger';
+import { logger } from './debugLogger';
 
 // Configure PDF.js worker for Electron main process
 // In Electron, we need to use the absolute path to the worker file
@@ -74,8 +74,9 @@ async function extractFromPDF(base64Data: string): Promise<ExtractedDocument> {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
 
-            const pageText = textContent.items
-                .map((item: any) => item.str)
+            const pageText = (textContent.items as Array<{ str?: string }>)
+                .filter((item): item is { str: string } => typeof item.str === 'string')
+                .map((item): string => item.str)
                 .join(' ');
 
             extractedText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
@@ -89,7 +90,7 @@ async function extractFromPDF(base64Data: string): Promise<ExtractedDocument> {
             }
         }
 
-        const words = extractedText.split(/\s+/).filter(w => w.length > 0);
+        const words = extractedText.split(/\s+/).filter((w): boolean => w.length > 0);
         const wordCount = words.length;
 
         logger.info('PDF extraction completed', '[Document Extraction]', {
@@ -135,7 +136,9 @@ async function extractFromDOCX(base64Data: string): Promise<ExtractedDocument> {
         const extractedText = result.value;
 
         // Count words
-        const words = extractedText.split(/\s+/).filter(w => w.length > 0);
+        const words = extractedText
+            .split(/\s+/)
+            .filter((w): boolean => w.length > 0);
         const wordCount = words.length;
 
         logger.info('DOCX extraction completed', '[Document Extraction]', {
@@ -171,7 +174,9 @@ async function extractFromText(base64Data: string): Promise<ExtractedDocument> {
         const extractedText = atob(base64Data);
 
         // Count words
-        const words = extractedText.split(/\s+/).filter(w => w.length > 0);
+        const words = extractedText
+            .split(/\s+/)
+            .filter((w): boolean => w.length > 0);
         const wordCount = words.length;
 
         logger.info('Text extraction completed', '[Document Extraction]', {

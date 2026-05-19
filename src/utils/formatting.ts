@@ -84,7 +84,7 @@ export function formatCompactNumber(num: number, language: Language): string {
 /**
  * Format a relative time string (e.g., "2 hours ago")
  */
-export function formatRelativeTime(date: Date, language: Language, baseDate: Date = new Date()): string {
+export function formatRelativeTime(date: Date, _language: Language, baseDate: Date = new Date()): string {
     const diffMs = baseDate.getTime() - date.getTime();
     const diffSec = Math.floor(diffMs / 1000);
     const diffMin = Math.floor(diffSec / 60);
@@ -170,7 +170,7 @@ function getLocale(language: Language): string {
 /**
  * Format a duration in milliseconds to a human-readable string
  */
-export function formatDuration(ms: number, language: Language): string {
+export function formatDuration(ms: number, _language: Language): string {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -194,7 +194,8 @@ export function formatList(items: string[], language: Language, type: 'conjuncti
     const locale = getLocale(language);
 
     if ('ListFormat' in Intl) {
-        return new Intl.ListFormat(locale, { style: 'long', type }).format(items);
+        const IntlListFormat = (Intl as typeof Intl & { ListFormat: new (locale: string, options?: { style: string; type: string }) => { format: (items: string[]) => string } }).ListFormat;
+        return new IntlListFormat(locale, { style: 'long', type }).format(items);
     }
 
     // Fallback for older browsers

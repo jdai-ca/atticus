@@ -138,7 +138,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
     const query = searchQuery.toLowerCase();
     const results: TagAutocompleteResult[] = [];
 
-    allAvailableTags.forEach((tag) => {
+    allAvailableTags.forEach((tag): void => {
       if (existingTags.includes(tag.id)) return; // Skip already applied tags
 
       let matchType: TagAutocompleteResult["matchType"] | null = null;
@@ -159,7 +159,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
       }
       // Alias match
       else if (
-        tag.aliases?.some((alias) => alias.toLowerCase().includes(query))
+        tag.aliases?.some((alias): boolean => alias.toLowerCase().includes(query))
       ) {
         matchType = "alias";
         relevanceScore = 0.7;
@@ -189,7 +189,9 @@ export const TagManager: React.FC<TagManagerProps> = ({
     setAutocompleteResults(results.slice(0, 10));
 
     // Show "Create New" option if no exact match
-    const hasExactMatch = results.some((r) => r.matchType === "exact");
+    const hasExactMatch = results.some(
+      (r): boolean => r.matchType === "exact",
+    );
     setShowCreateNew(!hasExactMatch && query.length >= 2);
   }, [searchQuery, allAvailableTags, existingTags]);
 
@@ -224,10 +226,11 @@ export const TagManager: React.FC<TagManagerProps> = ({
   const getFilteredTags = () => {
     const tagsArray = Array.from(allAvailableTags.values());
     if (selectedCategory === "all") {
-      return tagsArray.filter((t) => existingTags.includes(t.id));
+      return tagsArray.filter((t): boolean => existingTags.includes(t.id));
     }
     return tagsArray.filter(
-      (t) => existingTags.includes(t.id) && t.category === selectedCategory,
+      (t): boolean =>
+        existingTags.includes(t.id) && t.category === selectedCategory,
     );
   };
 
@@ -244,7 +247,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
     return (
       <div className="flex flex-wrap items-center gap-2">
         {/* Existing tags */}
-        {existingTags.map((tagId) => {
+        {existingTags.map((tagId): JSX.Element | null => {
           const tag = allAvailableTags.get(tagId);
           if (!tag) return null;
           const colorName = getTagColor(tag);
@@ -326,7 +329,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
         {autocompleteResults.length > 0 && (
           <div className="mt-2 bg-gray-700 rounded-lg border border-gray-600 max-h-64 overflow-y-auto">
             {autocompleteResults.map(
-              ({ tag, matchType: _matchType, relevanceScore }) => {
+              ({ tag, matchType: _matchType, relevanceScore }): JSX.Element => {
                 const colorName = getTagColor(tag);
                 const styles = getTagStyles(colorName);
                 const categoryConfig = TAG_CATEGORY_CONFIG[tag.category];
@@ -380,7 +383,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
                 }
                 className="flex-1 bg-gray-600 text-white text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-legal-blue"
               >
-                {Object.entries(TAG_CATEGORY_CONFIG).map(([key, config]) => (
+                {Object.entries(TAG_CATEGORY_CONFIG).map(([key, config]): JSX.Element => (
                   <option key={key} value={key}>
                     {config.icon} {config.label}
                   </option>
@@ -410,7 +413,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
           >
             All Tags
           </button>
-          {Object.entries(TAG_CATEGORY_CONFIG).map(([key, config]) => (
+          {Object.entries(TAG_CATEGORY_CONFIG).map(([key, config]): JSX.Element => (
             <button
               key={key}
               onClick={() => setSelectedCategory(key as TagCategory)}
@@ -437,7 +440,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {highConfidenceSuggestions.map(
-                ({ tagId, confidence, reason }) => {
+                ({ tagId, confidence, reason }): JSX.Element | null => {
                   const tag = allAvailableTags.get(tagId);
                   if (!tag || existingTags.includes(tagId)) return null;
                   const colorName = getTagColor(tag);
@@ -472,7 +475,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
               <span>Recently Used</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {recentTags.slice(0, 8).map((tagId) => {
+              {recentTags.slice(0, 8).map((tagId): JSX.Element | null => {
                 const tag = allAvailableTags.get(tagId);
                 if (!tag || existingTags.includes(tagId)) return null;
                 const colorName = getTagColor(tag);
@@ -502,7 +505,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
               <span>Applied Tags ({existingTags.length})</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {getFilteredTags().map((tag) => {
+              {getFilteredTags().map((tag): JSX.Element => {
                 const colorName = getTagColor(tag);
                 const styles = getTagStyles(colorName);
                 const categoryConfig = TAG_CATEGORY_CONFIG[tag.category];

@@ -73,7 +73,7 @@ export class AdvisoryAreaManager {
      * Get only enabled advisory areas
      */
     getEnabledAreas(): AdvisoryAreaConfig[] {
-        return this.getAllAreas().filter(area => area.enabled);
+        return this.getAllAreas().filter((area): boolean => area.enabled);
     }
 
     /**
@@ -221,7 +221,7 @@ export class AdvisoryAreaManager {
      */
     deleteCustomArea(areaId: string): boolean {
         // Don't allow deleting loaded advisory areas (only truly custom ones)
-        const loadedIds = this.loadedAreas.map(a => a.id);
+        const loadedIds = this.loadedAreas.map((a): string => a.id);
         if (loadedIds.includes(areaId)) {
             return false;
         }

@@ -73,7 +73,7 @@ export class PracticeAreaManager {
      * Get only enabled practice areas
      */
     getEnabledAreas(): PracticeAreaConfig[] {
-        return this.getAllAreas().filter(area => area.enabled);
+        return this.getAllAreas().filter((area): boolean => area.enabled);
     }
 
     /**
@@ -224,7 +224,7 @@ export class PracticeAreaManager {
      */
     deleteCustomArea(areaId: string): boolean {
         // Don't allow deleting loaded practice areas (only truly custom ones)
-        const loadedIds = this.loadedAreas.map(a => a.id);
+        const loadedIds = this.loadedAreas.map((a): string => a.id);
         if (loadedIds.includes(areaId)) {
             return false;
         }

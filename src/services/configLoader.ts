@@ -18,7 +18,7 @@ import Ajv from 'ajv';
 import { ProviderTemplate, AIProvider } from '../types';
 import providerSchema from '../schemas/provider-config.schema.json';
 import { isDevelopmentMode } from '../utils/devMode';
-import { createLogger } from './logger';
+import { createLogger } from './debugLogger';
 import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const ajv = new Ajv({ allErrors: true });
@@ -91,8 +91,10 @@ export class ConfigLoader {
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         if (!isDevelopmentMode()) {
-            this.updateFromRemote(current.version, language).catch(err => {
-                logger.warn('Remote update failed', { error: err.message });
+            this.updateFromRemote(current.version, language).catch((err: unknown): void => {
+                logger.warn('Remote update failed', {
+                    error: err instanceof Error ? err.message : String(err),
+                });
             });
         }
 
@@ -109,8 +111,8 @@ export class ConfigLoader {
             const filename = getLocalizedConfigFilename('providers', language);
 
             // Check if running in Electron
-            if ((globalThis as any).electronAPI?.loadBundledConfig) {
-                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
+            if (globalThis.window?.electronAPI?.loadBundledConfig) {
+                const result = await globalThis.window.electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
                     // Try fallback to English if non-English language fails
@@ -258,7 +260,7 @@ export class ConfigLoader {
      */
     private getAppVersion(): string {
         // This will be replaced by build process or read from package.json
-        return '0.9.20';
+        return '0.9.21';
     }
 
     /**
@@ -310,7 +312,7 @@ export class ConfigLoader {
      */
     private notifyConfigUpdate(newVersion: string): void {
         // Emit event for UI notification
-        (globalThis as any).dispatchEvent(new CustomEvent('provider-config-updated', {
+        (globalThis as typeof globalThis & { dispatchEvent: (event: Event) => boolean }).dispatchEvent(new CustomEvent('provider-config-updated', {
             detail: { version: newVersion }
         }));
     }
@@ -319,7 +321,8 @@ export class ConfigLoader {
      * Transform raw config to ProviderTemplate array
      */
     private transformToProviderTemplates(config: ProviderConfigFile): ProviderTemplate[] {
-        return config.providers.map(provider => ({
+        return config.providers.map(
+            (provider): ProviderTemplate & { supportsTemperature?: boolean } => ({
             id: provider.id as AIProvider, // Validated provider ID
             name: provider.name,
             displayName: provider.displayName,
@@ -327,8 +330,8 @@ export class ConfigLoader {
             endpoint: provider.endpoint,
             defaultModel: provider.defaultModel,
             models: provider.models
-                .filter(m => m.enabled && !m.deprecated)
-                .map(m => ({
+                .filter((m): boolean => m.enabled && !m.deprecated)
+                .map((m): ProviderTemplate["models"][number] => ({
                     id: m.id,
                     name: m.name,
                     description: m.description,
@@ -345,7 +348,8 @@ export class ConfigLoader {
             apiKeyLabel: provider.authentication.apiKeyLabel,
             getApiKeyUrl: provider.authentication.getApiKeyUrl,
             icon: provider.ui.icon
-        }));
+            }),
+        );
     }
 
     /**

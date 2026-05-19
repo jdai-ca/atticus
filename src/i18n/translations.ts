@@ -263,6 +263,7 @@ export interface Translations {
 
     // Tags
     tags: {
+        title: string;
         addTag: string;
         removeTag: string;
         createNew: string;
@@ -272,11 +273,14 @@ export interface Translations {
         priority: string;
         status: string;
         noTagsFound: string;
+        noTagsYet: string;
+        searchOrBrowse: string;
     };
 
     // Privacy & PII
     privacyDialog: {
         title: string;
+        sensitiveInfoDetected: string;
         piiDetectedMessage: string;
         continueButton: string;
         cancelButton: string;
@@ -287,11 +291,13 @@ export interface Translations {
         high: string;
         medium: string;
         low: string;
+        anonymize: string;
     };
 
     // API Error Inspector
     apiInspector: {
         title: string;
+        requestId: string;
         errorDetails: string;
         errorCode: string;
         httpStatus: string;
@@ -301,6 +307,7 @@ export interface Translations {
         headers: string;
         body: string;
         timestamp: string;
+        copyToClipboard: string;
     };
 
     // Log Viewer
@@ -311,6 +318,8 @@ export interface Translations {
         component: string;
         search: string;
         clear: string;
+        clearAll: string;
+        clearConfirmation: string;
         export: string;
         noLogsFound: string;
         showingLogs: string;
@@ -1073,6 +1082,7 @@ export const translations: Record<Language, Translations> = {
 
         // Tags
         tags: {
+            title: 'Tag Manager',
             addTag: 'Add tag',
             removeTag: 'Remove tag',
             createNew: 'Create new',
@@ -1082,11 +1092,14 @@ export const translations: Record<Language, Translations> = {
             priority: 'Priority',
             status: 'Status',
             noTagsFound: 'No tags found',
+            noTagsYet: 'No tags yet',
+            searchOrBrowse: 'Search or browse to add tags',
         },
 
         // Privacy & PII
         privacyDialog: {
             title: 'Privacy Warning',
+            sensitiveInfoDetected: 'Sensitive information detected',
             piiDetectedMessage: 'Personally Identifiable Information (PII) has been detected in your message',
             continueButton: 'Continue Anyway',
             cancelButton: 'Cancel',
@@ -1097,11 +1110,13 @@ export const translations: Record<Language, Translations> = {
             high: 'High',
             medium: 'Medium',
             low: 'Low',
+            anonymize: 'Anonymize',
         },
 
         // API Error Inspector
         apiInspector: {
             title: 'API Error Inspector',
+            requestId: 'Request ID',
             errorDetails: 'Error Details',
             errorCode: 'Error Code',
             httpStatus: 'HTTP Status',
@@ -1111,6 +1126,7 @@ export const translations: Record<Language, Translations> = {
             headers: 'Headers',
             body: 'Body',
             timestamp: 'Timestamp',
+            copyToClipboard: 'Copy to Clipboard',
         },
 
         // Log Viewer
@@ -1121,6 +1137,8 @@ export const translations: Record<Language, Translations> = {
             component: 'Component',
             search: 'Search',
             clear: 'Clear',
+            clearAll: 'Clear all logs',
+            clearConfirmation: 'Are you sure you want to clear all logs?',
             export: 'Export',
             noLogsFound: 'No logs found',
             showingLogs: 'Showing logs',
@@ -1472,6 +1490,7 @@ export const translations: Record<Language, Translations> = {
 
         // Tags
         tags: {
+            title: 'Gestionnaire d\'Étiquettes',
             addTag: 'Ajouter une étiquette',
             removeTag: 'Supprimer l\'étiquette',
             createNew: 'Créer nouveau',
@@ -1481,11 +1500,14 @@ export const translations: Record<Language, Translations> = {
             priority: 'Priorité',
             status: 'Statut',
             noTagsFound: 'Aucune étiquette trouvée',
+            noTagsYet: 'Aucune étiquette pour le moment',
+            searchOrBrowse: 'Recherchez ou parcourez pour ajouter des étiquettes',
         },
 
         // Privacy & PII
         privacyDialog: {
             title: 'Avertissement de Confidentialité',
+            sensitiveInfoDetected: 'Informations sensibles détectées',
             piiDetectedMessage: 'Des Informations Personnelles Identifiables (PII) ont été détectées dans votre message',
             continueButton: 'Continuer Quand Même',
             cancelButton: 'Annuler',
@@ -1496,11 +1518,13 @@ export const translations: Record<Language, Translations> = {
             high: 'Élevé',
             medium: 'Moyen',
             low: 'Faible',
+            anonymize: 'Anonymiser',
         },
 
         // API Error Inspector
         apiInspector: {
             title: 'Inspecteur d\'Erreurs API',
+            requestId: 'ID de Requête',
             errorDetails: 'Détails de l\'Erreur',
             errorCode: 'Code d\'Erreur',
             httpStatus: 'Statut HTTP',
@@ -1510,6 +1534,7 @@ export const translations: Record<Language, Translations> = {
             headers: 'En-têtes',
             body: 'Corps',
             timestamp: 'Horodatage',
+            copyToClipboard: 'Copier dans le Presse-papiers',
         },
 
         // Log Viewer
@@ -1520,6 +1545,8 @@ export const translations: Record<Language, Translations> = {
             component: 'Composant',
             search: 'Rechercher',
             clear: 'Effacer',
+            clearAll: 'Effacer tous les journaux',
+            clearConfirmation: 'Êtes-vous sûr de vouloir effacer tous les journaux?',
             export: 'Exporter',
             noLogsFound: 'Aucun journal trouvé',
             showingLogs: 'Affichage des journaux',
@@ -2056,6 +2083,7 @@ export const translations: Record<Language, Translations> = {
 
         // Tags
         tags: {
+            title: 'Administrador de Etiquetas',
             addTag: 'Agregar etiqueta',
             removeTag: 'Eliminar etiqueta',
             createNew: 'Crear nuevo',
@@ -2065,11 +2093,14 @@ export const translations: Record<Language, Translations> = {
             priority: 'Prioridad',
             status: 'Estado',
             noTagsFound: 'No se encontraron etiquetas',
+            noTagsYet: 'Aún no hay etiquetas',
+            searchOrBrowse: 'Busca o navega para agregar etiquetas',
         },
 
         // Privacy & PII
         privacyDialog: {
             title: 'Advertencia de Privacidad',
+            sensitiveInfoDetected: 'Información sensible detectada',
             piiDetectedMessage: 'Se ha detectado Información Personal Identificable (PII) en su mensaje',
             continueButton: 'Continuar de Todos Modos',
             cancelButton: 'Cancelar',
@@ -2080,11 +2111,13 @@ export const translations: Record<Language, Translations> = {
             high: 'Alto',
             medium: 'Medio',
             low: 'Bajo',
+            anonymize: 'Anonimizar',
         },
 
         // API Error Inspector
         apiInspector: {
             title: 'Inspector de Errores API',
+            requestId: 'ID de Solicitud',
             errorDetails: 'Detalles del Error',
             errorCode: 'Código de Error',
             httpStatus: 'Estado HTTP',
@@ -2094,6 +2127,7 @@ export const translations: Record<Language, Translations> = {
             headers: 'Encabezados',
             body: 'Cuerpo',
             timestamp: 'Marca de Tiempo',
+            copyToClipboard: 'Copiar al Portapapeles',
         },
 
         // Log Viewer
@@ -2104,6 +2138,8 @@ export const translations: Record<Language, Translations> = {
             component: 'Componente',
             search: 'Buscar',
             clear: 'Limpiar',
+            clearAll: 'Limpiar todos los registros',
+            clearConfirmation: '¿Está seguro de que desea limpiar todos los registros?',
             export: 'Exportar',
             noLogsFound: 'No se encontraron registros',
             showingLogs: 'Mostrando registros',

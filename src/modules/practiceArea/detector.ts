@@ -86,7 +86,7 @@ function tokenizeText(text: string): string[] {
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, ' ') // Replace punctuation with spaces
         .split(/\s+/)
-        .filter((word: string) => word.length > 0);
+        .filter((word: string): boolean => word.length > 0);
 }
 
 /**
@@ -315,14 +315,16 @@ export function detectPracticeAreaWithConfidence(
     const lowerText = text.toLowerCase();
 
     // Use provided practice areas or fall back to manager's loaded areas
-    const areas = practiceAreas || practiceAreaManager.getAllAreas().map(a => ({
-        id: a.id,
-        name: a.name,
-        keywords: a.keywords,
-        description: a.description,
-        systemPrompt: a.systemPrompt,
-        color: a.color
-    } as LegalPracticeArea));
+    const areas = practiceAreas || practiceAreaManager.getAllAreas().map(
+        (a): LegalPracticeArea => ({
+            id: a.id,
+            name: a.name,
+            keywords: a.keywords,
+            description: a.description,
+            systemPrompt: a.systemPrompt,
+            color: a.color
+        } as LegalPracticeArea),
+    );
 
     // If no areas available, return a minimal general area
     if (areas.length === 0) {
@@ -347,8 +349,8 @@ export function detectPracticeAreaWithConfidence(
 
     // Score each practice area based on keyword matches
     const scores = areas
-        .filter(area => area.id !== 'general') // Don't score general (it's the fallback)
-        .map(area => {
+        .filter((area): boolean => area.id !== 'general') // Don't score general (it's the fallback)
+        .map((area): { area: LegalPracticeArea; matchCount: number; matchedKeywords: string[]; confidence: number } => {
             const score = scorePracticeArea(area, lowerText, tokens, tokenSet, config);
             return {
                 area,
@@ -370,7 +372,10 @@ export function detectPracticeAreaWithConfidence(
             matchCount: bestMatch.matchCount,
             matchedKeywords: bestMatch.matchedKeywords,
             alternatives: config.includeAlternatives ?
-                scores.slice(1, 2).filter(s => s.confidence >= config.minConfidence).map(s => ({
+                scores
+                    .slice(1, 2)
+                    .filter((s): boolean => s.confidence >= config.minConfidence)
+                    .map((s): { area: LegalPracticeArea; confidence: number; matchCount: number } => ({
                     area: s.area,
                     confidence: s.confidence,
                     matchCount: s.matchCount
@@ -380,7 +385,7 @@ export function detectPracticeAreaWithConfidence(
 
     // If no matches or confidence too low, return general
     if (!bestMatch || bestMatch.confidence < config.minConfidence) {
-        const generalArea = areas.find(a => a.id === 'general') || {
+        const generalArea = areas.find((a): boolean => a.id === 'general') || {
             id: 'general',
             name: 'General Legal',
             keywords: [],
@@ -408,8 +413,8 @@ export function detectPracticeAreaWithConfidence(
     if (config.includeAlternatives && scores.length > 1) {
         result.alternatives = scores
             .slice(1, config.maxAlternatives + 1)
-            .filter(s => s.confidence >= config.minConfidence)
-            .map(s => ({
+            .filter((s): boolean => s.confidence >= config.minConfidence)
+            .map((s): { area: LegalPracticeArea; confidence: number; matchCount: number } => ({
                 area: s.area,
                 confidence: s.confidence,
                 matchCount: s.matchCount
@@ -471,14 +476,16 @@ export function detectMultiplePracticeAreas(
  * Get all available practice areas (from manager)
  */
 export function getAllPracticeAreas(): LegalPracticeArea[] {
-    return practiceAreaManager.getAllAreas().map(a => ({
-        id: a.id,
-        name: a.name,
-        keywords: a.keywords,
-        description: a.description,
-        systemPrompt: a.systemPrompt,
-        color: a.color
-    } as LegalPracticeArea));
+    return practiceAreaManager.getAllAreas().map(
+        (a): LegalPracticeArea => ({
+            id: a.id,
+            name: a.name,
+            keywords: a.keywords,
+            description: a.description,
+            systemPrompt: a.systemPrompt,
+            color: a.color
+        } as LegalPracticeArea),
+    );
 }
 
 /**
@@ -514,17 +521,19 @@ export function searchPracticeAreasByKeyword(keyword: string): LegalPracticeArea
     const allAreas = practiceAreaManager.getAllAreas();
 
     return allAreas
-        .filter(area =>
-            area.keywords.some(k => k.toLowerCase().includes(lowerKeyword)) ||
+        .filter((area): boolean =>
+            area.keywords.some((k): boolean => k.toLowerCase().includes(lowerKeyword)) ||
             area.name.toLowerCase().includes(lowerKeyword) ||
             area.description.toLowerCase().includes(lowerKeyword)
         )
-        .map(a => ({
-            id: a.id,
-            name: a.name,
-            keywords: a.keywords,
-            description: a.description,
-            systemPrompt: a.systemPrompt,
-            color: a.color
-        } as LegalPracticeArea));
+        .map(
+            (a): LegalPracticeArea => ({
+                id: a.id,
+                name: a.name,
+                keywords: a.keywords,
+                description: a.description,
+                systemPrompt: a.systemPrompt,
+                color: a.color
+            } as LegalPracticeArea),
+        );
 }

@@ -4,7 +4,7 @@
  */
 
 import { ProviderConfig, ProviderTemplate } from '../types';
-import { createLogger } from '../services/logger';
+import { createLogger } from '../services/debugLogger';
 
 const logger = createLogger('ConfigMigration');
 
@@ -17,7 +17,7 @@ export function migrateProviderConfig(
     templates: ProviderTemplate[]
 ): ProviderConfig {
     // Find the matching template
-    const template = templates.find(t => t.id === provider.provider);
+    const template = templates.find((t): boolean => t.id === provider.provider);
 
     if (!template) {
         logger.warn('No template found for provider', { providerId: provider.provider });
@@ -46,5 +46,7 @@ export function migrateAllProviders(
     providers: ProviderConfig[],
     templates: ProviderTemplate[]
 ): ProviderConfig[] {
-    return providers.map(provider => migrateProviderConfig(provider, templates));
+    return providers.map(
+        (provider): ProviderConfig => migrateProviderConfig(provider, templates),
+    );
 }

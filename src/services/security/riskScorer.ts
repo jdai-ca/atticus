@@ -165,7 +165,9 @@ function calculatePIIRisk(findings: PIIFinding[]): RiskDimension {
     }
 
     // Complete identity profile (name + DOB + address)
-    const hasIdentityProfile = findings.some(f => f.context.includes('Complete identity profile'));
+    const hasIdentityProfile = findings.some(
+        (f): boolean => f.context.includes('Complete identity profile'),
+    );
     if (hasIdentityProfile) {
         factors.push({
             description: 'Complete identity profile detected (name + DOB + address)',
@@ -175,7 +177,10 @@ function calculatePIIRisk(findings: PIIFinding[]): RiskDimension {
     }
 
     // Calculate dimension score (weighted average of impacts)
-    const totalImpact = factors.reduce((sum, f) => sum + (f.impact * f.confidence / 100), 0);
+    const totalImpact = factors.reduce(
+        (sum: number, f: RiskFactor): number => sum + (f.impact * f.confidence / 100),
+        0,
+    );
     const score = Math.min(totalImpact / Math.max(factors.length, 1), 100);
 
     return {
@@ -202,7 +207,7 @@ function calculateConcealmentRisk(
     }
 
     // Steganography findings
-    steganography.forEach(finding => {
+    steganography.forEach((finding): void => {
         let impact = 60;
 
         // Higher impact for certain techniques
@@ -227,7 +232,7 @@ function calculateConcealmentRisk(
     });
 
     // Obfuscation findings
-    obfuscation.forEach(finding => {
+    obfuscation.forEach((finding): void => {
         let impact = finding.suspicionLevel;
 
         // Multi-level encoding is highly suspicious
@@ -244,7 +249,10 @@ function calculateConcealmentRisk(
     });
 
     // Calculate dimension score
-    const totalImpact = factors.reduce((sum, f) => sum + (f.impact * f.confidence / 100), 0);
+    const totalImpact = factors.reduce(
+        (sum: number, f: RiskFactor): number => sum + (f.impact * f.confidence / 100),
+        0,
+    );
     const score = Math.min(totalImpact / Math.max(factors.length, 1), 100);
 
     return {
@@ -267,7 +275,7 @@ function calculateManipulationRisk(adversarial: AdversarialFinding[]): RiskDimen
         };
     }
 
-    adversarial.forEach(finding => {
+    adversarial.forEach((finding): void => {
         let impact = 60;
 
         // Higher impact for certain techniques
@@ -289,7 +297,10 @@ function calculateManipulationRisk(adversarial: AdversarialFinding[]): RiskDimen
     });
 
     // Calculate dimension score
-    const totalImpact = factors.reduce((sum, f) => sum + (f.impact * f.confidence / 100), 0);
+    const totalImpact = factors.reduce(
+        (sum: number, f: RiskFactor): number => sum + (f.impact * f.confidence / 100),
+        0,
+    );
     const score = Math.min(totalImpact / Math.max(factors.length, 1), 100);
 
     return {
@@ -316,7 +327,7 @@ function calculateExfiltrationRisk(
     }
 
     // AI evasion techniques
-    aiEvasion.forEach(finding => {
+    aiEvasion.forEach((finding): void => {
         let impact = 65;
 
         // Higher impact for certain techniques
@@ -336,7 +347,10 @@ function calculateExfiltrationRisk(
     });
 
     // Steganography as exfiltration vector
-    const hiddenDataSize = steganography.reduce((sum, f) => sum + (f.hiddenDataSize || 0), 0);
+    const hiddenDataSize = steganography.reduce(
+        (sum: number, f: SteganographyFinding): number => sum + (f.hiddenDataSize || 0),
+        0,
+    );
     if (hiddenDataSize > 0) {
         factors.push({
             description: `${hiddenDataSize} bytes of hidden data detected`,
@@ -346,7 +360,10 @@ function calculateExfiltrationRisk(
     }
 
     // Calculate dimension score
-    const totalImpact = factors.reduce((sum, f) => sum + (f.impact * f.confidence / 100), 0);
+    const totalImpact = factors.reduce(
+        (sum: number, f: RiskFactor): number => sum + (f.impact * f.confidence / 100),
+        0,
+    );
     const score = Math.min(totalImpact / Math.max(factors.length, 1), 100);
 
     return {

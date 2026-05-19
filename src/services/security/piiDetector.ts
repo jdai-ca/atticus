@@ -4,7 +4,8 @@
  * for the file upload security pipeline
  */
 
-import { PIIType, Jurisdiction } from '../piiScanner';
+import { PIIType } from '../piiScanner';
+import type { Jurisdiction } from '../../types';
 
 // Re-export PIIType for convenience
 export type { PIIType, Jurisdiction };

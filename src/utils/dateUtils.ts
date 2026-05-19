@@ -101,7 +101,9 @@ export function getRelativeTime(date: Date | string): string {
  */
 export function ensureISOString(timestamp: Date | string): string {
     if (typeof timestamp === 'string') {
-        return timestamp;
+        // Always normalize to full ISO string with milliseconds
+        const d = new Date(timestamp);
+        return d.toISOString();
     }
     return timestamp.toISOString();
 }
@@ -117,8 +119,8 @@ export function migrateDateFields<T extends Record<string, unknown>>(
 
     for (const field of dateFields) {
         const value = migrated[field];
-        if (value instanceof Date) {
-            migrated[field] = value.toISOString() as T[keyof T];
+        if (value instanceof Date || typeof value === 'string') {
+            migrated[field] = ensureISOString(value as Date | string) as T[keyof T];
         }
     }
 

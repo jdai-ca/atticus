@@ -3,7 +3,7 @@
  */
 
 import { BaseProviderAdapter } from '../providerAdapter';
-import { ProviderConfig, ChatResponse, Message } from '../../types';
+import { ProviderConfig, SecureProviderConfig, ChatResponse, Message } from '../../types';
 import { validateOpenAIResponse, extractUsage } from '../apiHelpers';
 
 export class OpenAIAdapter extends BaseProviderAdapter {
@@ -29,7 +29,7 @@ export class OpenAIAdapter extends BaseProviderAdapter {
     protected buildHeaders(provider: ProviderConfig): Record<string, string> {
         return {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(provider as any).apiKey}`, // Cast needed since main process has access to API key
+            'Authorization': `Bearer ${(provider as SecureProviderConfig).apiKey}`,
         };
     }
 
@@ -50,7 +50,7 @@ export class OpenAIAdapter extends BaseProviderAdapter {
     parseResponse(data: unknown): ChatResponse {
         validateOpenAIResponse(data);
 
-        const responseData = data as any;
+        const responseData = data as { choices: Array<{ message: { content: string } }> };
         return {
             content: responseData.choices[0].message.content,
             usage: extractUsage(responseData, 'openai'),

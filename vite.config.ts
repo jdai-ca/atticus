@@ -14,7 +14,9 @@ const EXTERNAL_PACKAGES = [
   'zod',
   '@aws-crypto',
   '@aws-sdk',
-  '@smithy'
+  '@smithy',
+  'jsdom',
+  'canvas'
 ];
 
 export default defineConfig({
@@ -33,6 +35,10 @@ export default defineConfig({
             outDir: '../dist-electron',
             rollupOptions: {
               external: (id) => {
+                // Prevent jsdom, canvas, and test utilities from being bundled
+                if (id === 'jsdom' || id === 'canvas' || id.includes('vitest') || id.includes('testing-library')) {
+                  return true;
+                }
                 // Externalize electron and all native SDKs plus their dependencies
                 return id === 'electron' || EXTERNAL_PACKAGES.some(pkg => id.startsWith(pkg));
               },
@@ -68,7 +74,8 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['pdfjs-dist']
+    include: ['pdfjs-dist'],
+    exclude: ['jsdom', 'canvas', 'vitest']
   },
   build: {
     outDir: '../dist',

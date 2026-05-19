@@ -12,7 +12,7 @@ import yaml from 'js-yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { LegalPracticeArea } from '../types';
 import advisorySchema from '../schemas/advisory-config.schema.json';
-import { createLogger } from './logger';
+import { createLogger } from './debugLogger';
 import { Language, getLocalizedConfigFilename } from '../i18n';
 
 const logger = createLogger('AdvisoryLoader');
@@ -53,8 +53,10 @@ class AdvisoryConfigLoader {
         logger.info('Using config', { version: current.version, areasCount: current.practiceAreas.length });
 
         // 3. Try remote update (non-blocking, won't delay app startup)
-        this.updateFromRemote(current.version, language).catch(err => {
-            logger.warn('Remote update failed', { error: err.message });
+        this.updateFromRemote(current.version, language).catch((err: unknown): void => {
+            logger.warn('Remote update failed', {
+                error: err instanceof Error ? err.message : String(err),
+            });
         });
 
         logger.debug('Returning advisory areas', { count: current.practiceAreas.length });
@@ -71,9 +73,9 @@ class AdvisoryConfigLoader {
             const filename = getLocalizedConfigFilename('advisory', language);
 
             // Check if running in Electron
-            if ((globalThis as any).electronAPI?.loadBundledConfig) {
+            if (globalThis.window?.electronAPI?.loadBundledConfig) {
                 logger.debug('Loading bundled config via Electron IPC', { filename });
-                const result = await (globalThis as any).electronAPI.loadBundledConfig(filename);
+                const result = await globalThis.window.electronAPI.loadBundledConfig(filename);
 
                 if (!result.success || !result.data) {
                     // Try fallback to English if non-English language fails
@@ -208,10 +210,14 @@ class AdvisoryConfigLoader {
         if (!valid && this.validate.errors) {
             logger.error('Advisory configuration validation errors', {
                 errorCount: this.validate.errors.length,
-                errors: this.validate.errors.map(e => ({
+                errors: this.validate.errors.map((e): {
+                    schemaPath: string;
+                    message?: string;
+                    params: Record<string, unknown>;
+                } => ({
                     schemaPath: e.schemaPath,
                     message: e.message,
-                    params: e.params
+                    params: e.params as Record<string, unknown>
                 }))
             });
         }
@@ -274,7 +280,7 @@ class AdvisoryConfigLoader {
     private getEmergencyFallback(): AdvisoryConfigFile {
         return {
             version: '0.0.1',
-            minAppVersion: '0.9.20',
+            minAppVersion: '0.9.21',
             lastUpdated: new Date().toISOString(),
             practiceAreas: [
                 {

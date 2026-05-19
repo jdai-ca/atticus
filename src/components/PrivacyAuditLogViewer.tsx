@@ -10,12 +10,12 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import { PIIScanLogEntry, RiskLevel } from "../services/piiScanner";
+import { PIIScanLogEntry, RiskLevel, PIIScanner } from "../services/piiScanner";
 
 interface PrivacyAuditLogViewerProps {
   conversationId: string;
   onClose: () => void;
-  piiScanner: any; // PIIScanner instance
+  piiScanner: PIIScanner; // PIIScanner instance
 }
 
 export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
@@ -193,7 +193,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {logs.map((log) => (
+              {logs.map((log): JSX.Element => (
                 <div
                   key={log.id}
                   className={`border rounded-lg overflow-hidden transition-all ${getRiskColor(
@@ -219,7 +219,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                             <div className="mt-2 flex flex-wrap gap-2">
                               {Array.from(
                                 log.scanResult.detectedCategories
-                              ).map((type) => (
+                              ).map((type): JSX.Element => (
                                 <span
                                   key={type}
                                   className="px-2 py-1 text-xs bg-slate-700/50 text-slate-300 rounded border border-slate-600"
@@ -268,7 +268,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                             Detailed Findings ({log.scanResult.findings.length})
                           </h4>
                           <div className="space-y-2">
-                            {log.scanResult.findings.map((finding) => (
+                            {log.scanResult.findings.map((finding): JSX.Element => (
                               <div
                                 key={`finding-${finding.type}-${finding.value}`}
                                 className="p-3 bg-slate-800/50 rounded border border-slate-700"

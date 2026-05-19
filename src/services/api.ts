@@ -1,4 +1,4 @@
-import { SecureProviderConfig, ChatRequest, SecureChatRequestInternal, ChatResponse } from '../types';
+import { SecureProviderConfig, ChatRequest, SecureChatRequestInternal, ChatResponse, Message } from '../types';
 import {
   fetchWithTimeout,
   validateOpenAIResponse,
@@ -15,11 +15,18 @@ import {
   getEndpointOrDefault,
 } from './apiRequest';
 import { formatForAnthropic, augmentMessageWithDocuments, formatForGemini, GeminiContent } from './multimodalFormatter';
-import { logger } from './logger';
+import { logger } from './debugLogger';
 import { GoogleGenAI } from '@google/genai/node';
 import { Mistral } from '@mistralai/mistralai';
 import Anthropic from '@anthropic-ai/sdk';
 import { CohereClient } from 'cohere-ai';
+
+/** Augment all non-system messages in a thread with extracted document text. */
+async function augmentMessages(messages: Message[]): Promise<Message[]> {
+  return Promise.all(messages.map((msg): Promise<Message> =>
+    msg.role !== 'system' ? augmentMessageWithDocuments(msg) : Promise.resolve(msg)
+  ));
+}
 
 export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
@@ -40,29 +47,32 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
 
   logger.debug('Routing to provider', { providerId: secureProvider.provider });
 
+  // Augment all messages with extracted document text before provider switch
+  const augmentedMessages = await augmentMessages(messages);
+
   switch (secureProvider.provider) {
     case 'openai':
-      return sendOpenAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendOpenAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'anthropic':
-      return sendAnthropicMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendAnthropicMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'google':
-      return sendGoogleMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendGoogleMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'azure-openai':
-      return sendAzureOpenAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendAzureOpenAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'xai':
-      return sendXAIMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendXAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'mistral':
-      return sendMistralMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendMistralMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'groq':
-      return sendGroqMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendGroqMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'perplexity':
-      return sendPerplexityMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendPerplexityMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'cohere':
-      return sendCohereMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendCohereMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'cerebras':
-      return sendCerebrasMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendCerebrasMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     case 'custom':
-      return sendCustomMessage(secureProvider, messages, systemPrompt, temperature, maxTokens);
+      return sendCustomMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
     default:
       throw new Error(`Unsupported provider: ${secureProvider.provider}`);
   }
@@ -70,7 +80,7 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
 
 async function sendOpenAIMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -96,21 +106,14 @@ async function sendOpenAIMessage(
 
 async function sendAnthropicMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  // First, augment messages with document text (before transformation)
-  const augmentedMessages = await Promise.all(messages.map(async msg => {
-    if (msg.role !== 'system') {
-      return await augmentMessageWithDocuments(msg);
-    }
-    return msg;
-  }));
-
-  // Then format messages for Anthropic multimodal (handles images, converts PDFs to images)
-  const formattedMessages = await formatForAnthropic(augmentedMessages);
+  // Messages are pre-augmented in sendChatMessage
+  // Format messages for Anthropic multimodal (handles images, converts PDFs to images)
+  const formattedMessages = await formatForAnthropic(messages);
 
   // Initialize Anthropic client
   const client = new Anthropic({
@@ -129,7 +132,9 @@ async function sendAnthropicMessage(
       timeout: 3600000 // 60 minute timeout for extended thinking
     });
 
-    const textContent = message.content.find(block => block.type === 'text');
+    const textContent = message.content.find(
+      (block): boolean => block.type === 'text',
+    );
     if (textContent?.type !== 'text') {
       throw createApiError(
         'INVALID_RESPONSE',
@@ -140,22 +145,28 @@ async function sendAnthropicMessage(
 
     return {
       content: textContent.text,
-      usage: {
-        promptTokens: message.usage.input_tokens,
-        completionTokens: message.usage.output_tokens,
-        // Calculate total including all token types for accurate accounting
-        totalTokens: message.usage.input_tokens + message.usage.output_tokens +
-          ((message.usage as any).cache_creation_input_tokens || 0) +
-          ((message.usage as any).cache_read_input_tokens || 0),
-        // Include Anthropic cached token fields if present
-        cacheCreationInputTokens: (message.usage as any).cache_creation_input_tokens,
-        cacheReadInputTokens: (message.usage as any).cache_read_input_tokens,
-      },
+      usage: (() => {
+        // Anthropic's beta prompt-caching fields are not yet in the SDK type definitions
+        type AnthropicCacheUsage = typeof message.usage & {
+          cache_creation_input_tokens?: number;
+          cache_read_input_tokens?: number;
+        };
+        const usage = message.usage as AnthropicCacheUsage;
+        return {
+          promptTokens: usage.input_tokens,
+          completionTokens: usage.output_tokens,
+          totalTokens: usage.input_tokens + usage.output_tokens +
+            (usage.cache_creation_input_tokens ?? 0) +
+            (usage.cache_read_input_tokens ?? 0),
+          cacheCreationInputTokens: usage.cache_creation_input_tokens,
+          cacheReadInputTokens: usage.cache_read_input_tokens,
+        };
+      })(),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw createApiError(
       'API_ERROR',
-      error.message || 'Anthropic API request failed',
+      error instanceof Error ? error.message : 'Anthropic API request failed',
       { provider: 'anthropic', originalError: error }
     );
   }
@@ -167,7 +178,7 @@ async function sendAnthropicMessage(
  */
 async function sendGoogleMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -183,34 +194,15 @@ async function sendGoogleMessage(
     // Initialize Gemini SDK client
     const genAI = new GoogleGenAI({ apiKey: provider.apiKey });
 
-    // Step 1: Augment messages with extracted document text (PDF, DOCX, TXT)
-    // This extracts text from document attachments and appends to message content
-    const augmentedMessages = await Promise.all(
-      messages.map(async (msg) => {
-        if (msg.role === 'system') {
-          return msg; // System messages handled separately via systemInstruction
-        }
-
-        const augmented = await augmentMessageWithDocuments(msg);
-
-        // Log document extraction results
-        if (augmented.content.length > msg.content.length) {
-          logger.info('Document text extracted', '[Gemini API]', {
-            originalLength: msg.content.length,
-            extractedLength: augmented.content.length,
-            attachments: msg.attachments?.length || 0,
-          });
-        }
-
-        return augmented;
-      })
-    );
+    // Messages are pre-augmented in sendChatMessage
 
     // Step 2: Format messages for Gemini SDK
     // Converts to Gemini's {role, parts} format with proper role mapping
     // Handles both text content and image attachments (inlineData)
     // Converts PDFs to images for vision analysis
-    const nonSystemMessages = augmentedMessages.filter((m) => m.role !== 'system');
+    const nonSystemMessages = messages.filter(
+      (m): boolean => m.role !== 'system',
+    );
     formattedMessages = await formatForGemini(nonSystemMessages);
 
     // CRITICAL: Deep validation before sending to Google API
@@ -256,18 +248,21 @@ async function sendGoogleMessage(
       model: provider.model,
       messageCount: formattedMessages.length,
       hasSystemPrompt: !!systemPrompt,
-      totalParts: formattedMessages.reduce((sum, m) => sum + m.parts.length, 0),
-      imageParts: formattedMessages.reduce((sum, m) =>
-        sum + m.parts.filter(p => p.inlineData).length, 0
+      totalParts: formattedMessages.reduce(
+        (sum: number, m: GeminiContent): number => sum + m.parts.length,
+        0,
+      ),
+      imageParts: formattedMessages.reduce((sum: number, m: GeminiContent): number =>
+        sum + m.parts.filter((p): boolean => Boolean(p.inlineData)).length, 0
       )
     });
 
     // DEBUG: Log the actual structure being sent (without full image data)
     logger.debug('Gemini request structure', '[Gemini API]', {
-      contents: formattedMessages.map((msg, i) => ({
+      contents: formattedMessages.map((msg: GeminiContent, i: number): { messageIndex: number; role: GeminiContent['role']; parts: Array<{ partIndex: number; hasText: boolean; textLength: number; hasInlineData: boolean; inlineDataStructure: { hasMimeType: boolean; mimeType: string | undefined; hasDataField: boolean; dataType: string; dataLength: number; dataIsNull: boolean; dataIsUndefined: boolean; dataIsEmptyString: boolean; dataFirstChars: string } | null }> } => ({
         messageIndex: i,
         role: msg.role,
-        parts: msg.parts.map((part, j) => ({
+        parts: msg.parts.map((part: (typeof msg.parts)[number], j: number) => ({
           partIndex: j,
           hasText: 'text' in part,
           textLength: part.text?.length || 0,
@@ -324,39 +319,46 @@ async function sendGoogleMessage(
       content: text,
       usage,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Log error details for debugging
+    const googleError = error instanceof Error ? error : null;
+    const googleErrorAny = error as Record<string, unknown> | null;
     logger.error('Gemini API request failed', '[Gemini API]', {
-      errorMessage: error?.message,
-      errorType: error?.constructor?.name,
-      errorStack: error?.stack?.split('\n').slice(0, 3).join('\n'),
+      errorMessage: googleError?.message ?? String(error),
+      errorType: googleErrorAny?.['constructor'] && typeof googleErrorAny['constructor'] === 'function'
+        ? (googleErrorAny['constructor'] as { name?: string }).name
+        : undefined,
+      errorStack: googleError?.stack?.split('\n').slice(0, 3).join('\n'),
       model: provider.model,
       messageCount: formattedMessages.length || 0,
-      // Log if images were included (only if formattedMessages is populated)
       hasImages: formattedMessages.length > 0
-        ? formattedMessages.some(m => m.parts?.some(p => p.inlineData?.mimeType?.startsWith('image/')))
+        ? formattedMessages.some(
+          (m): boolean => Boolean(
+            m.parts?.some((p): boolean => Boolean(p.inlineData?.mimeType?.startsWith('image/'))),
+          ),
+        )
         : false
     });
 
     // Extract more specific error information from Google SDK
-    const errorDetails: any = {
+    const errorDetails: Record<string, unknown> = {
       provider: 'google',
       model: provider.model,
       originalError: error,
     };
 
     // Check for specific Google API error codes
-    if (error?.status) {
-      errorDetails.status = error.status;
+    if (googleErrorAny?.['status']) {
+      errorDetails['status'] = googleErrorAny['status'];
     }
-    if (error?.statusText) {
-      errorDetails.statusText = error.statusText;
+    if (googleErrorAny?.['statusText']) {
+      errorDetails['statusText'] = googleErrorAny['statusText'];
     }
-    if (error?.code) {
-      errorDetails.code = error.code;
+    if (googleErrorAny?.['code']) {
+      errorDetails['code'] = googleErrorAny['code'];
     }
 
-    const errorMessage = error?.message || 'Google Gemini API request failed';
+    const errorMessage = googleError?.message || (googleErrorAny?.['message'] as string | undefined) || 'Google Gemini API request failed';
 
     throw createApiError('API_ERROR', errorMessage, errorDetails);
   }
@@ -364,7 +366,7 @@ async function sendGoogleMessage(
 
 async function sendAzureOpenAIMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -383,15 +385,14 @@ async function sendAzureOpenAIMessage(
   // Validate endpoint security
   validateEndpoint(fullEndpoint, fullEndpoint.includes('localhost'));
 
-  // First, augment messages with document text
-  const augmentedMessages = await Promise.all(messages.map(async msg => {
-    if (msg.role !== 'system') {
-      return await augmentMessageWithDocuments(msg);
-    }
-    return msg;
-  }));
-
-  const apiMessages = [...augmentedMessages];
+  // Messages are pre-augmented in sendChatMessage
+  // apiMessages is a provider-specific wire format (may include a synthetic system turn)
+  const apiMessages: Array<{ role: string; content: string }> = messages.map(
+    (m): { role: string; content: string } => ({
+      role: m.role,
+      content: m.content,
+    }),
+  );
   if (systemPrompt) {
     apiMessages.unshift({ role: 'system', content: systemPrompt });
   }
@@ -403,10 +404,7 @@ async function sendAzureOpenAIMessage(
       'api-key': provider.apiKey,
     },
     body: JSON.stringify({
-      messages: apiMessages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
+      messages: apiMessages,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_completion_tokens: maxTokens,
     }),
@@ -437,7 +435,7 @@ async function sendAzureOpenAIMessage(
 
 async function sendCustomMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -465,12 +463,7 @@ async function sendCustomMessage(
   }
 
   // First, augment messages with document text
-  const augmentedMessages = await Promise.all(messages.map(async msg => {
-    if (msg.role !== 'system') {
-      return await augmentMessageWithDocuments(msg);
-    }
-    return msg;
-  }));
+  // Messages are pre-augmented in sendChatMessage
 
   // Attempt OpenAI-compatible format
   const response = await fetchWithTimeout(provider.endpoint, {
@@ -482,8 +475,8 @@ async function sendCustomMessage(
     body: JSON.stringify({
       model: provider.model,
       messages: systemPrompt
-        ? [{ role: 'system', content: systemPrompt }, ...augmentedMessages]
-        : augmentedMessages,
+        ? [{ role: 'system', content: systemPrompt }, ...messages]
+        : messages,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_completion_tokens: maxTokens,
     }),
@@ -520,7 +513,7 @@ async function sendCustomMessage(
 
 async function sendXAIMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -543,26 +536,20 @@ async function sendXAIMessage(
 
 async function sendMistralMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  // First, augment messages with document text
-  const augmentedMessages = await Promise.all(messages.map(async msg => {
-    if (msg.role !== 'system') {
-      return await augmentMessageWithDocuments(msg);
-    }
-    return msg;
-  }));
+  // Messages are pre-augmented in sendChatMessage
 
   // Initialize Mistral client
   const client = new Mistral({ apiKey: provider.apiKey });
 
   // Convert messages to Mistral format
-  const mistralMessages = augmentedMessages
-    .filter(msg => msg.role !== 'system')
-    .map(msg => ({
+  const mistralMessages = messages
+    .filter((msg): boolean => msg.role !== 'system')
+    .map((msg): { role: 'user' | 'assistant'; content: string } => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     }));
@@ -593,10 +580,10 @@ async function sendMistralMessage(
         totalTokens: chatResponse.usage?.totalTokens || 0,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw createApiError(
       'API_ERROR',
-      error.message || 'Mistral API request failed',
+      error instanceof Error ? error.message : 'Mistral API request failed',
       { provider: 'mistral', originalError: error }
     );
   }
@@ -604,7 +591,7 @@ async function sendMistralMessage(
 
 async function sendGroqMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -629,7 +616,7 @@ async function sendGroqMessage(
 
 async function sendPerplexityMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
@@ -654,18 +641,12 @@ async function sendPerplexityMessage(
 
 async function sendCohereMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  // First, augment messages with document text
-  const augmentedMessages = await Promise.all(messages.map(async msg => {
-    if (msg.role !== 'system') {
-      return await augmentMessageWithDocuments(msg);
-    }
-    return msg;
-  }));
+  // Messages are pre-augmented in sendChatMessage
 
   // Initialize Cohere client
   const client = new CohereClient({
@@ -674,10 +655,12 @@ async function sendCohereMessage(
   });
 
   // Cohere uses a different message format
-  const chatHistory = augmentedMessages.slice(0, -1).map(m => ({
-    role: m.role === 'assistant' ? ('CHATBOT' as const) : ('USER' as const),
-    message: m.content,
-  }));
+  const chatHistory = messages.slice(0, -1).map(
+    (m): { role: 'CHATBOT' | 'USER'; message: string } => ({
+      role: m.role === 'assistant' ? ('CHATBOT' as const) : ('USER' as const),
+      message: m.content,
+    }),
+  );
 
   const lastMessage = augmentedMessages[augmentedMessages.length - 1];
 
@@ -699,10 +682,10 @@ async function sendCohereMessage(
         totalTokens: (response.meta?.tokens?.inputTokens || 0) + (response.meta?.tokens?.outputTokens || 0),
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw createApiError(
       'API_ERROR',
-      error.message || 'Cohere API request failed',
+      error instanceof Error ? error.message : 'Cohere API request failed',
       { provider: 'cohere', originalError: error }
     );
   }
@@ -710,7 +693,7 @@ async function sendCohereMessage(
 
 async function sendCerebrasMessage(
   provider: SecureProviderConfig,
-  messages: any[],
+  messages: Message[],
   systemPrompt?: string,
   temperature?: number,
   maxTokens?: number

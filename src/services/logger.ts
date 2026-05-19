@@ -18,6 +18,7 @@ interface LoggerConfig {
     enableColors: boolean;
     redactKeys: string[];
     maxStoredLogs: number;
+    persistToStorage: boolean;
 }
 
 class Logger {
@@ -26,10 +27,14 @@ class Logger {
         enableColors: true,
         redactKeys: ['apiKey', 'api_key', 'token', 'password', 'secret'],
         maxStoredLogs: 1000,
+        // Keep persistence in dev for diagnostics; avoid localStorage pressure in production.
+        persistToStorage: process.env.NODE_ENV === 'development',
     };
 
     private logHistory: LogEntry[] = [];
     private readonly STORAGE_KEY = 'atticus-logs';
+    private flushTimer: ReturnType<typeof setTimeout> | null = null;
+    private static readonly FLUSH_DEBOUNCE_MS = 5000;
 
     private readonly levels: Record<LogLevel, number> = {
         debug: 0,
@@ -47,11 +52,25 @@ class Logger {
 
     private readonly reset = '\x1b[0m';
 
+    private normalizeLogArgs(
+        contextOrData?: string | Record<string, unknown>,
+        data?: Record<string, unknown>
+    ): { context?: string; data?: Record<string, unknown> } {
+        if (typeof contextOrData === 'string') {
+            return { context: contextOrData, data };
+        }
+        return { context: undefined, data: contextOrData ?? data };
+    }
+
     constructor(config?: Partial<LoggerConfig>) {
         if (config) {
             this.config = { ...this.config, ...config };
         }
         this.loadLogsFromStorage();
+        // Flush any buffered logs when the window/renderer is about to unload
+        if (this.config.persistToStorage && typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', () => this.flushToStorage());
+        }
     }
 
     /**
@@ -71,36 +90,55 @@ class Logger {
     /**
      * Log a debug message (lowest priority)
      */
-    debug(message: string, context?: string, data?: Record<string, unknown>): void {
-        this.log('debug', message, context, data);
+    debug(message: string, contextOrData?: string | Record<string, unknown>, data?: Record<string, unknown>): void {
+        const normalized = this.normalizeLogArgs(contextOrData, data);
+        this.log('debug', message, normalized.context, normalized.data);
     }
 
     /**
      * Log an info message
      */
-    info(message: string, context?: string, data?: Record<string, unknown>): void {
-        this.log('info', message, context, data);
+    info(message: string, contextOrData?: string | Record<string, unknown>, data?: Record<string, unknown>): void {
+        const normalized = this.normalizeLogArgs(contextOrData, data);
+        this.log('info', message, normalized.context, normalized.data);
     }
 
     /**
      * Log a warning message
      */
-    warn(message: string, context?: string, data?: Record<string, unknown>): void {
-        this.log('warn', message, context, data);
+    warn(message: string, contextOrData?: string | Record<string, unknown>, data?: Record<string, unknown>): void {
+        const normalized = this.normalizeLogArgs(contextOrData, data);
+        this.log('warn', message, normalized.context, normalized.data);
     }
 
     /**
      * Log an error message (highest priority)
      */
-    error(message: string, context?: string, data?: Record<string, unknown> | Error): void {
-        if (data instanceof Error) {
-            data = {
-                error: data.message,
-                stack: data.stack,
-                name: data.name,
-            };
+    error(
+        message: string,
+        contextOrData?: string | Record<string, unknown> | Error,
+        data?: Record<string, unknown> | Error
+    ): void {
+        const normalizeErrorData = (
+            value?: Record<string, unknown> | Error
+        ): Record<string, unknown> | undefined => {
+            if (!value) return undefined;
+            if (value instanceof Error) {
+                return {
+                    error: value.message,
+                    stack: value.stack,
+                    name: value.name,
+                };
+            }
+            return value;
+        };
+
+        if (typeof contextOrData === 'string') {
+            this.log('error', message, contextOrData, normalizeErrorData(data));
+            return;
         }
-        this.log('error', message, context, data);
+
+        this.log('error', message, undefined, normalizeErrorData(contextOrData) ?? normalizeErrorData(data));
     }
 
     /**
@@ -149,7 +187,7 @@ class Logger {
     }
 
     /**
-     * Store log entry in memory and localStorage
+     * Store log entry in memory; schedule a debounced flush to localStorage.
      */
     private storeLog(entry: LogEntry): void {
         this.logHistory.push(entry);
@@ -159,13 +197,26 @@ class Logger {
             this.logHistory = this.logHistory.slice(-this.config.maxStoredLogs);
         }
 
-        // Persist to localStorage (async, non-blocking)
+        // Debounce the expensive localStorage write — at most once every 5 s
+        if (this.flushTimer !== null) return;
+        this.flushTimer = setTimeout((): void => {
+            this.flushTimer = null;
+            this.flushToStorage();
+        }, Logger.FLUSH_DEBOUNCE_MS);
+    }
+
+    /**
+     * Write the current log history to localStorage immediately.
+     * Called by the debounce timer and on beforeunload.
+     */
+    private flushToStorage(): void {
+        if (!this.config.persistToStorage) return;
         try {
             if (typeof localStorage !== 'undefined') {
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.logHistory));
             }
-        } catch (error) {
-            // Ignore storage errors
+        } catch {
+            // Ignore storage errors (e.g., quota exceeded)
         }
     }
 
@@ -173,6 +224,7 @@ class Logger {
      * Load logs from localStorage on initialization
      */
     private loadLogsFromStorage(): void {
+        if (!this.config.persistToStorage) return;
         try {
             if (typeof localStorage !== 'undefined') {
                 const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -197,11 +249,16 @@ class Logger {
      */
     clearLogs(): void {
         this.logHistory = [];
+        if (this.flushTimer !== null) {
+            clearTimeout(this.flushTimer);
+            this.flushTimer = null;
+        }
+        if (!this.config.persistToStorage) return;
         try {
             if (typeof localStorage !== 'undefined') {
                 localStorage.removeItem(this.STORAGE_KEY);
             }
-        } catch (error) {
+        } catch {
             // Ignore storage errors
         }
     }

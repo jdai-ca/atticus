@@ -6,8 +6,9 @@
 
 import { Message, Attachment } from '../types';
 import { extractDocumentText } from './documentExtractor';
-import { logger } from './logger';
+import { logger } from './debugLogger';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { IMAGE_EXTENSIONS } from '../constants/fileExtensions';
 
 // Configure PDF.js worker for renderer process
 if (globalThis.window !== undefined) {
@@ -24,6 +25,23 @@ export interface MultimodalContent {
     text?: string;
     image_url?: { url: string; detail?: string }; // detail is optional, may affect image processing
     source?: { type: string; media_type: string; data: string };
+}
+
+/** Wire message format for OpenAI-compatible providers (OpenAI, Azure, xAI, Groq, …) */
+export interface OpenAIWireMessage {
+    role: string;
+    content: string | MultimodalContent[];
+}
+
+/** Wire message format for Anthropic (Claude) */
+export interface AnthropicWireContent {
+    type: 'text' | 'image';
+    text?: string;
+    source?: { type: 'base64'; media_type: string; data: string };
+}
+export interface AnthropicWireMessage {
+    role: string;
+    content: string | AnthropicWireContent[];
 }
 
 // Gemini SDK content format - uses camelCase as per Google's SDK
@@ -45,17 +63,15 @@ export interface GeminiContent {
  * Can accept either a filename string or an attachment object with extension/type field
  */
 export function isImageFile(fileOrAttachment: string | { extension?: string; type?: string; name: string }): boolean {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
-
     // If it's an object with extension or type field, use that
     if (typeof fileOrAttachment === 'object') {
         const ext = (fileOrAttachment.extension || fileOrAttachment.type || '').toLowerCase();
-        return imageExtensions.includes(ext);
+        return IMAGE_EXTENSIONS.includes(ext as (typeof IMAGE_EXTENSIONS)[number]);
     }
 
     // Otherwise parse filename
     const ext = fileOrAttachment.toLowerCase().substring(fileOrAttachment.lastIndexOf('.'));
-    return imageExtensions.includes(ext);
+    return IMAGE_EXTENSIONS.includes(ext as (typeof IMAGE_EXTENSIONS)[number]);
 }
 
 /**
@@ -123,7 +139,7 @@ export function getMimeType(fileOrAttachment: string | { extension?: string; typ
  * Render PDF page with filled form fields flattened onto canvas
  * Uses PDF.js rendering with annotation appearance streams
  */
-async function renderPageWithAnnotations(page: any, pageNum: number, viewport: any, _annotationStorage?: any): Promise<HTMLCanvasElement> {
+async function renderPageWithAnnotations(page: pdfjsLib.PDFPageProxy, pageNum: number, viewport: pdfjsLib.PageViewport, _annotationStorage?: unknown): Promise<HTMLCanvasElement> {
     // Create canvas for PDF rendering
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -137,6 +153,7 @@ async function renderPageWithAnnotations(page: any, pageNum: number, viewport: a
     // Render the base PDF page content
     await page.render({
         canvasContext: context,
+        canvas: canvas,
         viewport: viewport
     }).promise;
 
@@ -353,7 +370,7 @@ async function convertPDFToImagesForOpenAI(base64Data: string, maxPages?: number
 
         let annotationStorage = null;
         try {
-            annotationStorage = (pdf as any).annotationStorage || null;
+            annotationStorage = (pdf as pdfjsLib.PDFDocumentProxy & { annotationStorage?: unknown }).annotationStorage ?? null;
             logger.debug('Annotation storage retrieved', '[Multimodal Formatter]', {
                 hasAnnotationStorage: !!annotationStorage
             });
@@ -426,7 +443,7 @@ async function convertPDFToImagesForGoogle(base64Data: string, maxPages?: number
 
         let annotationStorage = null;
         try {
-            annotationStorage = (pdf as any).annotationStorage || null;
+            annotationStorage = (pdf as pdfjsLib.PDFDocumentProxy & { annotationStorage?: unknown }).annotationStorage ?? null;
         } catch (error) {
             logger.debug('No annotation storage found', '[Multimodal Formatter]', {
                 error: error instanceof Error ? error.message : String(error)
@@ -488,248 +505,116 @@ export async function convertPDFToImages(base64Data: string, maxPages?: number):
 }
 
 /**
- * Format messages for OpenAI's multimodal API (GPT-4o, GPT-5)
- * OpenAI format: { role, content: [{ type: 'text', text }, { type: 'image_url', image_url: { url } }] }
- * For PDFs, converts each page to an image so vision models can see filled form fields
+ * Build the multimodal content array for a single message using the
+ * OpenAI `image_url` wire format.  Shared by `formatForOpenAI` and
+ * `formatForXAI` — both providers use identical attachment encoding.
  */
-export async function formatForOpenAI(messages: Message[]): Promise<any[]> {
-    const formattedMessages = [];
+async function buildOpenAIStyleContent(
+    msg: Message,
+    providerLabel: string,
+): Promise<MultimodalContent[]> {
+    const content: MultimodalContent[] = [{ type: 'text', text: msg.content }];
 
-    for (const msg of messages) {
-        // If no attachments, return simple format
-        if (!msg.attachments || msg.attachments.length === 0) {
-            formattedMessages.push({ role: msg.role, content: msg.content });
-            continue;
-        }
+    for (const attachment of msg.attachments ?? []) {
+        logger.info(`Processing attachment for ${providerLabel}`, '[Multimodal Formatter]', {
+            name: attachment.name,
+            type: attachment.type,
+            isImage: isImageFile(attachment),
+            isPDF: isPDFFile(attachment),
+            isWord: isWordFile(attachment),
+        });
 
-        // Build multimodal content array
-        const content: MultimodalContent[] = [
-            { type: 'text', text: msg.content }
-        ];
-
-        // Process attachments
-        for (const attachment of msg.attachments) {
-            logger.info('Processing attachment for OpenAI', '[Multimodal Formatter]', {
-                name: attachment.name,
-                type: attachment.type,
-                isImage: isImageFile(attachment),
-                isPDF: isPDFFile(attachment),
-                isWord: isWordFile(attachment)
+        if (isImageFile(attachment)) {
+            const mimeType = getMimeType(attachment);
+            logger.info(`Sending image attachment to ${providerLabel}`, '[Multimodal Formatter]', {
+                fileName: attachment.name,
+                mimeType,
+                dataLength: attachment.data.length,
             });
-
-            if (isImageFile(attachment)) {
-                // Regular images - send directly
-                const mimeType = getMimeType(attachment);
-                logger.info('Sending image attachment to OpenAI', '[Multimodal Formatter]', {
+            content.push({
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${attachment.data}` },
+            });
+        } else if (isPDFFile(attachment)) {
+            if (typeof document !== 'undefined') {
+                logger.info(`Converting PDF to images for ${providerLabel} vision`, '[Multimodal Formatter]', {
                     fileName: attachment.name,
-                    mimeType,
-                    dataLength: attachment.data.length
                 });
-
-                content.push({
-                    type: 'image_url',
-                    image_url: {
-                        url: `data:${mimeType};base64,${attachment.data}`
+                const pdfImages = await convertPDFToImagesForOpenAI(attachment.data);
+                for (const imageData of pdfImages) {
+                    if (!imageData || imageData.trim() === '') {
+                        logger.warn('Skipping empty PDF page image', '[Multimodal Formatter]', { fileName: attachment.name });
+                        continue;
                     }
-                });
-            } else if (isPDFFile(attachment)) {
-                // PDFs - convert to images for vision analysis (only in renderer process)
-                if (typeof document !== 'undefined') {
-                    logger.info('Converting PDF to images for OpenAI vision', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-
-                    const pdfImages = await convertPDFToImagesForOpenAI(attachment.data);
-
-                    for (const imageData of pdfImages) {
-                        if (!imageData || imageData.trim() === '') {
-                            logger.warn('Skipping empty PDF page image', '[Multimodal Formatter]', {
-                                fileName: attachment.name
-                            });
-                            continue;
-                        }
-
-                        content.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:image/png;base64,${imageData}`
-                            }
-                        });
-                    }
-                } else {
-                    // Main process - extract text instead
-                    logger.warn('PDF conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-                    const extracted = await extractDocumentText(attachment);
-                    if (extracted.text) {
-                        content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text} ` });
-                    }
+                    content.push({ type: 'image_url', image_url: { url: `data:image/png;base64,${imageData}` } });
                 }
-            } else if (isWordFile(attachment)) {
-                // Word docs - convert to images for vision analysis (only in renderer process)
-                if (typeof document !== 'undefined') {
-                    logger.info('Converting Word document to images for OpenAI vision', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-
-                    const wordImages = await convertWordToImages(attachment.data);
-
-                    for (const imageData of wordImages) {
-                        if (!imageData || imageData.trim() === '') {
-                            logger.warn('Skipping empty Word page image', '[Multimodal Formatter]', {
-                                fileName: attachment.name
-                            });
-                            continue;
-                        }
-
-                        content.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:image/png;base64,${imageData}`
-                            }
-                        });
+            } else {
+                logger.warn('PDF conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
+                    fileName: attachment.name,
+                });
+                const extracted = await extractDocumentText(attachment);
+                if (extracted.text) {
+                    content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text} ` });
+                }
+            }
+        } else if (isWordFile(attachment)) {
+            if (typeof document !== 'undefined') {
+                logger.info(`Converting Word document to images for ${providerLabel} vision`, '[Multimodal Formatter]', {
+                    fileName: attachment.name,
+                });
+                const wordImages = await convertWordToImages(attachment.data);
+                for (const imageData of wordImages) {
+                    if (!imageData || imageData.trim() === '') {
+                        logger.warn('Skipping empty Word page image', '[Multimodal Formatter]', { fileName: attachment.name });
+                        continue;
                     }
-                } else {
-                    // Main process - extract text instead
-                    logger.warn('Word conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-                    const extracted = await extractDocumentText(attachment);
-                    if (extracted.text) {
-                        content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text}` });
-                    }
+                    content.push({ type: 'image_url', image_url: { url: `data:image/png;base64,${imageData}` } });
+                }
+            } else {
+                logger.warn('Word conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
+                    fileName: attachment.name,
+                });
+                const extracted = await extractDocumentText(attachment);
+                if (extracted.text) {
+                    content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text}` });
                 }
             }
         }
-
-        formattedMessages.push({ role: msg.role, content });
     }
 
+    return content;
+}
+
+/**
+ * Generic formatter for providers using OpenAI-compatible wire format.
+ * Shared by OpenAI and xAI since they both use { role, content: [{ type, ... }] } format.
+ */
+async function formatWithOpenAIStyle(messages: Message[], providerName: string): Promise<OpenAIWireMessage[]> {
+    const formattedMessages: OpenAIWireMessage[] = [];
+    for (const msg of messages) {
+        if (!msg.attachments || msg.attachments.length === 0) {
+            formattedMessages.push({ role: msg.role, content: msg.content });
+        } else {
+            formattedMessages.push({ role: msg.role, content: await buildOpenAIStyleContent(msg, providerName) });
+        }
+    }
     return formattedMessages;
 }
 
 /**
- * Format messages for xAI's multimodal API (Grok)
- * xAI uses OpenAI-compatible format with required 'detail' parameter
- * Format: { role, content: [{ type: 'text', text }, { type: 'image_url', image_url: { url, detail } }] }
- * For PDFs, converts each page to an image so vision models can see filled form fields
+ * Format messages for OpenAI's multimodal API (GPT-4o, GPT-5).
+ * OpenAI format: { role, content: [{ type:'text', text }, { type:'image_url', image_url:{url} }] }
  */
-export async function formatForXAI(messages: Message[]): Promise<any[]> {
-    const formattedMessages = [];
+export async function formatForOpenAI(messages: Message[]): Promise<OpenAIWireMessage[]> {
+    return formatWithOpenAIStyle(messages, 'OpenAI');
+}
 
-    for (const msg of messages) {
-        // If no attachments, return simple format
-        if (!msg.attachments || msg.attachments.length === 0) {
-            formattedMessages.push({ role: msg.role, content: msg.content });
-            continue;
-        }
-
-        // Build multimodal content array
-        const content: MultimodalContent[] = [
-            { type: 'text', text: msg.content }
-        ];
-
-        // Process attachments
-        for (const attachment of msg.attachments) {
-            logger.info('Processing attachment for xAI', '[Multimodal Formatter]', {
-                name: attachment.name,
-                type: attachment.type,
-                isImage: isImageFile(attachment),
-                isPDF: isPDFFile(attachment),
-                isWord: isWordFile(attachment)
-            });
-
-            if (isImageFile(attachment)) {
-                // Regular images - send directly with required detail parameter
-                const mimeType = getMimeType(attachment);
-                logger.info('Sending image attachment to xAI', '[Multimodal Formatter]', {
-                    fileName: attachment.name,
-                    mimeType,
-                    dataLength: attachment.data.length
-                });
-
-                content.push({
-                    type: 'image_url',
-                    image_url: {
-                        url: `data:${mimeType};base64,${attachment.data}`
-                    }
-                });
-            } else if (isPDFFile(attachment)) {
-                // PDFs - convert to images for vision analysis (only in renderer process)
-                if (typeof document !== 'undefined') {
-                    logger.info('Converting PDF to images for xAI vision', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-
-                    const pdfImages = await convertPDFToImagesForOpenAI(attachment.data);
-
-                    for (const imageData of pdfImages) {
-                        if (!imageData || imageData.trim() === '') {
-                            logger.warn('Skipping empty PDF page image', '[Multimodal Formatter]', {
-                                fileName: attachment.name
-                            });
-                            continue;
-                        }
-
-                        content.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:image/png;base64,${imageData}`
-                            }
-                        });
-                    }
-                } else {
-                    // Main process - extract text instead
-                    logger.warn('PDF conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-                    const extracted = await extractDocumentText(attachment);
-                    if (extracted.text) {
-                        content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text} ` });
-                    }
-                }
-            } else if (isWordFile(attachment)) {
-                // Word docs - convert to images for vision analysis (only in renderer process)
-                if (typeof document !== 'undefined') {
-                    logger.info('Converting Word document to images for xAI vision', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-
-                    const wordImages = await convertWordToImages(attachment.data);
-
-                    for (const imageData of wordImages) {
-                        if (!imageData || imageData.trim() === '') {
-                            logger.warn('Skipping empty Word page image', '[Multimodal Formatter]', {
-                                fileName: attachment.name
-                            });
-                            continue;
-                        }
-
-                        content.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:image/png;base64,${imageData}`
-                            }
-                        });
-                    }
-                } else {
-                    // Main process - extract text instead
-                    logger.warn('Word conversion skipped (main process), extracting text', '[Multimodal Formatter]', {
-                        fileName: attachment.name
-                    });
-                    const extracted = await extractDocumentText(attachment);
-                    if (extracted.text) {
-                        content.push({ type: 'text', text: `\n\n[Document: ${attachment.name}]\n${extracted.text}` });
-                    }
-                }
-            }
-        }
-
-        formattedMessages.push({ role: msg.role, content });
-    }
-
-    return formattedMessages;
+/**
+ * Format messages for xAI's multimodal API (Grok).
+ * xAI uses the same OpenAI-compatible `image_url` wire format.
+ */
+export async function formatForXAI(messages: Message[]): Promise<OpenAIWireMessage[]> {
+    return formatWithOpenAIStyle(messages, 'xAI');
 }
 
 /**
@@ -737,8 +622,8 @@ export async function formatForXAI(messages: Message[]): Promise<any[]> {
  * Anthropic format: { role, content: [{ type: 'text', text }, { type: 'image', source: { type, media_type, data } }] }
  * For PDFs, converts each page to an image so vision models can see filled form fields
  */
-export async function formatForAnthropic(messages: Message[]): Promise<any[]> {
-    const formattedMessages = [];
+export async function formatForAnthropic(messages: Message[]): Promise<AnthropicWireMessage[]> {
+    const formattedMessages: AnthropicWireMessage[] = [];
 
     for (const msg of messages) {
         // If no attachments, return simple format
@@ -748,7 +633,7 @@ export async function formatForAnthropic(messages: Message[]): Promise<any[]> {
         }
 
         // Build multimodal content array
-        const content: any[] = [
+        const content: AnthropicWireContent[] = [
             { type: 'text', text: msg.content }
         ];
 
@@ -982,7 +867,7 @@ export async function formatForGemini(messages: Message[]): Promise<GeminiConten
         }
 
         // Final validation: filter out any parts with invalid inlineData before adding to messages
-        const validParts = parts.filter((part, index) => {
+        const validParts = parts.filter((part, index): boolean => {
             // Keep text parts
             if (part.text !== undefined) {
                 logger.debug('Valid text part', '[Multimodal Formatter]', { partIndex: index });
@@ -1032,9 +917,9 @@ export async function formatForGemini(messages: Message[]): Promise<GeminiConten
         logger.info('Adding message to Gemini request', '[Multimodal Formatter]', {
             role,
             totalParts: validParts.length,
-            textParts: validParts.filter(p => p.text !== undefined).length,
-            imageParts: validParts.filter(p => p.inlineData !== undefined).length,
-            partsStructure: validParts.map((p, i) => ({
+            textParts: validParts.filter((p): boolean => p.text !== undefined).length,
+            imageParts: validParts.filter((p): boolean => p.inlineData !== undefined).length,
+            partsStructure: validParts.map((p, i): { index: number; hasText: boolean; hasInlineData: boolean; mimeType: string | undefined; dataLength: number } => ({
                 index: i,
                 hasText: p.text !== undefined,
                 hasInlineData: p.inlineData !== undefined,
@@ -1066,7 +951,10 @@ export async function formatForGemini(messages: Message[]): Promise<GeminiConten
 
     logger.info('Gemini format validation complete', '[Multimodal Formatter]', {
         messageCount: formattedMessages.length,
-        totalParts: formattedMessages.reduce((sum, m) => sum + m.parts.length, 0)
+        totalParts: formattedMessages.reduce(
+            (sum: number, m): number => sum + m.parts.length,
+            0,
+        )
     });
 
     return formattedMessages;

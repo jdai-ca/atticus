@@ -6,6 +6,12 @@ export interface OperationResult<T = unknown> {
     code: string;
     message: string;
     details?: unknown;
+    /** HTTP status code from the upstream API, if available */
+    status?: number;
+    /** Provider-specific error code */
+    providerCode?: string;
+    /** Provider-specific error message */
+    providerMessage?: string;
   };
 }
 
@@ -15,11 +21,15 @@ export interface ElectronAPI {
   loadConfig: () => Promise<OperationResult<AppConfig>>;
   saveConversation: (conversation: Conversation) => Promise<OperationResult>;
   loadConversations: () => Promise<OperationResult<Conversation[]>>;
+  deleteConversation: (conversationId: string) => Promise<OperationResult>;
   uploadFile: () => Promise<OperationResult<FileUploadResult>>;
-  savePDF: (data: { filename: string; data: string }) => Promise<OperationResult>;
+  savePDF: (data: { filename: string; data: string }) => Promise<OperationResult<{ filepath: string }>>;
   loadBundledConfig: (configName: string) => Promise<OperationResult<string>>;
+  saveBundledConfig: (configName: string, content: string) => Promise<OperationResult<{ path: string }>>;
+  fetchFactoryConfig: (configName: string) => Promise<OperationResult<string>>;
+  saveApiKey: (providerId: string, apiKey: string) => Promise<OperationResult>;
+  deleteApiKey: (providerId: string) => Promise<OperationResult>;
   secureChatRequest: (request: SecureChatRequest) => Promise<OperationResult<ChatResponse>>;
-  convertPdfToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertWordToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertExcelToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
   convertMarkdownToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
@@ -31,6 +41,11 @@ export interface ElectronAPI {
   convertHeicToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertEmailToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
   convertEpubToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
+  auditLogAppend: (conversationId: string, entryJson: string) => Promise<OperationResult>;
+  auditLogReplace: (conversationId: string, entriesJsonl: string) => Promise<OperationResult>;
+  auditLogRead: (conversationId: string) => Promise<{ success: boolean; lines: string[] }>;
+  auditLogList: () => Promise<{ success: boolean; conversationIds: string[] }>;
+  auditLogDelete: (conversationId: string) => Promise<OperationResult>;
 }
 
 export interface FileUploadResult {
@@ -141,6 +156,7 @@ export interface LegalPracticeArea {
   description: string;
   systemPrompt: string;
   color: string;
+  enabled?: boolean;
 }
 
 // Chat types
@@ -193,7 +209,11 @@ export interface Message {
   };
   apiTrace?: APITrace; // API call trace for debugging
   tags?: string[]; // Tags for categorization and search (e.g., 'interesting', 'important', 'wisdom')
-  metadata?: { isAnalysis?: boolean;[key: string]: any }; // Metadata for special message types
+  metadata?: {
+    isAnalysis?: boolean;
+    selectedJurisdictions?: string[];
+    model?: string;
+  }; // Metadata for special message types
 }
 
 export interface Attachment {
@@ -203,6 +223,9 @@ export interface Attachment {
   size: number;
   data: string; // base64
 }
+
+/** Attachment metadata without the base64 payload — safe to hold in React state */
+export type AttachmentMeta = Omit<Attachment, 'data'>;
 
 export interface Conversation {
   id: string;
@@ -253,7 +276,7 @@ export interface SelectedModel {
   modelId: string;
 }
 
-export type Jurisdiction = 'CA' | 'US' | 'MX' | 'EU';
+export type Jurisdiction = 'CA' | 'US' | 'MX' | 'EU' | 'UK';
 
 export interface JurisdictionInfo {
   code: Jurisdiction;
@@ -283,6 +306,7 @@ export interface SecureChatRequestInternal {
 
 export interface ChatResponse {
   content: string;
+  finishReason?: string;
   usage?: {
     promptTokens: number;
     completionTokens: number;
@@ -292,3 +316,29 @@ export interface ChatResponse {
     cacheReadInputTokens?: number;
   };
 }
+
+// Re-export typed API responses and metadata from separate modules
+export type { 
+  OpenAIResponse,
+  AnthropicResponse,
+  GoogleResponse,
+  MistralResponse,
+  CohereResponse,
+  ProviderResponse,
+  ExtractedUsage,
+} from './apiResponses';
+
+export type {
+  AuditEventDetails,
+  PiiScanDetails,
+  ApiRequestDetails,
+  ApiResponseDetails,
+  SecurityEventDetails,
+  ConversationEventDetails,
+  ConfigChangeDetails,
+  FileMetadata,
+  PiiScanMetadata,
+  DetectionMetadata,
+  ProviderMetadata,
+  TamperEvidence,
+} from './metadata';

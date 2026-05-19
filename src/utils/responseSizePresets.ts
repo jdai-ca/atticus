@@ -102,7 +102,7 @@ export const RESPONSE_SIZE_PRESETS: ResponseSizePreset[] = [
  * Get preset by ID
  */
 export function getPresetById(presetId: string): ResponseSizePreset | undefined {
-    return RESPONSE_SIZE_PRESETS.find(p => p.id === presetId);
+    return RESPONSE_SIZE_PRESETS.find((p): boolean => p.id === presetId);
 }
 
 /**
@@ -174,7 +174,9 @@ export function getRecommendedPreset(
  * Get available presets for a model (filters out presets that exceed model limits)
  */
 export function getAvailablePresets(modelMaxMaxTokens: number): ResponseSizePreset[] {
-    return RESPONSE_SIZE_PRESETS.filter(preset => preset.tokens <= modelMaxMaxTokens);
+    return RESPONSE_SIZE_PRESETS.filter(
+        (preset): boolean => preset.tokens <= modelMaxMaxTokens,
+    );
 }
 
 /**

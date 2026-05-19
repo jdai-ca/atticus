@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { downloadPDF } from "../utils/pdfExport";
 import { Conversation } from "../types";
-import { createLogger } from "../services/logger";
+import { createLogger } from "../services/debugLogger";
 import { useTranslation } from "../i18n/LanguageContext";
 
 const logger = createLogger("Sidebar");
@@ -113,7 +113,7 @@ export default function Sidebar({
           </div>
         ) : (
           <div className="space-y-1">
-            {conversations.map((conv) => (
+            {conversations.map((conv): JSX.Element => (
               <div key={conv.id} className="relative">
                 {editingId === conv.id ? (
                   <fieldset
@@ -318,7 +318,7 @@ export default function Sidebar({
             {/* Search Results */}
             <div className="max-h-96 overflow-y-auto p-2">
               {conversations
-                .filter((conv) => {
+                .filter((conv): boolean => {
                   if (!searchQuery.trim()) return true;
                   const query = searchQuery.toLowerCase();
 
@@ -328,9 +328,16 @@ export default function Sidebar({
                     return (
                       conv.practiceArea?.toLowerCase() === tagId ||
                       conv.advisoryArea?.toLowerCase() === tagId ||
-                      conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
-                      conv.messages.some((msg) =>
-                        msg.tags?.some((tag) => tag.toLowerCase() === tagId),
+                      conv.tags?.some(
+                        (tag): boolean => tag.toLowerCase() === tagId,
+                      ) ||
+                      conv.messages.some(
+                        (msg): boolean =>
+                          Boolean(
+                            msg.tags?.some(
+                              (tag): boolean => tag.toLowerCase() === tagId,
+                            ),
+                          ),
                       )
                     );
                   }
@@ -340,12 +347,12 @@ export default function Sidebar({
                     conv.title.toLowerCase().includes(query) ||
                     conv.practiceArea?.toLowerCase().includes(query) ||
                     conv.advisoryArea?.toLowerCase().includes(query) ||
-                    conv.messages.some((msg) =>
-                      msg.content.toLowerCase().includes(query),
-                    )
-                  );
+                    conv.messages.some(
+                      (msg): boolean => msg.content.toLowerCase().includes(query),
+                      )
+                    );
                 })
-                .map((conv) => (
+                .map((conv): JSX.Element => (
                   <button
                     key={conv.id}
                     onClick={() => {
@@ -377,7 +384,7 @@ export default function Sidebar({
                     </div>
                   </button>
                 ))}
-              {conversations.filter((conv) => {
+              {conversations.filter((conv): boolean => {
                 if (!searchQuery.trim()) return true;
                 const query = searchQuery.toLowerCase();
 
@@ -387,9 +394,16 @@ export default function Sidebar({
                   return (
                     conv.practiceArea?.toLowerCase() === tagId ||
                     conv.advisoryArea?.toLowerCase() === tagId ||
-                    conv.tags?.some((tag) => tag.toLowerCase() === tagId) ||
-                    conv.messages.some((msg) =>
-                      msg.tags?.some((tag) => tag.toLowerCase() === tagId),
+                    conv.tags?.some(
+                      (tag): boolean => tag.toLowerCase() === tagId,
+                    ) ||
+                    conv.messages.some(
+                      (msg): boolean =>
+                        Boolean(
+                          msg.tags?.some(
+                            (tag): boolean => tag.toLowerCase() === tagId,
+                          ),
+                        ),
                     )
                   );
                 }
@@ -399,8 +413,8 @@ export default function Sidebar({
                   conv.title.toLowerCase().includes(query) ||
                   conv.practiceArea?.toLowerCase().includes(query) ||
                   conv.advisoryArea?.toLowerCase().includes(query) ||
-                  conv.messages.some((msg) =>
-                    msg.content.toLowerCase().includes(query),
+                  conv.messages.some(
+                    (msg): boolean => msg.content.toLowerCase().includes(query),
                   )
                 );
               }).length === 0 &&

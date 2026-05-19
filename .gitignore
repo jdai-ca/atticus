@@ -14,7 +14,7 @@ package-lock.json
 # Build outputs
 dist
 dist-electron
-release
+release*
 notes
 *.local
 

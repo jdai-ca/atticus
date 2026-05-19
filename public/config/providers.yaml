@@ -1,5 +1,5 @@
 version: "1.1.0"
-minAppVersion: "0.9.20"
+minAppVersion: "0.9.21"
 lastUpdated: "2026-10-14T00:00:00Z"
 updateUrl: "https://jdai.ca/atticus/providers.yaml"
 license: "Copyright (c) 2026 John Kost, All Rights Reserved."
@@ -285,34 +285,44 @@ providers:
     defaultModel: grok-4
 
     models:
-      - id: grok-4
-        name: Grok 4
+      - id: grok-4.3
+        name: Grok 4.3
         description: Latest Grok model with real-time knowledge
-        maxContextWindow: 256000
-        defaultMaxTokens: 128000
-        maxMaxTokens: 256000
-        inputTokenPrice: 6.00
-        outputTokenPrice: 30.00
+        maxContextWindow: 1000000
+        defaultMaxTokens: 500000
+        maxMaxTokens: 1000000
+        inputTokenPrice: 2.50
+        outputTokenPrice: 5.00
         enabled: true
 
-      - id: grok-4-1-fast-reasoning
-        name: Grok 4.1 Fast Reasoning
-        description: Grok with fast reasoning capabilities
+      - id: grok-4.2-multi-agent
+        name: Grok 4.2 Multi-Agent
+        description: Grok with multi-agent capabilities for complex tasks
+        maxContextWindow: 1000000
+        defaultMaxTokens: 500000
+        maxMaxTokens: 1000000
+        inputTokenPrice: 2.50
+        outputTokenPrice: 5.00
+        enabled: true
+
+      - id: grok-4.2-reasoning
+        name: Grok 4.2 Reasoning
+        description: Grok with reasoning capabilities
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000
         maxMaxTokens: 2000000
-        inputTokenPrice: 0.20
-        outputTokenPrice: 0.50
+        inputTokenPrice: 2.50
+        outputTokenPrice: 5.00
         enabled: true
 
-      - id: grok-4-1-fast-non-reasoning
-        name: Grok 4.1 Fast Non-Reasoning
-        description: Grok with fast non-reasoning capabilities
+      - id: grok-4.2-non-reasoning
+        name: Grok 4.2 Non-Reasoning
+        description: Grok with non-reasoning capabilities
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000
         maxMaxTokens: 2000000
-        inputTokenPrice: 0.20
-        outputTokenPrice: 0.50
+        inputTokenPrice: 2.50
+        outputTokenPrice: 5.00
         enabled: true
 
     capabilities:

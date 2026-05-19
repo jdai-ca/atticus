@@ -61,7 +61,7 @@ const extractKeywords = (text: string): string[] => {
     const words = text.toLowerCase()
         .replace(/[^a-z0-9\s]/g, ' ')
         .split(/\s+/)
-        .filter(w => w.length > 3 && !commonWords.has(w));
+        .filter((w): boolean => w.length > 3 && !commonWords.has(w));
     return Array.from(new Set(words));
 };
 
@@ -108,8 +108,12 @@ export const useTagStore = create<TagStoreState>()(
                     newStats.delete(tagId);
 
                     // Remove from recent and favorites
-                    const newRecentTags = state.recentTags.filter(id => id !== tagId);
-                    const newFavoriteTags = state.favoriteTags.filter(id => id !== tagId);
+                    const newRecentTags = state.recentTags.filter(
+                        (id): boolean => id !== tagId,
+                    );
+                    const newFavoriteTags = state.favoriteTags.filter(
+                        (id): boolean => id !== tagId,
+                    );
 
                     // Remove relationships
                     const newRelationships = state.relationships.filter(
@@ -164,7 +168,10 @@ export const useTagStore = create<TagStoreState>()(
             // Add to recent tags
             addRecentTag: (tagId: string) => {
                 set((state) => {
-                    const newRecentTags = [tagId, ...state.recentTags.filter(id => id !== tagId)].slice(0, 20);
+                    const newRecentTags = [
+                        tagId,
+                        ...state.recentTags.filter((id): boolean => id !== tagId),
+                    ].slice(0, 20);
                     return { recentTags: newRecentTags };
                 });
             },
@@ -180,7 +187,7 @@ export const useTagStore = create<TagStoreState>()(
 
                         const newFavoriteTags = isFavorite
                             ? [...state.favoriteTags, tagId]
-                            : state.favoriteTags.filter(id => id !== tagId);
+                            : state.favoriteTags.filter((id): boolean => id !== tagId);
 
                         return { tags: newTags, favoriteTags: newFavoriteTags };
                     }
@@ -211,7 +218,7 @@ export const useTagStore = create<TagStoreState>()(
                 const state = get();
                 const related = new Set<string>();
 
-                state.relationships.forEach(r => {
+                state.relationships.forEach((r): void => {
                     if (r.sourceTagId === tagId) {
                         related.add(r.targetTagId);
                     } else if (r.targetTagId === tagId && r.relationshipType !== 'parent-child') {
@@ -245,7 +252,9 @@ export const useTagStore = create<TagStoreState>()(
             // Get tags by category
             getTagsByCategory: (category: TagCategory): TagMetadata[] => {
                 const state = get();
-                return Array.from(state.tags.values()).filter(tag => tag.category === category);
+                return Array.from(state.tags.values()).filter(
+                    (tag): boolean => tag.category === category,
+                );
             },
 
             // Add filter preset
@@ -259,7 +268,9 @@ export const useTagStore = create<TagStoreState>()(
             // Remove filter preset
             removeFilterPreset: (presetId: string) => {
                 set((state) => {
-                    const newPresets = state.filterPresets.filter(p => p.id !== presetId);
+                    const newPresets = state.filterPresets.filter(
+                        (p): boolean => p.id !== presetId,
+                    );
                     return { filterPresets: newPresets };
                 });
             },
@@ -269,11 +280,15 @@ export const useTagStore = create<TagStoreState>()(
                 const state = get();
                 const lowerQuery = query.toLowerCase();
 
-                return Array.from(state.tags.values()).filter(tag =>
+                return Array.from(state.tags.values()).filter((tag): boolean =>
                     tag.id.includes(lowerQuery) ||
                     tag.label.toLowerCase().includes(lowerQuery) ||
                     tag.description?.toLowerCase().includes(lowerQuery) ||
-                    tag.aliases?.some(alias => alias.toLowerCase().includes(lowerQuery))
+                    Boolean(
+                        tag.aliases?.some(
+                            (alias): boolean => alias.toLowerCase().includes(lowerQuery),
+                        ),
+                    )
                 );
             },
 
@@ -285,7 +300,7 @@ export const useTagStore = create<TagStoreState>()(
                 const contentLower = messageContent.toLowerCase();
 
                 // Rule-based suggestions
-                state.tags.forEach(tag => {
+                state.tags.forEach((tag): void => {
                     if (existingTags.includes(tag.id)) return; // Skip already applied tags
                     if (tag.isSystemTag) return; // Skip practice/advisory area tags
 
@@ -295,7 +310,9 @@ export const useTagStore = create<TagStoreState>()(
                     // Check if tag keywords match content
                     if (tag.description) {
                         const tagKeywords = extractKeywords(tag.description);
-                        const matchingKeywords = tagKeywords.filter(kw => keywords.includes(kw));
+                        const matchingKeywords = tagKeywords.filter(
+                            (kw): boolean => keywords.includes(kw),
+                        );
                         if (matchingKeywords.length > 0) {
                             confidence += matchingKeywords.length * 0.15;
                             matchReasons.push(`Matches keywords: ${matchingKeywords.slice(0, 3).join(', ')}`);
@@ -310,7 +327,7 @@ export const useTagStore = create<TagStoreState>()(
 
                     // Check aliases
                     if (tag.aliases) {
-                        const matchingAliases = tag.aliases.filter(alias =>
+                        const matchingAliases = tag.aliases.filter((alias): boolean =>
                             contentLower.includes(alias.toLowerCase())
                         );
                         if (matchingAliases.length > 0) {
@@ -351,7 +368,7 @@ export const useTagStore = create<TagStoreState>()(
                     const newTags = new Map(state.tags);
 
                     // Add practice areas as system tags
-                    practiceAreas.forEach(area => {
+                    practiceAreas.forEach((area): void => {
                         const tagId = area.id || normalizeTagId(area.name);
                         if (!newTags.has(tagId)) {
                             newTags.set(tagId, {
@@ -369,7 +386,7 @@ export const useTagStore = create<TagStoreState>()(
                     });
 
                     // Add advisory areas as system tags
-                    advisoryAreas.forEach(area => {
+                    advisoryAreas.forEach((area): void => {
                         const tagId = area.id || normalizeTagId(area.name);
                         if (!newTags.has(tagId)) {
                             newTags.set(tagId, {
@@ -405,8 +422,8 @@ export const useTagStore = create<TagStoreState>()(
             onRehydrateStorage: () => (state) => {
                 if (state) {
                     // Convert arrays back to Maps
-                    state.tags = new Map(state.tags as any);
-                    state.usageStats = new Map(state.usageStats as any);
+                    state.tags = new Map(state.tags as unknown as Iterable<readonly [string, TagMetadata]>);
+                    state.usageStats = new Map(state.usageStats as unknown as Iterable<readonly [string, TagUsageStats]>);
                 }
             }
         }

@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
 import Settings from "./components/Settings";
 import LogViewer from "./components/LogViewer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Scale, Settings as SettingsIcon, FileText } from "lucide-react";
 import packageJson from "../package.json";
 import { LanguageProvider } from "./i18n/LanguageContext";
@@ -151,10 +152,12 @@ function App() {
 
           {/* Chat Window */}
           <div className="flex-1 min-h-0 overflow-hidden">
-            <ChatWindow
-              openConfigDialog={openConfigDialog}
-              onConfigDialogClose={() => setOpenConfigDialog(false)}
-            />
+            <ErrorBoundary area="Chat">
+              <ChatWindow
+                openConfigDialog={openConfigDialog}
+                onConfigDialogClose={() => setOpenConfigDialog(false)}
+              />
+            </ErrorBoundary>
           </div>
 
           {/* Global Footer Disclaimer */}
@@ -171,7 +174,11 @@ function App() {
         </div>
 
         {/* Settings Modal */}
-        {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+        {showSettings && (
+          <ErrorBoundary area="Settings">
+            <Settings onClose={() => setShowSettings(false)} />
+          </ErrorBoundary>
+        )}
 
         {/* Log Viewer Modal */}
         {showLogViewer && <LogViewer onClose={() => setShowLogViewer(false)} />}

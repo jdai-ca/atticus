@@ -202,5 +202,8 @@ export function getCostTierClasses(tier: 'low' | 'medium' | 'high'): {
  * @returns Total cumulative cost
  */
 export function calculateCumulativeCost(costBreakdowns: CostBreakdown[]): number {
-    return costBreakdowns.reduce((sum, cost) => sum + cost.totalCost, 0);
+    return costBreakdowns.reduce(
+        (sum: number, cost: CostBreakdown): number => sum + cost.totalCost,
+        0,
+    );
 }

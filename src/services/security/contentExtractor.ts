@@ -82,8 +82,8 @@ export async function extractContent(
             text = buffer.toString('utf8', 0, Math.min(buffer.length, 10000)); // First 10KB as fallback
             extractionMethod = 'fallback-utf8';
         }
-    } catch (error: any) {
-        warnings.push(`Extraction error: ${error.message}`);
+    } catch (error: unknown) {
+        warnings.push(`Extraction error: ${error instanceof Error ? error.message : String(error)}`);
         text = buffer.toString('utf8', 0, Math.min(buffer.length, 10000));
         extractionMethod = 'error-fallback';
     }
@@ -195,8 +195,8 @@ async function extractPDF(buffer: Buffer): Promise<{
         }
 
         return { text, metadata, images: [], warnings };
-    } catch (error: any) {
-        warnings.push(`PDF extraction error: ${error.message}`);
+    } catch (error: unknown) {
+        warnings.push(`PDF extraction error: ${error instanceof Error ? error.message : String(error)}`);
         return { text: '', metadata: {}, images: [], warnings };
     }
 }
@@ -233,8 +233,8 @@ async function extractDOCX(buffer: Buffer): Promise<{
         }
 
         return { text, metadata, warnings };
-    } catch (error: any) {
-        warnings.push(`DOCX extraction error: ${error.message}`);
+    } catch (error: unknown) {
+        warnings.push(`DOCX extraction error: ${error instanceof Error ? error.message : String(error)}`);
         return { text: '', metadata: {}, warnings };
     }
 }
@@ -270,8 +270,8 @@ async function extractXLSX(buffer: Buffer): Promise<{
         }
 
         return { text, metadata, warnings };
-    } catch (error: any) {
-        warnings.push(`XLSX extraction error: ${error.message}`);
+    } catch (error: unknown) {
+        warnings.push(`XLSX extraction error: ${error instanceof Error ? error.message : String(error)}`);
         return { text: '', metadata: {}, warnings };
     }
 }

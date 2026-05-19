@@ -53,7 +53,9 @@ function getCombinationGuidance(jurisdictions: Jurisdiction[]): string {
     let guidance = '';
 
     // Check for CUSMA countries (any combination of CA, US, MX)
-    const cusmaCountries = jurisdictions.filter(j => ['CA', 'US', 'MX'].includes(j));
+    const cusmaCountries = jurisdictions.filter(
+        (j): boolean => ['CA', 'US', 'MX'].includes(j),
+    );
     if (cusmaCountries.length >= 2) {
         guidance += '\n\nCROSS-BORDER TRADE CONSIDERATIONS: This query involves CUSMA/USMCA region countries. Address:\n- CUSMA/USMCA trade agreement provisions and rules of origin\n- Cross-border regulatory harmonization and mutual recognition\n- Interstate/interprovincial barriers within each country affecting cross-border operations\n- Customs and border procedures between jurisdictions\n- Professional mobility and credential recognition';
     }
@@ -82,15 +84,15 @@ export function getJurisdictionSystemPromptAppendix(
     }
 
     const jurisdictionNames = jurisdictions
-        .map((code) => {
-            const info = JURISDICTIONS.find((j) => j.code === code);
+        .map((code): string => {
+            const info = JURISDICTIONS.find((j): boolean => j.code === code);
             return info?.name || code;
         })
         .join(', ');
 
     // Single jurisdiction case
     if (jurisdictions.length === 1) {
-        const info = JURISDICTIONS.find((j) => j.code === jurisdictions[0]);
+        const info = JURISDICTIONS.find((j): boolean => j.code === jurisdictions[0]);
         const internalComplexity = getInternalComplexityGuidance(jurisdictions[0]);
 
         return `\n\nIMPORTANT JURISDICTIONAL FOCUS: This query specifically concerns ${info?.name} law. Please focus your analysis exclusively on ${info?.name} legal framework, statutes, regulations, case law, and legal precedents. If aspects of this question involve international law or other jurisdictions, only mention them in the context of how they interact with or affect ${info?.name} law.${internalComplexity}`;

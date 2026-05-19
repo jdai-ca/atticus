@@ -51,7 +51,7 @@ export function exampleAdvancedDetection() {
 
     if (result.alternatives && result.alternatives.length > 0) {
         console.log('\nAlternative Matches:');
-        result.alternatives.forEach((alt, idx) => {
+        result.alternatives.forEach((alt, idx): void => {
             console.log(`  ${idx + 1}. ${alt.area.name} - ${(alt.confidence * 100).toFixed(1)}%`);
         });
     }
@@ -177,7 +177,7 @@ export function exampleManageAreas() {
 
     // List enabled areas with keyword counts
     console.log('\n=== Active Practice Areas ===');
-    practiceAreaManager.getEnabledAreas().forEach(area => {
+    practiceAreaManager.getEnabledAreas().forEach((area): void => {
         console.log(`${area.name}: ${area.keywords.length} keywords`);
     });
 
@@ -220,7 +220,13 @@ export function exampleUIIntegration() {
     const areas = practiceAreaManager.getEnabledAreas();
 
     // Create UI options
-    const options = areas.map(area => ({
+    const options = areas.map((area): {
+        value: string;
+        label: string;
+        description: string;
+        color: string;
+        icon: string;
+    } => ({
         value: area.id,
         label: area.name,
         description: area.description,
@@ -264,7 +270,7 @@ export function exampleSmartDetection(userMessage: string) {
         return {
             shouldPromptUser: true,
             primaryArea: result.area,
-            alternatives: result.alternatives.map(alt => alt.area),
+            alternatives: result.alternatives.map((alt): typeof result.area => alt.area),
             message: 'We detected this might be related to multiple practice areas. Please select the most relevant one:'
         };
     }
@@ -282,7 +288,12 @@ export function exampleSmartDetection(userMessage: string) {
 // ============================================================================
 
 export function exampleBatchDetection(documents: Array<{ id: string; content: string }>) {
-    const results = documents.map(doc => {
+    const results = documents.map((doc): {
+        documentId: string;
+        practiceArea: string;
+        confidence: number;
+        matchedKeywords: string[];
+    } => {
         const result = detectPracticeAreaWithConfidence(doc.content, {
             includeAlternatives: false
         });
@@ -296,7 +307,7 @@ export function exampleBatchDetection(documents: Array<{ id: string; content: st
     });
 
     // Group by practice area
-    const grouped = results.reduce((acc, item) => {
+    const grouped = results.reduce((acc, item): Record<string, typeof results> => {
         const area = item.practiceArea;
         if (!acc[area]) acc[area] = [];
         acc[area].push(item);
@@ -304,7 +315,7 @@ export function exampleBatchDetection(documents: Array<{ id: string; content: st
     }, {} as Record<string, typeof results>);
 
     console.log('=== Document Analysis ===');
-    Object.entries(grouped).forEach(([area, docs]) => {
+    Object.entries(grouped).forEach(([area, docs]): void => {
         console.log(`${area}: ${docs.length} documents`);
     });
 
@@ -342,7 +353,7 @@ export function exampleRealTimeDetection(currentText: string) {
 // ============================================================================
 
 export function exampleStatistics(conversations: Array<{ practiceAreaId: string }>) {
-    const stats = conversations.reduce((acc, conv) => {
+    const stats = conversations.reduce((acc, conv): Record<string, number> => {
         const areaId = conv.practiceAreaId;
         acc[areaId] = (acc[areaId] || 0) + 1;
         return acc;
@@ -350,7 +361,12 @@ export function exampleStatistics(conversations: Array<{ practiceAreaId: string 
 
     // Sort by usage
     const sorted = Object.entries(stats)
-        .map(([areaId, count]) => {
+        .map(([areaId, count]): {
+            areaId: string;
+            name: string;
+            count: number;
+            percentage: string;
+        } => {
             const area = practiceAreaManager.getAreaById(areaId);
             return {
                 areaId,
@@ -362,7 +378,7 @@ export function exampleStatistics(conversations: Array<{ practiceAreaId: string 
         .sort((a, b) => b.count - a.count);
 
     console.log('=== Practice Area Usage Statistics ===');
-    sorted.forEach((stat, idx) => {
+    sorted.forEach((stat, idx): void => {
         console.log(`${idx + 1}. ${stat.name}: ${stat.count} (${stat.percentage}%)`);
     });
 
