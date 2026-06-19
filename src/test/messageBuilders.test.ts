@@ -1,7 +1,6 @@
 import { buildSystemPrompt, createUserMessage, createAssistantMessages } from '../utils/messageBuilders';
 import { describe, it, expect } from 'vitest';
-import { DateUtils } from '../utils/dateUtils';
-import type { Jurisdiction, AttachmentMeta, Message, APITrace } from '../types';
+import type { Jurisdiction, AttachmentMeta, APITrace } from '../types';
 
 // Mocks
 const mockAdvisoryArea = { id: 'advisory-1', name: 'Advisory Name', systemPrompt: 'Advisory system prompt.' };

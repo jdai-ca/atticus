@@ -45,8 +45,8 @@ export function sanitizeTextForPDF(text: string): string {
   // Normalize Unicode to NFD first (decomposed), remove combining marks, then back to NFC
   clean = clean.normalize('NFD').replace(/[\u0300-\u036F]/g, '').normalize('NFC');
 
-  // Remove any remaining non-printable characters but be more permissive
-  clean = clean.replace(/[^\x20-\x7E\n\r\t\u00A0-\u024F\u1E00-\u1EFF]/g, '');
+  // Remove any remaining non-printable characters but be more permissive (allow emojis/surrogates)
+  clean = clean.replace(/[^\x20-\x7E\n\r\t\u00A0-\u024F\u1E00-\u1EFF\u2000-\u3300\uD800-\uDFFF]/g, '');
 
   return clean;
 }
@@ -89,6 +89,8 @@ export function stripMarkdown(text: string): string {
     cleanText = cleanText.replace(/\*(.*?)\*/g, '$1');
     // Single underscores (italic)
     cleanText = cleanText.replace(/_(.*?)_/g, '$1');
+    // Strikethrough
+    cleanText = cleanText.replace(/~~(.*?)~~/g, '$1');
   }
 
   // Final cleanup: remove any remaining markdown characters
@@ -101,6 +103,7 @@ export function stripMarkdown(text: string): string {
 }
 
 export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegment[] {
+  if (!markdown) return [];
   const segments: FormattedTextSegment[] = [];
   const lines = markdown.split('\n');
   let inCodeBlock = false;
@@ -179,7 +182,8 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
 }
 
 function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pageWidth: number): number {

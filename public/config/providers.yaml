@@ -11,12 +11,22 @@ providers:
     displayName: OpenAI
     description: GPT-5 collection of models
     endpoint: https://api.openai.com/v1/chat/completions
-    defaultModel: gpt-5.4
+    defaultModel: gpt-5.5
 
     models:
+      - id: gpt-5.5
+        name: GPT-5.5
+        description: Ultimate model with unmatched performance and capabilities
+        maxContextWindow: 1000000
+        defaultMaxTokens: 128000
+        maxMaxTokens: 128000
+        inputTokenPrice: 5.00
+        outputTokenPrice: 30.00
+        enabled: true
+
       - id: gpt-5.4
         name: GPT-5.4
-        description: Ultimate model with unmatched performance and capabilities
+        description: Latest and most advanced model with unparalleled capabilities
         maxContextWindow: 1000000
         defaultMaxTokens: 128000
         maxMaxTokens: 128000
@@ -24,54 +34,24 @@ providers:
         outputTokenPrice: 15.00
         enabled: true
 
-      - id: gpt-5.2
-        name: GPT-5.2
-        description: Latest and most advanced model with unparalleled capabilities
-        maxContextWindow: 400000
-        defaultMaxTokens: 128000
-        maxMaxTokens: 128000
-        inputTokenPrice: 1.75
-        outputTokenPrice: 14.00
-        enabled: true
-
-      - id: gpt-5.1
-        name: GPT-5.1
-        description: Next-generation model with superior reasoning and creativity
-        maxContextWindow: 400000
-        defaultMaxTokens: 128000
-        maxMaxTokens: 128000
-        inputTokenPrice: 1.25
-        outputTokenPrice: 10.00
-        enabled: true
-
-      - id: gpt-5
-        name: GPT-5
-        description: Advanced model with enhanced capabilities
-        maxContextWindow: 400000
-        defaultMaxTokens: 128000
-        maxMaxTokens: 128000
-        inputTokenPrice: 1.25
-        outputTokenPrice: 10.00
-        enabled: true
-
-      - id: gpt-5-mini
-        name: GPT-5 Mini
+      - id: gpt-5.4-mini
+        name: GPT-5.4 Mini
         description: Balanced performance and cost for general tasks
         maxContextWindow: 400000
         defaultMaxTokens: 128000
         maxMaxTokens: 128000
-        inputTokenPrice: 0.25
-        outputTokenPrice: 2.00
+        inputTokenPrice: 0.75
+        outputTokenPrice: 4.50
         enabled: true
 
-      - id: gpt-5-nano
-        name: GPT-5 Nano
+      - id: gpt-5.4-nano
+        name: GPT-5.4 Nano
         description: Cost-effective version of GPT-5 for general tasks
         maxContextWindow: 400000
         defaultMaxTokens: 128000
         maxMaxTokens: 128000
-        inputTokenPrice: 0.05
-        outputTokenPrice: 0.40
+        inputTokenPrice: 0.20
+        outputTokenPrice: 1.25
         enabled: true
 
     capabilities:
@@ -97,19 +77,9 @@ providers:
     defaultModel: claude-sonnet-4-6
 
     models:
-      - id: claude-opus-4-6
-        name: Claude 4.6 Opus
+      - id: claude-opus-4-8
+        name: Claude 4.8 Opus
         description: Latest, powerful model for highly complex tasks
-        maxContextWindow: 200000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 32000
-        inputTokenPrice: 5.00
-        outputTokenPrice: 25.00
-        enabled: true
-
-      - id: claude-opus-4-5
-        name: Claude 4.5 Opus
-        description: Powerful model for highly complex tasks
         maxContextWindow: 200000
         defaultMaxTokens: 16384
         maxMaxTokens: 32000
@@ -120,16 +90,6 @@ providers:
       - id: claude-sonnet-4-6
         name: Claude 4.6 Sonnet
         description: Latest intelligent model, best for complex analysis and coding
-        maxContextWindow: 200000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 64000
-        inputTokenPrice: 3.00
-        outputTokenPrice: 15.00
-        enabled: true
-
-      - id: claude-sonnet-4-5
-        name: Claude 4.5 Sonnet
-        description: Most intelligent model, best for complex analysis and coding
         maxContextWindow: 200000
         defaultMaxTokens: 16384
         maxMaxTokens: 64000
@@ -179,34 +139,24 @@ providers:
         outputTokenPrice: 18.00
         enabled: true
 
-      - id: gemini-3.1-flash-lite-preview
+      - id: gemini-3.1-flash-lite
         name: Gemini 3.1 Flash Lite
         description: Lightweight and cost-effective, 1M token context
         maxContextWindow: 1048576
         defaultMaxTokens: 65536
         maxMaxTokens: 65536
         inputTokenPrice: 0.25
-        outputTokenPrice: 0.50
+        outputTokenPrice: 1.50
         enabled: true
 
-      - id: gemini-3-pro-preview
-        name: Gemini 3 Pro
-        description: Next-gen model with advanced capabilities
-        maxContextWindow: 1048576
-        defaultMaxTokens: 65536
-        maxMaxTokens: 65536
-        inputTokenPrice: 4.00
-        outputTokenPrice: 18.00
-        enabled: true
-
-      - id: gemini-3-flash-preview
-        name: Gemini 3 Flash
+      - id: gemini-3.5-flash
+        name: Gemini 3.5 Flash
         description: Fast and efficient next-gen model, 1M token context
         maxContextWindow: 1048576
         defaultMaxTokens: 65536
         maxMaxTokens: 65536
-        inputTokenPrice: 0.50
-        outputTokenPrice: 1.00
+        inputTokenPrice: 1.50
+        outputTokenPrice: 9.00
         enabled: true
 
     capabilities:
@@ -295,8 +245,8 @@ providers:
         outputTokenPrice: 5.00
         enabled: true
 
-      - id: grok-4.2-multi-agent
-        name: Grok 4.2 Multi-Agent
+      - id: grok-4.20-multi-agent
+        name: Grok 4.20 Multi-Agent
         description: Grok with multi-agent capabilities for complex tasks
         maxContextWindow: 1000000
         defaultMaxTokens: 500000
@@ -305,8 +255,8 @@ providers:
         outputTokenPrice: 5.00
         enabled: true
 
-      - id: grok-4.2-reasoning
-        name: Grok 4.2 Reasoning
+      - id: grok-4.20-reasoning
+        name: Grok 4.20 Reasoning
         description: Grok with reasoning capabilities
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000
@@ -315,8 +265,8 @@ providers:
         outputTokenPrice: 5.00
         enabled: true
 
-      - id: grok-4.2-non-reasoning
-        name: Grok 4.2 Non-Reasoning
+      - id: grok-4.20-non-reasoning
+        name: Grok 4.20 Non-Reasoning
         description: Grok with non-reasoning capabilities
         maxContextWindow: 2000000
         defaultMaxTokens: 1000000

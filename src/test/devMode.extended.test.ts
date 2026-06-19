@@ -1,5 +1,5 @@
 import { isDevelopmentMode, isProductionMode } from '../utils/devMode';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 
 describe('devMode (edge/extended)', () => {
   afterEach(() => {

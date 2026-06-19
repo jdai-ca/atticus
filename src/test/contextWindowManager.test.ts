@@ -61,14 +61,14 @@ describe('getTotalTokenCount', () => {
 
 describe('getTotalTokenCount (edge/extended)', () => {
   it('throws or returns NaN for NaN/undefined content', () => {
-    const msg = { id: '1', role: 'user', content: NaN as any, timestamp: '' };
+    const msg = { id: '1', role: 'user' as const, content: NaN as any, timestamp: '' };
     try {
       const result = getTotalTokenCount([msg as any]);
       expect(result).toBeNaN();
     } catch (e) {
       expect(e).toBeInstanceOf(Error);
     }
-    const msg2 = { id: '2', role: 'user', content: undefined as any, timestamp: '' };
+    const msg2 = { id: '2', role: 'user' as const, content: undefined as any, timestamp: '' };
     try {
       const result = getTotalTokenCount([msg2 as any]);
       expect(result).toBeNaN();
@@ -77,13 +77,13 @@ describe('getTotalTokenCount (edge/extended)', () => {
     }
   });
   it('returns overhead for empty/negative string content', () => {
-    const msg3 = { id: '3', role: 'user', content: '', timestamp: '' };
+    const msg3 = { id: '3', role: 'user' as const, content: '', timestamp: '' };
     expect(getTotalTokenCount([msg3])).toBeGreaterThanOrEqual(4);
-    const msg4 = { id: '4', role: 'user', content: '-1000', timestamp: '' };
+    const msg4 = { id: '4', role: 'user' as const, content: '-1000', timestamp: '' };
     expect(getTotalTokenCount([msg4])).toBeGreaterThanOrEqual(4);
   });
   it('throws for attachments with undefined name', () => {
-    const msg = { id: '1', role: 'user', content: 'hi', timestamp: '', attachments: [{ id: 'a', name: undefined as any, type: '', size: 0, data: '' }] };
+    const msg = { id: '1', role: 'user' as const, content: 'hi', timestamp: '', attachments: [{ id: 'a', name: undefined as any, type: '', size: 0, data: '' }] };
     expect(() => getTotalTokenCount([msg as any])).toThrow();
   });
 });
@@ -169,7 +169,7 @@ describe('truncateToContextWindow', () => {
 // Edge/extended tests for truncateToContextWindow
 
 describe('truncateToContextWindow (edge/extended)', () => {
-  const msg = { id: '1', role: 'user', content: 'hi', timestamp: '' };
+  const msg = { id: '1', role: 'user' as const, content: 'hi', timestamp: '' };
   it('throws or errors for NaN/undefined/negative/zero limits, not for very large', () => {
     try {
       truncateToContextWindow([msg], undefined, NaN as any);
@@ -287,7 +287,7 @@ describe('getContextWindowStats', () => {
 // Edge/extended tests for getContextWindowStats
 
 describe('getContextWindowStats (edge/extended)', () => {
-  const msg = { id: '1', role: 'user', content: 'hi', timestamp: '' };
+  const msg = { id: '1', role: 'user' as const, content: 'hi', timestamp: '' };
   it('throws or errors for NaN/undefined/negative/zero limits, not for very large', () => {
     try {
       getContextWindowStats([msg], undefined, NaN as any);

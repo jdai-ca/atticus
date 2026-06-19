@@ -52,7 +52,7 @@ interface UseYamlEditorResult {
 }
 
 export function useYamlEditor(): UseYamlEditorResult {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [showYamlEditor, setShowYamlEditor] = useState(false);
   const [editingYamlType, setEditingYamlType] = useState<
@@ -89,7 +89,7 @@ export function useYamlEditor(): UseYamlEditorResult {
       version: "1.0.0",
       minAppVersion: "0.9.21",
       lastUpdated: now,
-      updateUrl: `https://jdai.ca/atticus/${type}.yaml`,
+      updateUrl: `https://jdai.ca/atticus/${type}.${language}.yaml`,
       license: "Copyright (c) 2025 John Kost, All Rights Reserved.",
       customized: true,
       practiceAreas: areas.map(
@@ -119,12 +119,12 @@ export function useYamlEditor(): UseYamlEditorResult {
   ): Promise<void> => {
     const filename =
       type === "practices"
-        ? "practices.yaml"
+        ? `practices.${language}.yaml`
         : type === "advisory"
-          ? "advisory.yaml"
+          ? `advisory.${language}.yaml`
           : type === "analysis"
-            ? "analysis.yaml"
-            : "providers.yaml";
+            ? `analysis.${language}.yaml`
+            : `providers.${language}.yaml`;
 
     const confirmed = confirm(
       t.settingsContent.confirmResetFactory.replace("{type}", type),
@@ -185,10 +185,10 @@ export function useYamlEditor(): UseYamlEditorResult {
       setYamlLoadError(null);
       const filename =
         type === "practices"
-          ? "practices.yaml"
+          ? `practices.${language}.yaml`
           : type === "advisory"
-            ? "advisory.yaml"
-            : "analysis.yaml";
+            ? `advisory.${language}.yaml`
+            : `analysis.${language}.yaml`;
 
       if (!globalThis.window?.electronAPI?.loadBundledConfig) {
         const errorMsg =
@@ -308,7 +308,7 @@ export function useYamlEditor(): UseYamlEditorResult {
         serializedYaml = `version: 1.0.0
 minAppVersion: 0.9.20
 lastUpdated: "${new Date().toISOString()}"
-updateUrl: https://jdai.ca/atticus/analysis.yaml
+updateUrl: https://jdai.ca/atticus/analysis.${language}.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
 customized: true
 analysis:
@@ -332,10 +332,10 @@ ${analysisPrompt
 
       const filename =
         editingYamlType === "practices"
-          ? "practices.yaml"
+          ? `practices.${language}.yaml`
           : editingYamlType === "advisory"
-            ? "advisory.yaml"
-            : "analysis.yaml";
+            ? `advisory.${language}.yaml`
+            : `analysis.${language}.yaml`;
       const result = await globalThis.window.electronAPI.saveBundledConfig(
         filename,
         serializedYaml,
@@ -344,6 +344,8 @@ ${analysisPrompt
       if (result.success) {
         setShowYamlEditor(false);
         alert(`${filename} ${t.alerts.saveSuccess}`);
+        // Reload the page to apply configuration changes to all components
+        window.location.reload();
       } else {
         alert(
           `${t.alerts.saveFailed}: ${result.error?.message || t.alerts.unknownError}`,

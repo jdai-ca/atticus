@@ -56,7 +56,7 @@ export function useAnalysis({
 
     for (let i = startIndex; i <= endIndex; i++) {
       const msg = currentConversation.messages[i];
-      if (msg.role === "assistant" && msg.modelInfo) {
+      if (msg && msg.role === "assistant" && msg.modelInfo) {
         usedModels.add(`${msg.modelInfo.providerId}:${msg.modelInfo.modelId}`);
       }
     }

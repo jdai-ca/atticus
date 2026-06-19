@@ -44,7 +44,6 @@ describe('migrateProviderConfig', () => {
 });
 
 // Edge/extended tests for migrateAllProviders and migrateProviderConfig
-import { migrateAllProviders } from '../utils/configMigration';
 
 describe('migrateAllProviders', () => {
   it('returns empty array if no providers', () => {

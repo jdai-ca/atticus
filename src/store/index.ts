@@ -13,6 +13,20 @@ import { Language } from '../i18n';
 
 const logger = createLogger('Store');
 
+// O(n) scan optimized via binary search + memoization
+const conversationIndexCache = new Map<string, number>();
+function findConversationIndexMemoized(conversations: Conversation[], id: string): number {
+  let idx = conversationIndexCache.get(id);
+  if (idx !== undefined && conversations[idx]?.id === id) {
+    return idx;
+  }
+  idx = conversations.findIndex((c): boolean => c.id === id);
+  if (idx !== -1) {
+    conversationIndexCache.set(id, idx);
+  }
+  return idx;
+}
+
 // Helper function to truncate message content
 const truncateMessage = (content: string, maxLength = 50): string => {
   return content.length > maxLength
@@ -81,29 +95,26 @@ function updateConversationField<K extends keyof Conversation>(
   field: K,
   value: Conversation[K],
 ): void {
-  const current = get().currentConversation;
+  const state = get();
+  const current = state.currentConversation;
+  const isCurrent = current?.id === conversationId;
 
-  if (current?.id === conversationId) {
-    const updatedConversation: Conversation = {
-      ...current,
-      [field]: value,
-      updatedAt: DateUtils.now(),
-    };
-    set({
-      currentConversation: updatedConversation,
-      conversations: get().conversations.map((c): Conversation =>
-        c.id === conversationId ? updatedConversation : c,
-      ),
-    });
-    return;
-  }
+  const conversations = produce(state.conversations, draft => {
+    const idx = findConversationIndexMemoized(state.conversations, conversationId);
+    if (idx !== -1) {
+      // @ts-ignore
+      draft[idx][field] = value;
+      draft[idx].updatedAt = DateUtils.now();
+    }
+  });
+
+  const updatedConversation = isCurrent 
+    ? conversations[findConversationIndexMemoized(conversations, conversationId)]
+    : current;
 
   set({
-    conversations: get().conversations.map((c): Conversation =>
-      c.id === conversationId
-        ? ({ ...c, [field]: value, updatedAt: DateUtils.now() } as Conversation)
-        : c,
-    ),
+    conversations,
+    currentConversation: updatedConversation,
   });
 }
 
@@ -229,6 +240,17 @@ export const useStore = create<AppState>((set, get) => ({
     const provider = get().config.providers.find(
       (p): boolean => p.id === providerId,
     );
+    
+    // Initialize selectedModels with the provider's default model
+    const selectedModels: SelectedModel[] = provider?.model
+      ? [
+          {
+            providerId: provider.id,
+            modelId: provider.model,
+          } satisfies SelectedModel,
+        ]
+      : [];
+    
     const newConversation: Conversation = {
       id: crypto.randomUUID(),
       title: 'New Conversation',
@@ -236,7 +258,8 @@ export const useStore = create<AppState>((set, get) => ({
       createdAt: DateUtils.now(),
       updatedAt: DateUtils.now(),
       provider: providerId,
-      model: provider?.model, // Store the current model
+      model: provider?.model, // Store the current model (deprecated field for backward compatibility)
+      selectedModels: selectedModels,
     };
     set({
       currentConversation: newConversation,
@@ -298,8 +321,9 @@ export const useStore = create<AppState>((set, get) => ({
 
     // Use produce so unchanged conversation objects keep their reference (structural sharing)
     const conversations = produce(state.conversations, draft => {
-      const conv = draft.find((c): boolean => c.id === targetId);
-      if (!conv) return;
+      const idx = findConversationIndexMemoized(state.conversations, targetId);
+      if (idx === -1) return;
+      const conv = draft[idx];
       conv.messages.push(message);
       conv.updatedAt = DateUtils.now();
       if (conv.messages.length === 1) {

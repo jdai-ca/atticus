@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { getModelDomain, modelMatchesDomain, getModelsForProvider } from '../utils/modelHelpers';
 
+import { AIProvider } from '../types';
 describe('modelHelpers', () => {
-  const provider = { id: 'prov', modelDomains: [{ modelId: 'm1', domains: 'practice' }] };
+  const provider = { id: 'prov', provider: 'openai' as AIProvider, name: 'Prov', model: 'm1', enabled: true, modelDomains: [{ modelId: 'm1', domains: 'practice' }] };
   const template = { models: [{ id: 'm1', name: 'M1', description: '', maxContextWindow: 1000 }], displayName: 'Prov', icon: '', id: 'prov' };
   it('gets model domain', () => {
     expect(getModelDomain(provider, 'm1')).toBe('practice');

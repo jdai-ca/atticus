@@ -662,7 +662,7 @@ async function sendCohereMessage(
     }),
   );
 
-  const lastMessage = augmentedMessages[augmentedMessages.length - 1];
+  const lastMessage = messages[messages.length - 1];
 
   try {
     const response = await client.chat({
