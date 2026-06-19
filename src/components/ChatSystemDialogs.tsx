@@ -1,9 +1,11 @@
 import APIErrorInspector from "./APIErrorInspector";
 import ConversationCostLedger from "./ConversationCostLedger";
 import PrivacyWarningDialog from "./PrivacyWarningDialog";
+import HarmWarningDialog from "./HarmWarningDialog";
 import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
 import { APITrace, Conversation } from "../types";
 import { PIIScanResult, piiScanner } from "../services/piiScanner";
+import type { SRAISScanResult } from "../services/sraisScanner";
 
 interface ChatSystemDialogsProps {
   readonly showPrivacyWarning: boolean;
@@ -11,6 +13,10 @@ interface ChatSystemDialogsProps {
   readonly onPrivacyProceed: () => void;
   readonly onPrivacyCancel: () => void;
   readonly onPrivacyAnonymize: () => void;
+  readonly showHarmWarning: boolean;
+  readonly sraisScanResult: SRAISScanResult | null;
+  readonly onHarmProceed: () => void;
+  readonly onHarmCancel: () => void;
   readonly showAuditLog: boolean;
   readonly showCostLedger: boolean;
   readonly inspectedApiTrace: APITrace | null;
@@ -26,6 +32,10 @@ export function ChatSystemDialogs({
   onPrivacyProceed,
   onPrivacyCancel,
   onPrivacyAnonymize,
+  showHarmWarning,
+  sraisScanResult,
+  onHarmProceed,
+  onHarmCancel,
   showAuditLog,
   showCostLedger,
   inspectedApiTrace,
@@ -43,6 +53,14 @@ export function ChatSystemDialogs({
           onCancel={onPrivacyCancel}
           onAnonymize={onPrivacyAnonymize}
           showAnonymizeOption={true}
+        />
+      )}
+
+      {showHarmWarning && sraisScanResult && (
+        <HarmWarningDialog
+          scanResult={sraisScanResult}
+          onProceed={onHarmProceed}
+          onCancel={onHarmCancel}
         />
       )}
 

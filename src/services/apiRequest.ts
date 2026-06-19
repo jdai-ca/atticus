@@ -88,7 +88,7 @@ export async function buildOpenAIRequestBody(
     }));
 
     // Then format messages for multimodal (handles attachments, converts PDFs to images)
-    let apiMessages = await formatForOpenAI(augmentedMessages);
+    const apiMessages = await formatForOpenAI(augmentedMessages);
 
     if (systemPrompt) {
         apiMessages.unshift({ role: 'system', content: systemPrompt });
@@ -144,7 +144,7 @@ export async function buildXAIRequestBody(
     }));
 
     // Format messages for xAI multimodal (handles attachments, converts PDFs to images)
-    let apiMessages = await formatForXAI(augmentedMessages);
+    const apiMessages = await formatForXAI(augmentedMessages);
 
     if (systemPrompt) {
         apiMessages.unshift({ role: 'system', content: systemPrompt });

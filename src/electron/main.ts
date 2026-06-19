@@ -30,7 +30,7 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
     inverse() { return this; }
   }
   // DOMMatrix polyfill for pdfjs-dist in Electron main process (no DOM available)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   (globalThis as Record<string, unknown>).DOMMatrix = DOMMatrixPolyfill;
 }
 

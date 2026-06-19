@@ -17,6 +17,18 @@ interface ChatDialogsSectionProps {
   readonly onPrivacyAnonymize: React.ComponentProps<
     typeof ChatSystemDialogs
   >["onPrivacyAnonymize"];
+  readonly showHarmWarning: React.ComponentProps<
+    typeof ChatSystemDialogs
+  >["showHarmWarning"];
+  readonly sraisScanResult: React.ComponentProps<
+    typeof ChatSystemDialogs
+  >["sraisScanResult"];
+  readonly onHarmProceed: React.ComponentProps<
+    typeof ChatSystemDialogs
+  >["onHarmProceed"];
+  readonly onHarmCancel: React.ComponentProps<
+    typeof ChatSystemDialogs
+  >["onHarmCancel"];
   readonly showAuditLog: React.ComponentProps<typeof ChatSystemDialogs>["showAuditLog"];
   readonly showCostLedger: React.ComponentProps<typeof ChatSystemDialogs>["showCostLedger"];
   readonly inspectedApiTrace: React.ComponentProps<
@@ -111,6 +123,10 @@ export function ChatDialogsSection({
   onPrivacyProceed,
   onPrivacyCancel,
   onPrivacyAnonymize,
+  showHarmWarning,
+  sraisScanResult,
+  onHarmProceed,
+  onHarmCancel,
   showAuditLog,
   showCostLedger,
   inspectedApiTrace,
@@ -158,6 +174,10 @@ export function ChatDialogsSection({
         onPrivacyProceed={onPrivacyProceed}
         onPrivacyCancel={onPrivacyCancel}
         onPrivacyAnonymize={onPrivacyAnonymize}
+        showHarmWarning={showHarmWarning}
+        sraisScanResult={sraisScanResult}
+        onHarmProceed={onHarmProceed}
+        onHarmCancel={onHarmCancel}
         showAuditLog={showAuditLog}
         showCostLedger={showCostLedger}
         inspectedApiTrace={inspectedApiTrace}

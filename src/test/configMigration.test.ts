@@ -10,19 +10,15 @@ const validTemplate: ProviderTemplate = {
   supportsRAG: false,
   apiKeyFormat: 'string',
   apiKeyLabel: 'API Key',
-  getApiKeyUrl: () => '',
+  getApiKeyUrl: '',
   id: providerId,
-  provider: providerId,
   endpoint: 'http://endpoint',
   name: 'Test',
-  model: 'm',
-  enabled: true,
   displayName: 'Test Provider',
   description: 'desc',
   defaultModel: 'm',
   models: [modelObj],
   icon: '',
-  docsUrl: '',
   // ...other boolean fields as needed for type
 };
 

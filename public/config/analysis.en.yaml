@@ -3,7 +3,7 @@ minAppVersion: 0.9.21
 lastUpdated: "2026-06-09T00:44:44.338Z"
 updateUrl: https://jdai.ca/atticus/analysis.en.yaml
 license: "Copyright (c) 2025 John Kost, All Rights Reserved."
-customized: true
+customized: false
 analysis:
   systemPrompt: |
     Role: You are a Senior Legal AI Quality Analyst and SRAIS (Safety,

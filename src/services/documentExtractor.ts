@@ -14,6 +14,7 @@ if (typeof process !== 'undefined' && process.versions?.electron) {
     // Electron main process - use legacy build worker with file:// URL
     // The worker needs to be referenced with an absolute file path
     const isDev = process.env.NODE_ENV === 'development';
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- Electron main process conditional require
     const path = require('path');
 
     if (isDev) {

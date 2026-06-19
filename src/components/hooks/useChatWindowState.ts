@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { APITrace, AttachmentMeta, FileUploadResult } from "../../types";
 import { PIIScanResult } from "../../services/piiScanner";
+import { SRAISScanResult } from "../../services/sraisScanner";
 import type { SecurityAnalysisResult } from "../../services/fileSecurityPipeline";
 
 export function useChatWindowState() {
@@ -24,6 +25,8 @@ export function useChatWindowState() {
   const [piiScanResult, setPiiScanResult] = useState<PIIScanResult | null>(
     null,
   );
+  const [showHarmWarning, setShowHarmWarning] = useState(false);
+  const [sraisScanResult, setSraisScanResult] = useState<SRAISScanResult | null>(null);
   const [pendingMessage, setPendingMessage] = useState<string>("");
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [showCostLedger, setShowCostLedger] = useState(false);
@@ -70,6 +73,10 @@ export function useChatWindowState() {
     setShowPrivacyWarning: typeof setShowPrivacyWarning;
     piiScanResult: typeof piiScanResult;
     setPiiScanResult: typeof setPiiScanResult;
+    showHarmWarning: boolean;
+    setShowHarmWarning: typeof setShowHarmWarning;
+    sraisScanResult: typeof sraisScanResult;
+    setSraisScanResult: typeof setSraisScanResult;
     pendingMessage: string;
     setPendingMessage: typeof setPendingMessage;
     showAuditLog: boolean;
@@ -126,6 +133,10 @@ export function useChatWindowState() {
     setShowPrivacyWarning,
     piiScanResult,
     setPiiScanResult,
+    showHarmWarning,
+    setShowHarmWarning,
+    sraisScanResult,
+    setSraisScanResult,
     pendingMessage,
     setPendingMessage,
     showAuditLog,

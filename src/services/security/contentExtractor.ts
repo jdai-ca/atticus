@@ -9,7 +9,7 @@ import { UploadedFile } from '../fileSecurityPipeline';
 
 export interface ExtractedContent {
     text: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
     images: Buffer[];
     deobfuscated: {
         hadZeroWidth: boolean;
@@ -53,7 +53,7 @@ export async function extractContent(
     const detectedType = typeAnalysis.detectedType;
 
     let text = '';
-    let metadata: Record<string, any> = {};
+    let metadata: Record<string, unknown> = {};
     let images: Buffer[] = [];
     let extractionMethod = 'unknown';
     let warnings: string[] = [];
@@ -153,7 +153,7 @@ export async function extractContent(
 
 async function extractPDF(buffer: Buffer): Promise<{
     text: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
     images: Buffer[];
     warnings: string[];
 }> {
@@ -180,7 +180,7 @@ async function extractPDF(buffer: Buffer): Promise<{
         }
 
         // Metadata extraction
-        const metadata: Record<string, any> = {
+        const metadata: Record<string, unknown> = {
             pdfVersion: header.match(/PDF-([\d.]+)/)?.[1],
         };
 
@@ -203,7 +203,7 @@ async function extractPDF(buffer: Buffer): Promise<{
 
 async function extractDOCX(buffer: Buffer): Promise<{
     text: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
     warnings: string[];
 }> {
     // TODO: Implement actual DOCX parsing with mammoth library
@@ -223,7 +223,7 @@ async function extractDOCX(buffer: Buffer): Promise<{
                 .join(' ');
         }
 
-        const metadata: Record<string, any> = {
+        const metadata: Record<string, unknown> = {
             format: 'DOCX',
         };
 
@@ -241,7 +241,7 @@ async function extractDOCX(buffer: Buffer): Promise<{
 
 async function extractXLSX(buffer: Buffer): Promise<{
     text: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
     warnings: string[];
 }> {
     // TODO: Implement actual XLSX parsing with xlsx library
@@ -260,7 +260,7 @@ async function extractXLSX(buffer: Buffer): Promise<{
                 .join(' ');
         }
 
-        const metadata: Record<string, any> = {
+        const metadata: Record<string, unknown> = {
             format: 'XLSX',
         };
 

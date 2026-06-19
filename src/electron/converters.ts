@@ -763,7 +763,7 @@ export async function convertRtfToImagesElectron(base64Data: string): Promise<st
 
     // Basic RTF to HTML conversion (simplified)
     // Remove RTF control words and extract plain text
-    let plainText = rtfText
+    const plainText = rtfText
       .replace(/\\[a-z]+(-?\d+)?[ ]?/g, ' ') // Remove RTF commands
       .replace(/[{}]/g, '') // Remove braces
       .replace(/\\/g, '') // Remove backslashes

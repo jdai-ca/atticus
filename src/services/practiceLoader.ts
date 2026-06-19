@@ -49,7 +49,7 @@ class PracticeConfigLoader {
 
         // 2. Try to load from cache
         const cached = this.loadCachedConfig(language);
-        let current = this.selectNewerConfig(bundled, cached);
+        const current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         this.updateFromRemote(current.version, language).catch((err: unknown): void => {

@@ -85,6 +85,7 @@ export function useModelSelection({
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect((): void => {
     if (!currentConversation) return;
 
@@ -97,9 +98,11 @@ export function useModelSelection({
         const keys = validModels.map(
           (sm): string => `${sm.providerId}:${sm.modelId}`,
         );
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedModelKeys(new Set(keys));
 
         if (validModels.length !== savedModels.length) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setConversationSelectedModels(currentConversation.id, validModels);
         }
       } else {
@@ -110,6 +113,7 @@ export function useModelSelection({
     }
   }, [currentConversation?.id, providers]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect((): void => {
     if (!currentConversation) return;
 
@@ -117,11 +121,14 @@ export function useModelSelection({
       currentConversation.selectedJurisdictions &&
       currentConversation.selectedJurisdictions.length > 0
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedJurisdictions(new Set(currentConversation.selectedJurisdictions));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedJurisdictions(new Set());
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMaxTokensOverride(currentConversation.maxTokensOverride);
   }, [currentConversation?.id]);
 

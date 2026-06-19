@@ -12,10 +12,11 @@ import { buildSystemPrompt, createUserMessage, createAssistantMessages } from ".
 import { truncateToContextWindow } from "../../utils/contextWindowManager";
 import { detectPracticeArea } from "../../modules/practiceArea";
 import { detectAdvisoryArea } from "../../modules/advisoryArea";
-import { auditLogger } from "../../services/auditLogger";
+import { auditLogger, AuditEventType, AuditSeverity } from "../../services/auditLogger";
 import { isTextDocumentExtension } from "../../constants/fileExtensions";
 import { createLogger } from "../../services/debugLogger";
 import { DateUtils } from "../../utils/dateUtils";
+import { sraisScanner } from "../../services/sraisScanner";
 
 const logger = createLogger("useSendMessage");
 
@@ -403,6 +404,24 @@ export function useSendMessage({
       attachmentDataRef.current,
     );
 
+    const systemPromptSraisResult = sraisScanner.scan(fullSystemPrompt);
+    if (systemPromptSraisResult.hasFindings) {
+      userMessage.metadata = {
+        ...userMessage.metadata,
+        sraisAnalysis: systemPromptSraisResult.findings,
+      };
+      
+      auditLogger.logEvent(
+        AuditEventType.SECURITY_SCAN_COMPLETED,
+        AuditSeverity.WARNING,
+        "SYSTEM",
+        "SRAIS scan detected harms in system prompt",
+        { findingsCount: systemPromptSraisResult.findings.length },
+        targetConversationId,
+        userMessage.id
+      );
+    }
+
     addMessage(userMessage, targetConversationId);
     setInput("");
     setAttachments([]);
@@ -471,6 +490,22 @@ export function useSendMessage({
       );
 
       for (const message of assistantMessages) {
+        const responseSraisResult = sraisScanner.scan(message.content);
+        if (responseSraisResult.hasFindings) {
+          message.metadata = {
+            ...message.metadata,
+            sraisAnalysis: responseSraisResult.findings,
+          };
+          auditLogger.logEvent(
+            AuditEventType.SECURITY_SCAN_COMPLETED,
+            AuditSeverity.WARNING,
+            "SYSTEM",
+            "SRAIS scan detected harms in AI response",
+            { findingsCount: responseSraisResult.findings.length },
+            targetConversationId,
+            message.id
+          );
+        }
         addMessage(message, targetConversationId);
       }
 

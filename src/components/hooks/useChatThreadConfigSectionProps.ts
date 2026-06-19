@@ -14,6 +14,7 @@ export function useChatThreadConfigSectionProps(
 ): UseChatThreadConfigSectionPropsResult {
   const chatThreadConfigSectionProps = useMemo(
     (): ChatThreadConfigSectionProps => ({ ...params }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       params.hasCurrentConversation,
       params.selectedModelKeys,

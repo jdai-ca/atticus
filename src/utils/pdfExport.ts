@@ -40,6 +40,7 @@ export function sanitizeTextForPDF(text: string): string {
   clean = clean.replace(/[\u0300-\u036F]/g, '');
 
   // Remove control characters except newlines and tabs
+  // eslint-disable-next-line no-control-regex
   clean = clean.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
   // Normalize Unicode to NFD first (decomposed), remove combining marks, then back to NFC
@@ -107,10 +108,10 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
   const segments: FormattedTextSegment[] = [];
   const lines = markdown.split('\n');
   let inCodeBlock = false;
-  let listCounter = 0;
+  let _listCounter = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
+    const line = lines[i];
 
     // Handle code blocks
     if (line.trim().startsWith('```')) {
@@ -152,7 +153,7 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
     if (line.match(/^\s*\d+\.\s+/)) {
       const text = line.replace(/^\s*\d+\.\s+/, '');
       const indent = Math.floor(line.search(/\d/) / 2);
-      listCounter++;
+      _listCounter++;
       segments.push({
         text: stripMarkdown(text), // Clean markdown from numbered list text
         isNumbered: true,
@@ -163,7 +164,7 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
 
     // Reset list counter on non-list lines
     if (!line.match(/^\s*\d+\.\s+/)) {
-      listCounter = 0;
+      _listCounter = 0;
     }
 
     // Handle inline formatting (bold, italic, code)
@@ -797,7 +798,7 @@ export async function exportMessageToPDF(
   pdf.setDrawColor(200, 200, 200);
   pdf.line(margin, headerY + 3, pageWidth - margin, headerY + 3);
 
-  let yPosition = headerY + 10;
+  const yPosition = headerY + 10;
 
   // Add the single message
   addMessageContent(pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition);

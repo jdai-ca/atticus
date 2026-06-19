@@ -94,6 +94,12 @@ export default function MessageBubble({
                 💼 {message.advisoryArea}
               </span>
             )}
+            {/* SRAIS Flags */}
+            {message.metadata?.sraisAnalysis && message.metadata.sraisAnalysis.length > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded bg-orange-900/30 text-orange-300 border border-orange-700" title={`SRAIS Harms Detected: ${message.metadata.sraisAnalysis.map(r => r.detectedHarms.join(', ')).join(' | ')}`}>
+                ⚠️ Potential Harms Detected ({message.metadata.sraisAnalysis.length})
+              </span>
+            )}
             {/* Display tags */}
             {message.tags &&
               message.tags.length > 0 &&

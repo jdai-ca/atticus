@@ -49,7 +49,7 @@ class AdvisoryConfigLoader {
 
         // 2. Try to load from cache
         const cached = this.loadCachedConfig(language);
-        let current = this.selectNewerConfig(bundled, cached);
+        const current = this.selectNewerConfig(bundled, cached);
         logger.info('Using config', { version: current.version, areasCount: current.practiceAreas.length });
 
         // 3. Try remote update (non-blocking, won't delay app startup)

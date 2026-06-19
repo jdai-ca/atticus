@@ -1,6 +1,8 @@
 import type { Conversation, Jurisdiction } from "../../types";
 import type { PIIScanResult } from "../../services/piiScanner";
 import { piiScanner } from "../../services/piiScanner";
+import type { SRAISScanResult } from "../../services/sraisScanner";
+import { sraisScanner } from "../../services/sraisScanner";
 import {
   auditLogger,
   AuditEventType,
@@ -18,6 +20,8 @@ interface UseSendHandlerProps {
   readonly setPendingMessage: (v: string) => void;
   readonly setPiiScanResult: (v: PIIScanResult | null) => void;
   readonly setShowPrivacyWarning: (v: boolean) => void;
+  readonly setSraisScanResult: (v: SRAISScanResult | null) => void;
+  readonly setShowHarmWarning: (v: boolean) => void;
   readonly sendMessage: (messageText: string) => Promise<void>;
 }
 
@@ -34,6 +38,8 @@ export function useSendHandler({
   setPendingMessage,
   setPiiScanResult,
   setShowPrivacyWarning,
+  setSraisScanResult,
+  setShowHarmWarning,
   sendMessage,
 }: UseSendHandlerProps): UseSendHandlerResult {
   const handleSend = async (): Promise<void> => {
@@ -112,7 +118,35 @@ export function useSendHandler({
       return; // Stop here, wait for user decision
     }
 
-    // If no PII detected, proceed with sending
+    // SRAIS Scan - check for harms in user input
+    const sraisResult = sraisScanner.scan(input);
+    
+    // AUDIT: SRAIS scan performed (you might want to add a specific audit method for this later)
+    await auditLogger.logEvent(
+      AuditEventType.SECURITY_SCAN_COMPLETED,
+      AuditSeverity.INFO,
+      "SYSTEM",
+      "SRAIS scan performed on user input",
+      {
+        hasFindings: sraisResult.hasFindings,
+        findingsCount: sraisResult.findings.length,
+      },
+      currentConversation.id,
+      messageId
+    );
+
+    if (sraisResult.hasFindings) {
+      setPendingMessage(input);
+      setSraisScanResult(sraisResult);
+      setShowHarmWarning(true);
+
+      logger.info("SRAIS harm potential detected, showing warning dialog", {
+        findingsCount: sraisResult.findings.length,
+      });
+      return; // Wait for user decision
+    }
+
+    // If no PII or SRAIS detected, proceed with sending
     await sendMessage(input);
   };
 

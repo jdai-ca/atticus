@@ -305,7 +305,7 @@ export const useTagStore = create<TagStoreState>()(
                     if (tag.isSystemTag) return; // Skip practice/advisory area tags
 
                     let confidence = 0;
-                    let matchReasons: string[] = [];
+                    const matchReasons: string[] = [];
 
                     // Check if tag keywords match content
                     if (tag.description) {

@@ -242,7 +242,7 @@ export async function detectObfuscation(text: string): Promise<ObfuscationFindin
                     suspicionLevel: 70,
                 });
             }
-        } catch (e) {
+        } catch {
             // Invalid base64, ignore
         }
     }
@@ -259,7 +259,7 @@ export async function detectObfuscation(text: string): Promise<ObfuscationFindin
                     suspicionLevel: 75,
                 });
             }
-        } catch (e) {
+        } catch {
             // Invalid hex, ignore
         }
     }
@@ -312,10 +312,8 @@ export async function detectObfuscation(text: string): Promise<ObfuscationFindin
  */
 export async function detectAIEvasionTechniques(
     text: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    metadata: Record<string, any>
+    _metadata: Record<string, unknown>
 ): Promise<AIEvasionFinding[]> {
-    void metadata;
     const findings: AIEvasionFinding[] = [];
 
     // Token boundary splitting
@@ -372,9 +370,7 @@ function calculatePerplexity(text: string): number {
     // Real implementation would use language model probabilities
     const words = text.toLowerCase().split(/\s+/);
     const uniqueWords = new Set(words);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const vocabulary = uniqueWords.size;
-    void vocabulary;
+    const _vocabulary = uniqueWords.size;
 
     // Estimate entropy
     const wordFreq = new Map<string, number>();
@@ -423,7 +419,7 @@ function detectZeroWidthSteganography(text: string): {
     try {
         const bytes = binary.match(/.{8}/g) || [];
         decoded = bytes.map(byte => String.fromCharCode(parseInt(byte, 2))).join('');
-    } catch (e) {
+    } catch {
         // Decoding failed
     }
 
@@ -508,7 +504,7 @@ function detectLSBSteganography(imageBuffer: Buffer, fileType: string): {
 
     // Analyze byte distribution in last 2 bits
     const sampleSize = Math.min(imageBuffer.length, 10000);
-    let lsbDistribution = [0, 0, 0, 0];
+    const lsbDistribution = [0, 0, 0, 0];
 
     for (let i = 0; i < sampleSize; i++) {
         const lsb = imageBuffer[i] & 0x03;
@@ -632,7 +628,7 @@ function detectEncodingChain(text: string): {
                 decoded = true;
                 levels++;
             }
-        } catch (e) {
+        } catch {
             // Base64 decoding failed, continue to try hex
         }
 
@@ -645,7 +641,7 @@ function detectEncodingChain(text: string): {
                     decoded = true;
                     levels++;
                 }
-            } catch (e) {
+            } catch {
                 // Hex decoding failed, exit decoding loop
             }
         }
@@ -715,6 +711,7 @@ function detectEmbeddingAnomalies(text: string): {
 } {
     // Detect unusual character sequences that might perturb embeddings
     const unusualPatterns = [
+        // eslint-disable-next-line no-control-regex
         /[^\x00-\x7F]{3,}/g, // Non-ASCII sequences
         /[A-Z]{8,}/g,        // Excessive capitals
         /\d{10,}/g,          // Long number sequences

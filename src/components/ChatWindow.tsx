@@ -78,6 +78,10 @@ export default function ChatWindow({
     setShowPrivacyWarning,
     piiScanResult,
     setPiiScanResult,
+    showHarmWarning,
+    setShowHarmWarning,
+    sraisScanResult,
+    setSraisScanResult,
     pendingMessage,
     setPendingMessage,
     showAuditLog,
@@ -271,6 +275,20 @@ export default function ChatWindow({
     sendMessage,
   });
 
+  const handleHarmProceed = () => {
+    setShowHarmWarning(false);
+    setSraisScanResult(null);
+    if (pendingMessage) {
+      sendMessage(pendingMessage);
+    }
+  };
+
+  const handleHarmCancel = () => {
+    setShowHarmWarning(false);
+    setSraisScanResult(null);
+    setPendingMessage("");
+  };
+
   const { handleSend, handleKeyDown } = useSendHandler({
     input,
     currentConversation,
@@ -279,6 +297,8 @@ export default function ChatWindow({
     setPendingMessage,
     setPiiScanResult,
     setShowPrivacyWarning,
+    setSraisScanResult,
+    setShowHarmWarning,
     sendMessage,
   });
 
@@ -399,6 +419,10 @@ export default function ChatWindow({
       onPrivacyProceed: handlePrivacyProceed,
       onPrivacyCancel: handlePrivacyCancel,
       onPrivacyAnonymize: handlePrivacyAnonymize,
+      showHarmWarning,
+      sraisScanResult,
+      onHarmProceed: handleHarmProceed,
+      onHarmCancel: handleHarmCancel,
       showAuditLog,
       showCostLedger,
       inspectedApiTrace,

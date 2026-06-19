@@ -102,7 +102,7 @@ function updateConversationField<K extends keyof Conversation>(
   const conversations = produce(state.conversations, draft => {
     const idx = findConversationIndexMemoized(state.conversations, conversationId);
     if (idx !== -1) {
-      // @ts-ignore
+      // @ts-expect-error -- generic field indexing is safe here
       draft[idx][field] = value;
       draft[idx].updatedAt = DateUtils.now();
     }

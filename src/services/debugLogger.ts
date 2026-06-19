@@ -233,7 +233,7 @@ class Logger {
                     this.logHistory = JSON.parse(stored);
                 }
             }
-        } catch (error) {
+        } catch {
             // Ignore load errors
         }
     }

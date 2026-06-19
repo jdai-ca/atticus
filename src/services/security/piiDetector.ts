@@ -121,10 +121,8 @@ function validateLuhn(cardNumber: string): boolean {
  */
 export async function detectPII(
     text: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    metadata: Record<string, any>
+    _metadata: Record<string, unknown>
 ): Promise<PIIFinding[]> {
-    void metadata;
     const findings: PIIFinding[] = [];
     const lines = text.split('\n');
     void lines; // Explicitly mark as intentionally unused

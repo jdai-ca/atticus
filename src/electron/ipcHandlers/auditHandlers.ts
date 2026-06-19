@@ -12,7 +12,7 @@ function getAuditDir(): string {
 
 function getAuditFilePath(conversationId: string): string {
   // Sanitize to prevent path traversal
-  const safe = conversationId.replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const safe = conversationId.replace(/[^a-zA-Z0-9_-]/g, '_');
   return path.join(getAuditDir(), `${safe}.jsonl`);
 }
 

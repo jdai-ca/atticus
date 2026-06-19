@@ -87,7 +87,7 @@ export class ConfigLoader {
 
         // 2. Try to load from cache (skip in development for hot-reload)
         const cached = isDevelopmentMode() ? null : this.loadCachedConfig(language);
-        let current = this.selectNewerConfig(bundled, cached);
+        const current = this.selectNewerConfig(bundled, cached);
 
         // 3. Try remote update (non-blocking, won't delay app startup)
         if (!isDevelopmentMode()) {

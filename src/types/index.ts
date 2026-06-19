@@ -1,3 +1,5 @@
+import type { AnalysisResult } from '../services/sraisScanner';
+
 // Operation result type for secure IPC communication
 export interface OperationResult<T = unknown> {
   success: boolean;
@@ -213,6 +215,7 @@ export interface Message {
     isAnalysis?: boolean;
     selectedJurisdictions?: string[];
     model?: string;
+    sraisAnalysis?: AnalysisResult[];
   }; // Metadata for special message types
 }
 

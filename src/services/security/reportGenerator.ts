@@ -156,7 +156,7 @@ function generateRedactionSuggestions(
     findings.forEach(finding => {
         let replacement = '';
         let reason = '';
-        let priority: 'critical' | 'high' | 'medium' | 'low' = finding.severity;
+        const priority: 'critical' | 'high' | 'medium' | 'low' = finding.severity;
 
         // Determine appropriate redaction based on PII type
         switch (finding.type) {
@@ -170,7 +170,7 @@ function generateRedactionSuggestions(
                 reason = 'Credit Card Number (CRITICAL: PCI-DSS violation)';
                 break;
 
-            case 'EMAIL':
+            case 'EMAIL': {
                 const emailParts = finding.content.split('@');
                 if (emailParts.length === 2) {
                     replacement = `[REDACTED]@${emailParts[1]}`;
@@ -179,6 +179,7 @@ function generateRedactionSuggestions(
                 }
                 reason = 'Email Address (GDPR/CCPA protected)';
                 break;
+            }
 
             case 'PHONE':
                 replacement = '(XXX) XXX-XXXX';
