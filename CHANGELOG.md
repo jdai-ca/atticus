@@ -5,6 +5,12 @@ All notable changes to Atticus will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Anthropic Provider 404 Errors**: Fixed Anthropic API requests failing with `404 not_found_error` since v0.9.18. The migration to the official Anthropic SDK (commit cbc7650) passed the provider's full endpoint URL (`https://api.anthropic.com/v1/messages`) as the SDK's `baseURL`, which then appended an additional `/v1/messages`, producing requests to a nonexistent path (`https://api.anthropic.com/v1/messages/v1/messages`). The endpoint is now `https://api.anthropic.com`.
+
 ## [0.9.20] - 2026-03-15
 
 ### Added
