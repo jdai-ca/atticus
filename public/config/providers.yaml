@@ -93,7 +93,7 @@ providers:
     name: Anthropic
     displayName: Anthropic AI
     description: Claude 4.x family - Opus, Sonnet, and Haiku
-    endpoint: https://api.anthropic.com/v1/messages
+    endpoint: https://api.anthropic.com
     defaultModel: claude-sonnet-4-6
 
     models:
