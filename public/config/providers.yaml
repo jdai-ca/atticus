@@ -72,27 +72,37 @@ providers:
   - id: anthropic
     name: Anthropic
     displayName: Anthropic AI
-    description: Claude 4.x family - Opus, Sonnet, and Haiku
-    endpoint: https://api.anthropic.com/v1/messages
+    description: Claude 4 & 5 family - Fable, Opus, Sonnet, and Haiku
+    endpoint: https://api.anthropic.com/
     defaultModel: claude-sonnet-4-6
 
     models:
+      - id: claude-fable-5
+        name: Claude 5 Fable
+        description: Latest, most capable model for complex reasoning and coding
+        maxContextWindow: 1000000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
+        inputTokenPrice: 10.00
+        outputTokenPrice: 50.00
+        enabled: true
+
       - id: claude-opus-4-8
         name: Claude 4.8 Opus
         description: Latest, powerful model for highly complex tasks
-        maxContextWindow: 200000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 32000
+        maxContextWindow: 1000000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
         inputTokenPrice: 5.00
         outputTokenPrice: 25.00
         enabled: true
 
-      - id: claude-sonnet-4-6
-        name: Claude 4.6 Sonnet
+      - id: claude-sonnet-5
+        name: Claude 5 Sonnet
         description: Latest intelligent model, best for complex analysis and coding
-        maxContextWindow: 200000
-        defaultMaxTokens: 16384
-        maxMaxTokens: 64000
+        maxContextWindow: 1000000
+        defaultMaxTokens: 64000
+        maxMaxTokens: 128000
         inputTokenPrice: 3.00
         outputTokenPrice: 15.00
         enabled: true
