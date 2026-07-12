@@ -2,7 +2,7 @@ import type { Conversation, Jurisdiction } from "../../types";
 import type { PIIScanResult } from "../../services/piiScanner";
 import { piiScanner } from "../../services/piiScanner";
 import type { SRAISScanResult } from "../../services/sraisScanner";
-import { sraisScanner } from "../../services/sraisScanner";
+import { buildSraisAnalysisMetadata } from "../../services/sraisScanner";
 import {
   auditLogger,
   AuditEventType,
@@ -119,8 +119,12 @@ export function useSendHandler({
     }
 
     // SRAIS Scan - check for harms in user input
-    const sraisResult = sraisScanner.scan(input);
-    
+    const sraisMetadata = buildSraisAnalysisMetadata(input);
+    const sraisResult: SRAISScanResult = {
+      hasFindings: Object.keys(sraisMetadata).length > 0,
+      findings: sraisMetadata.sraisAnalysis ?? [],
+    };
+
     // AUDIT: SRAIS scan performed (you might want to add a specific audit method for this later)
     await auditLogger.logEvent(
       AuditEventType.SECURITY_SCAN_COMPLETED,
@@ -132,7 +136,7 @@ export function useSendHandler({
         findingsCount: sraisResult.findings.length,
       },
       currentConversation.id,
-      messageId
+      messageId,
     );
 
     if (sraisResult.hasFindings) {

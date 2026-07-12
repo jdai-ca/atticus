@@ -8,6 +8,7 @@ import {
 } from "../types/index";
 import { DateUtils } from "../utils/dateUtils";
 import { useTranslation } from "../i18n/LanguageContext";
+import { countSraisDetectedHarms } from "../services/sraisScanner";
 import CostReport from "./CostReport";
 
 interface MessageBubbleProps {
@@ -96,8 +97,11 @@ export default function MessageBubble({
             )}
             {/* SRAIS Flags */}
             {message.metadata?.sraisAnalysis && message.metadata.sraisAnalysis.length > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded bg-orange-900/30 text-orange-300 border border-orange-700" title={`SRAIS Harms Detected: ${message.metadata.sraisAnalysis.map(r => r.detectedHarms.join(', ')).join(' | ')}`}>
-                ⚠️ Potential Harms Detected ({message.metadata.sraisAnalysis.length})
+              <span
+                className="text-xs px-2 py-0.5 rounded bg-orange-900/30 text-orange-300 border border-orange-700"
+                title={`SRAIS Harms Detected: ${message.metadata.sraisAnalysis.map((r) => r.detectedHarms.join(", ")).join(" | ")}`}
+              >
+                ⚠️ {`${t.harmWarningBadgeLabel} (${countSraisDetectedHarms(message.metadata.sraisAnalysis)})`}
               </span>
             )}
             {/* Display tags */}

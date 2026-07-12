@@ -16,7 +16,7 @@ import { auditLogger, AuditEventType, AuditSeverity } from "../../services/audit
 import { isTextDocumentExtension } from "../../constants/fileExtensions";
 import { createLogger } from "../../services/debugLogger";
 import { DateUtils } from "../../utils/dateUtils";
-import { sraisScanner } from "../../services/sraisScanner";
+import { buildSraisAnalysisMetadata, sraisScanner } from "../../services/sraisScanner";
 
 const logger = createLogger("useSendMessage");
 
@@ -404,21 +404,21 @@ export function useSendMessage({
       attachmentDataRef.current,
     );
 
-    const systemPromptSraisResult = sraisScanner.scan(fullSystemPrompt);
-    if (systemPromptSraisResult.hasFindings) {
+    const userMessageSraisMetadata = buildSraisAnalysisMetadata(fullContextForDetection);
+    if (Object.keys(userMessageSraisMetadata).length > 0) {
       userMessage.metadata = {
         ...userMessage.metadata,
-        sraisAnalysis: systemPromptSraisResult.findings,
+        ...userMessageSraisMetadata,
       };
-      
+
       auditLogger.logEvent(
         AuditEventType.SECURITY_SCAN_COMPLETED,
         AuditSeverity.WARNING,
         "SYSTEM",
-        "SRAIS scan detected harms in system prompt",
-        { findingsCount: systemPromptSraisResult.findings.length },
+        "SRAIS scan detected harms in user prompt",
+        { findingsCount: userMessageSraisMetadata.sraisAnalysis?.length ?? 0 },
         targetConversationId,
-        userMessage.id
+        userMessage.id,
       );
     }
 
@@ -490,20 +490,20 @@ export function useSendMessage({
       );
 
       for (const message of assistantMessages) {
-        const responseSraisResult = sraisScanner.scan(message.content);
-        if (responseSraisResult.hasFindings) {
+        const responseSraisMetadata = buildSraisAnalysisMetadata(message.content);
+        if (Object.keys(responseSraisMetadata).length > 0) {
           message.metadata = {
             ...message.metadata,
-            sraisAnalysis: responseSraisResult.findings,
+            ...responseSraisMetadata,
           };
           auditLogger.logEvent(
             AuditEventType.SECURITY_SCAN_COMPLETED,
             AuditSeverity.WARNING,
             "SYSTEM",
             "SRAIS scan detected harms in AI response",
-            { findingsCount: responseSraisResult.findings.length },
+            { findingsCount: responseSraisMetadata.sraisAnalysis?.length ?? 0 },
             targetConversationId,
-            message.id
+            message.id,
           );
         }
         addMessage(message, targetConversationId);

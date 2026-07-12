@@ -27,15 +27,33 @@ export interface SRAISScanResult {
   findings: AnalysisResult[];
 }
 
+export function buildSraisAnalysisMetadata(text: string): { sraisAnalysis?: AnalysisResult[] } {
+  const result = sraisScanner.scan(text);
+  return result.hasFindings ? { sraisAnalysis: result.findings } : {};
+}
+
+export function countSraisDetectedHarms(analyses?: AnalysisResult[]): number {
+  if (!analyses?.length) return 0;
+
+  const uniqueHarms = new Set<HarmCategory>();
+  for (const analysis of analyses) {
+    for (const harm of analysis.detectedHarms) {
+      uniqueHarms.add(harm);
+    }
+  }
+
+  return uniqueHarms.size;
+}
+
 export function HarmAnalysis(inputs: string[]): AnalysisResult[] {
   /**
    * MULTILINGUAL DICTIONARY (EN, FR, ES)
    * Using Unicode flag 'u' to handle accents correctly.
    */
   const HARM_MAP: Record<HarmCategory, RegExp> = {
-    Financial: /\b(bankrupt|debt|loss|fraud|money|faillite|dette|perte|fraude|argent|quiebra|deuda|pérdida|dinero)\b/ui,
+    Financial: /\b(bankrupt|debt|loss|fraud|money|faillite|dette|perte|fraude|argent|quiebra|deuda|pérdida|dinero|misconduct|embezzlement|swindle|bribe|bribery|conceal(?:ed)?|hide(?:n)?|cover[- ]up|tamper|fabricat(?:e|ed|ion)|falsif(?:y|ied|ication)|delete|destroy|erase|obstruct|mislead|manipulat(?:e|ed|ion))\b/ui,
     Legal: /\b(sue|lawsuit|litigation|liability|poursuite|procès|litige|responsabilité|demanda|pleito|litigio|responsabilidad)\b/ui,
-    Regulatory: /\b(compliance|fine|penalty|sanction|conformité|amende|sanción|cumplimiento|multa)\b/ui,
+    Regulatory: /\b(compliance|fine|penalty|sanction|regulator|regulatory|audit|investigation|oversight|inspection|evidence|bribery|tampering|conformité|amende|sanción|cumplimiento|multa)\b/ui,
     IntellectualProperty: /\b(patent|trademark|copyright|infringement|brevet|marque|contrefaçon|patente|derechos de autor|infracción)\b/ui,
     Contractual: /\b(breach|contract|agreement|nda|violation|contrat|accord|incumplimiento|contrato|acuerdo)\b/ui,
     Reputational: /\b(slander|libel|scandal|defamation|diffamation|scandale|calomnie|difamación|escándalo)\b/ui,

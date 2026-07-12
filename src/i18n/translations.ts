@@ -106,6 +106,16 @@ export interface Translations {
     privacyWarning: string;
     piiDetected: string;
     continueAnyway: string;
+    harmWarningTitle: string;
+    harmWarningDescription: string;
+    harmWarningCaution: string;
+    harmWarningCautionBody: string;
+    harmWarningTargetLabel: string;
+    harmWarningConsequencesLabel: string;
+    harmWarningOriginalTextLabel: string;
+    harmWarningCancel: string;
+    harmWarningProceed: string;
+    harmWarningBadgeLabel: string;
 
     // Errors
     apiError: string;
@@ -925,6 +935,16 @@ export const translations: Record<Language, Translations> = {
         privacyWarning: 'Privacy Warning',
         piiDetected: 'Personally Identifiable Information Detected',
         continueAnyway: 'Continue Anyway',
+        harmWarningTitle: 'Harm Potential Detected',
+        harmWarningDescription: 'SRAIS scan detected potentially harmful business or legal language.',
+        harmWarningCaution: 'Caution Advised',
+        harmWarningCautionBody: 'Your message contains topics related to financial, legal, or other sensitive business risks. Proceeding will send this content to your selected AI provider.',
+        harmWarningTargetLabel: 'Target:',
+        harmWarningConsequencesLabel: 'Consequences:',
+        harmWarningOriginalTextLabel: 'Original text snippet provided matches risky terminology.',
+        harmWarningCancel: 'Cancel',
+        harmWarningProceed: 'Send Anyway',
+        harmWarningBadgeLabel: 'Potential Harms Detected',
 
         // Errors
         apiError: 'API Error',
@@ -1333,6 +1353,16 @@ export const translations: Record<Language, Translations> = {
         privacyWarning: 'Avertissement de Confidentialité',
         piiDetected: 'Informations Personnelles Identifiables Détectées',
         continueAnyway: 'Continuer Quand Même',
+        harmWarningTitle: 'Risque de préjudice détecté',
+        harmWarningDescription: 'L’analyse SRAIS a détecté un langage commercial ou juridique potentiellement dangereux.',
+        harmWarningCaution: 'Prudence recommandée',
+        harmWarningCautionBody: 'Votre message contient des sujets liés aux risques financiers, juridiques ou à d’autres risques commerciaux sensibles. Continuer enverra ce contenu à votre fournisseur d’IA sélectionné.',
+        harmWarningTargetLabel: 'Cible :',
+        harmWarningConsequencesLabel: 'Conséquences :',
+        harmWarningOriginalTextLabel: 'L’extrait de texte original correspond à une terminologie à risque.',
+        harmWarningCancel: 'Annuler',
+        harmWarningProceed: 'Envoyer quand même',
+        harmWarningBadgeLabel: 'Risques potentiels détectés',
 
         // Errors
         apiError: 'Erreur API',
@@ -1926,6 +1956,16 @@ export const translations: Record<Language, Translations> = {
         privacyWarning: 'Advertencia de Privacidad',
         piiDetected: 'Información Personal Identificable Detectada',
         continueAnyway: 'Continuar de Todos Modos',
+        harmWarningTitle: 'Riesgo de daño detectado',
+        harmWarningDescription: 'El análisis SRAIS detectó lenguaje comercial o legal potencialmente dañino.',
+        harmWarningCaution: 'Se recomienda precaución',
+        harmWarningCautionBody: 'Su mensaje contiene temas relacionados con riesgos financieros, legales u otros riesgos comerciales sensibles. Continuar enviará este contenido a su proveedor de IA seleccionado.',
+        harmWarningTargetLabel: 'Objetivo:',
+        harmWarningConsequencesLabel: 'Consecuencias:',
+        harmWarningOriginalTextLabel: 'El fragmento de texto original coincide con terminología de riesgo.',
+        harmWarningCancel: 'Cancelar',
+        harmWarningProceed: 'Enviar de todos modos',
+        harmWarningBadgeLabel: 'Daños potenciales detectados',
 
         // Errors
         apiError: 'Error de API',

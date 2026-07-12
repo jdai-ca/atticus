@@ -5,6 +5,7 @@
  */
 
 import { AlertTriangle, X, Shield, Circle } from "lucide-react";
+import { useTranslation } from "../i18n/LanguageContext";
 import type { SRAISScanResult } from "../services/sraisScanner";
 
 interface HarmWarningDialogProps {
@@ -18,6 +19,8 @@ export default function HarmWarningDialog({
   onProceed,
   onCancel,
 }: HarmWarningDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border-2 border-orange-600">
@@ -29,10 +32,10 @@ export default function HarmWarningDialog({
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">
-                Harm Potential Detected
+                {t.harmWarningTitle}
               </h2>
               <p className="text-sm text-orange-300">
-                SRAIS scan detected potentially harmful business or legal language.
+                {t.harmWarningDescription}
               </p>
             </div>
           </div>
@@ -51,10 +54,9 @@ export default function HarmWarningDialog({
             <div className="flex items-start gap-3">
               <Shield className="w-5 h-5 mt-0.5 flex-shrink-0 text-orange-400" />
               <div>
-                <p className="font-semibold mb-1 text-orange-300">Caution Advised</p>
+                <p className="font-semibold mb-1 text-orange-300">{t.harmWarningCaution}</p>
                 <p className="text-sm opacity-90 text-orange-200">
-                  Your message contains topics related to financial, legal, or other sensitive business risks. 
-                  Proceeding will send this content to your selected AI provider.
+                  {t.harmWarningCautionBody}
                 </p>
               </div>
             </div>
@@ -70,9 +72,9 @@ export default function HarmWarningDialog({
                   </h3>
                 </div>
                 <div className="space-y-2 text-sm text-gray-300">
-                  <p><strong>Target:</strong> {finding.target.type} {finding.target.value ? `(${finding.target.value})` : ''}</p>
-                  <p><strong>Consequences:</strong> {finding.consequences.join(', ') || 'None detected'}</p>
-                  <p className="text-xs text-gray-500 mt-2">Original text snippet provided matches risky terminology.</p>
+                  <p><strong>{t.harmWarningTargetLabel}</strong> {finding.target.type} {finding.target.value ? `(${finding.target.value})` : ''}</p>
+                  <p><strong>{t.harmWarningConsequencesLabel}</strong> {finding.consequences.join(', ') || 'None detected'}</p>
+                  <p className="text-xs text-gray-500 mt-2">{t.harmWarningOriginalTextLabel}</p>
                 </div>
               </div>
             ))}
@@ -86,13 +88,13 @@ export default function HarmWarningDialog({
               onClick={onCancel}
               className="flex-1 sm:flex-initial px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors border border-gray-600 font-medium"
             >
-              Cancel
+              {t.harmWarningCancel}
             </button>
             <button
               onClick={onProceed}
               className="flex-1 sm:flex-initial px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors border-2 border-orange-500 font-medium"
             >
-              Send Anyway
+              {t.harmWarningProceed}
             </button>
           </div>
         </div>

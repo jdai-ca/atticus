@@ -3,6 +3,8 @@ import { Conversation, Message } from '../types';
 import { DateUtils } from './dateUtils';
 import packageJson from '../../package.json';
 import { createLogger } from '../services/debugLogger';
+import { piiScanner } from '../services/piiScanner';
+import { buildSraisAnalysisMetadata } from '../services/sraisScanner';
 
 const logger = createLogger('PDFExport');
 
@@ -103,6 +105,24 @@ export function stripMarkdown(text: string): string {
   return cleanText;
 }
 
+export function getMessageSecurityAnnotations(message: Pick<Message, 'content'>): string[] {
+  const annotations: string[] = [];
+
+  const piiResult = piiScanner.scan(message.content);
+  if (piiResult.hasFindings) {
+    annotations.push(`PII: ${piiResult.findings.length} finding${piiResult.findings.length === 1 ? '' : 's'}`);
+  }
+
+  const harmMetadata = buildSraisAnalysisMetadata(message.content);
+  if (harmMetadata.sraisAnalysis?.length) {
+    const harmNames = harmMetadata.sraisAnalysis.flatMap((analysis) => analysis.detectedHarms);
+    const uniqueHarms = Array.from(new Set(harmNames));
+    annotations.push(`Harm: ${uniqueHarms.join(', ')}`);
+  }
+
+  return annotations;
+}
+
 export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegment[] {
   if (!markdown) return [];
   const segments: FormattedTextSegment[] = [];
@@ -185,6 +205,51 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+}
+
+export function buildConversationSecuritySummary(conversation: Conversation): string[] {
+  let piiMessageCount = 0;
+  let harmMessageCount = 0;
+  const harmCategories = new Set<string>();
+
+  for (const message of conversation.messages) {
+    const annotations = getMessageSecurityAnnotations(message);
+    const hasPii = annotations.some((annotation) => annotation.startsWith('PII'));
+    const hasHarm = annotations.some((annotation) => annotation.startsWith('Harm'));
+
+    if (hasPii) {
+      piiMessageCount += 1;
+    }
+
+    if (hasHarm) {
+      harmMessageCount += 1;
+      for (const annotation of annotations) {
+        if (annotation.startsWith('Harm: ')) {
+          annotation
+            .slice(6)
+            .split(',')
+            .map((category) => category.trim())
+            .filter(Boolean)
+            .forEach((category) => harmCategories.add(category));
+        }
+      }
+    }
+  }
+
+  if (piiMessageCount === 0 && harmMessageCount === 0) {
+    return [];
+  }
+
+  const summaryLines = ['Security summary'];
+  if (piiMessageCount > 0) {
+    summaryLines.push(`PII flagged in ${piiMessageCount} message${piiMessageCount === 1 ? '' : 's'}`);
+  }
+  if (harmMessageCount > 0) {
+    const categories = Array.from(harmCategories).join(', ');
+    summaryLines.push(`Potential harm categories: ${categories || 'Detected'}`);
+  }
+
+  return summaryLines;
 }
 
 function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pageWidth: number): number {
@@ -279,6 +344,28 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
     const modelInfo = conversation.model ? ` (${conversation.model})` : '';
     pdf.text(`Provider: ${conversation.provider}${modelInfo}`, margin, yPosition);
     yPosition += 5;
+  }
+
+  const securitySummary = buildConversationSecuritySummary(conversation);
+  if (securitySummary.length > 0) {
+    pdf.setFillColor(255, 247, 235);
+    pdf.rect(margin - 3, yPosition - 2, pageWidth - (margin * 2) + 6, 18 + (securitySummary.length * 4.5), 'F');
+    pdf.setDrawColor(220, 160, 80);
+    pdf.setLineWidth(0.3);
+    pdf.rect(margin - 3, yPosition - 2, pageWidth - (margin * 2) + 6, 18 + (securitySummary.length * 4.5));
+
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(150, 90, 20);
+    pdf.text(securitySummary[0], margin, yPosition + 4);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(90, 60, 20);
+    for (let i = 1; i < securitySummary.length; i++) {
+      pdf.text(securitySummary[i], margin + 3, yPosition + 9 + ((i - 1) * 4.5));
+    }
+
+    yPosition += 18 + (securitySummary.length * 4.5);
   }
 
   pdf.setTextColor(0, 0, 0);
@@ -419,6 +506,25 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
   pdf.setTextColor(0, 0, 0);
   y += 2;
+
+  const securityAnnotations = getMessageSecurityAnnotations(message);
+  if (securityAnnotations.length > 0) {
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(180, 80, 0);
+    const annotationText = `Security annotations: ${securityAnnotations.join(' | ')}`;
+    const annotationLines = pdf.splitTextToSize(annotationText, maxWidth - 10);
+    for (const line of annotationLines) {
+      if (y > pageHeight - 20) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text(line, margin + 3, y);
+      y += 4.5;
+    }
+    y += 2;
+    pdf.setTextColor(0, 0, 0);
+  }
 
   // Parse markdown content into formatted segments
   const segments = parseMarkdownToPDFSegments(message.content);
