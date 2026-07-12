@@ -75,7 +75,7 @@ describe('pdfExport helpers', () => {
 
       expect(summary).toEqual(
         expect.arrayContaining([
-          expect.stringContaining('Security summary'),
+          expect.stringContaining('SRAIS Summary'),
           expect.stringContaining('PII'),
           expect.stringContaining('Potential harm categories'),
         ]),

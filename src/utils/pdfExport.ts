@@ -240,7 +240,7 @@ export function buildConversationSecuritySummary(conversation: Conversation): st
     return [];
   }
 
-  const summaryLines = ['Security summary'];
+  const summaryLines = ['SRAIS Summary'];
   if (piiMessageCount > 0) {
     summaryLines.push(`PII flagged in ${piiMessageCount} message${piiMessageCount === 1 ? '' : 's'}`);
   }
@@ -512,7 +512,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(180, 80, 0);
-    const annotationText = `Security annotations: ${securityAnnotations.join(' | ')}`;
+    const annotationText = `SRAIS Annotations: ${securityAnnotations.join(' | ')}`;
     const annotationLines = pdf.splitTextToSize(annotationText, maxWidth - 10);
     for (const line of annotationLines) {
       if (y > pageHeight - 20) {
