@@ -526,7 +526,7 @@ This document is not static. Atticus commits to:
 **Have questions or concerns about Atticus's approach to safe AI?**
 
 - **In-app:** Use the feedback button on any screen
-- **Email:** support@atticus.ai
+- **Email:** support@jdai.ca
 - **GitHub:** Issues and discussions on repository
 - **Public:** Community forums at atticus.ai/community
 
@@ -534,6 +534,7 @@ This document is not static. Atticus commits to:
 
 ## Appendix: Related Documentation
 
+- **[HIL.md](HIL.md)** - Human-in-the-Loop decision gating and Mermaid logic flows
 - **[ETHICAL-AI.md](ETHICAL-AI.md)** - Detailed ethical analysis using EU AI ethics framework
 - **[RISK.md](RISK.md)** - Comprehensive risk assessment and mitigation strategies
 - **[PRIVACY.md](PRIVACY.md)** - Data practices and privacy protection

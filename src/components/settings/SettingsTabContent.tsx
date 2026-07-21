@@ -1,12 +1,13 @@
-import { AboutTab } from "./AboutTab";
-import { AdvisoryAreaTab } from "./AdvisoryAreaTab";
-import { AnalysisTab } from "./AnalysisTab";
-import { PracticeAreaTab } from "./PracticeAreaTab";
-import { PrivacyTab } from "./PrivacyTab";
-import { ProviderTab } from "./ProviderTab";
-import { SettingsTabKey } from "./SettingsTabs";
-import { AppConfig, ProviderTemplate } from "../../types";
-import { Dispatch, SetStateAction } from "react";
+import { AboutTab } from './AboutTab';
+import { AdvisoryAreaTab } from './AdvisoryAreaTab';
+import { AnalysisTab } from './AnalysisTab';
+import { PracticeAreaTab } from './PracticeAreaTab';
+import { PrivacyTab } from './PrivacyTab';
+import { ProviderTab } from './ProviderTab';
+import { SafetyTab } from './SafetyTab';
+import { SettingsTabKey } from './SettingsTabs';
+import { AppConfig, ProviderTemplate } from '../../types';
+import { Dispatch, SetStateAction } from 'react';
 
 interface SettingsTabContentProps {
   readonly activeTab: SettingsTabKey;
@@ -25,12 +26,8 @@ interface SettingsTabContentProps {
   readonly yamlLoadError: string | null;
   readonly setYamlLoadError: (error: string | null) => void;
   readonly isResetting: string | null;
-  readonly onResetToFactory: (
-    type: "practices" | "advisory" | "analysis" | "providers",
-  ) => void;
-  readonly onLoadYamlContent: (
-    type: "practices" | "advisory" | "analysis",
-  ) => void;
+  readonly onResetToFactory: (type: 'practices' | 'advisory' | 'analysis' | 'providers') => void;
+  readonly onLoadYamlContent: (type: 'practices' | 'advisory' | 'analysis') => void;
 }
 
 export function SettingsTabContent({
@@ -55,7 +52,7 @@ export function SettingsTabContent({
 }: SettingsTabContentProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      {activeTab === "providers" && (
+      {activeTab === 'providers' && (
         <ProviderTab
           selectedModels={selectedModels}
           setSelectedModels={setSelectedModels}
@@ -66,41 +63,41 @@ export function SettingsTabContent({
         />
       )}
 
-      {activeTab === "practice" && (
+      {activeTab === 'practice' && (
         <PracticeAreaTab
           expandedPracticeAreas={expandedPracticeAreas}
           setExpandedPracticeAreas={setExpandedPracticeAreas}
           isResetting={isResetting}
-          onResetToFactory={() => onResetToFactory("practices")}
-          onLoadYamlContent={() => onLoadYamlContent("practices")}
+          onResetToFactory={() => onResetToFactory('practices')}
+          onLoadYamlContent={() => onLoadYamlContent('practices')}
         />
       )}
 
-      {activeTab === "advisory" && (
+      {activeTab === 'advisory' && (
         <AdvisoryAreaTab
           expandedAdvisoryAreas={expandedAdvisoryAreas}
           setExpandedAdvisoryAreas={setExpandedAdvisoryAreas}
           isResetting={isResetting}
-          onResetToFactory={() => onResetToFactory("advisory")}
-          onLoadYamlContent={() => onLoadYamlContent("advisory")}
+          onResetToFactory={() => onResetToFactory('advisory')}
+          onLoadYamlContent={() => onLoadYamlContent('advisory')}
         />
       )}
 
-      {activeTab === "analysis" && (
+      {activeTab === 'analysis' && (
         <AnalysisTab
           yamlLoadError={yamlLoadError}
           setYamlLoadError={setYamlLoadError}
           isResetting={isResetting}
-          onResetToFactory={() => onResetToFactory("analysis")}
-          onLoadYamlContent={() => onLoadYamlContent("analysis")}
+          onResetToFactory={() => onResetToFactory('analysis')}
+          onLoadYamlContent={() => onLoadYamlContent('analysis')}
         />
       )}
 
-      {activeTab === "about" && (
-        <AboutTab config={config} providerTemplates={providerTemplates} />
-      )}
+      {activeTab === 'about' && <AboutTab config={config} providerTemplates={providerTemplates} />}
 
-      {activeTab === "privacy" && <PrivacyTab />}
+      {activeTab === 'privacy' && <PrivacyTab />}
+
+      {activeTab === 'safety' && <SafetyTab />}
     </div>
   );
 }

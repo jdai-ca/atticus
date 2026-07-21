@@ -369,8 +369,6 @@ function calculatePerplexity(text: string): number {
     // Simplified perplexity calculation
     // Real implementation would use language model probabilities
     const words = text.toLowerCase().split(/\s+/);
-    const uniqueWords = new Set(words);
-    const _vocabulary = uniqueWords.size;
 
     // Estimate entropy
     const wordFreq = new Map<string, number>();

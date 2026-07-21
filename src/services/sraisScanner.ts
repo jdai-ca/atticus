@@ -1,14 +1,29 @@
 /**
  * SRAIS Harm Scanner Service
- * 
+ *
  * Detects potential harms and risks in legal and business context texts.
  * Multilingual support: EN, FR, ES.
  */
 
-export type HarmCategory = 
-  | 'Privacy' | 'Financial' | 'Legal' | 'Regulatory' 
-  | 'IntellectualProperty' | 'Contractual' | 'Reputational' 
-  | 'Violence' | 'Hate';
+/**
+ * SRAIS Harm Scanner Service
+ *
+ * Detects potential harms and risks in legal and business context texts.
+ * Multilingual support: EN, FR, ES.
+ */
+
+export type HarmCategory =
+  | 'Privacy'
+  | 'Financial'
+  | 'Legal'
+  | 'Regulatory'
+  | 'IntellectualProperty'
+  | 'Contractual'
+  | 'Reputational'
+  | 'Violence'
+  | 'Hate';
+
+export type SRAISRiskLevel = 'Critical' | 'High-Stakes' | 'Compliance' | 'Low';
 
 export type TargetType = 'Person' | 'Role' | 'Situation' | 'Entity' | 'General';
 
@@ -20,11 +35,128 @@ export interface AnalysisResult {
     value?: string;
   };
   consequences: string[];
+  riskLevel: SRAISRiskLevel;
 }
 
 export interface SRAISScanResult {
   hasFindings: boolean;
   findings: AnalysisResult[];
+}
+
+/**
+ * Creates a RegExp with Unicode-aware lookarounds instead of \b (word boundaries)
+ * so that accented/diacritic characters in French, Spanish, etc. are matched correctly.
+ */
+export function createUnicodeBoundaryRegex(patternStr: string): RegExp {
+  return new RegExp(`(?<!\\p{L})(?:${patternStr})(?!\\p{L})`, 'ui');
+}
+
+/**
+ * Tries to decode potential base64, hex, and URL obfuscations inside the input text
+ * to ensure malicious users cannot bypass SRAIS scanning.
+ * Dual-compatible with browser and node environments.
+ */
+export function preprocessAndDeobfuscate(text: string): string {
+  let processed = text.normalize('NFC');
+
+  // 1. Base64 segments of length >= 16
+  const base64Regex = /\b([A-Za-z0-9+/]{16,}={0,2})\b/g;
+  let match;
+  while ((match = base64Regex.exec(text)) !== null) {
+    try {
+      const segment = match[1];
+      const decoded = atob(segment);
+      if (decoded.length > 5 && /[a-zA-Z]{3,}/.test(decoded)) {
+        processed += ' ' + decoded;
+      }
+    } catch {
+      // Ignored
+    }
+  }
+
+  // 2. Hex segments of length >= 16
+  const hexRegex = /\b([0-9a-fA-F]{16,})\b/g;
+  while ((match = hexRegex.exec(text)) !== null) {
+    try {
+      const segment = match[1];
+      let decoded = '';
+      for (let i = 0; i < segment.length; i += 2) {
+        const charCode = parseInt(segment.substring(i, i + 2), 16);
+        if (isNaN(charCode)) break;
+        decoded += String.fromCharCode(charCode);
+      }
+      if (decoded.length > 5 && /[a-zA-Z]{3,}/.test(decoded)) {
+        processed += ' ' + decoded;
+      }
+    } catch {
+      // Ignored
+    }
+  }
+
+  // 3. URL decoding if heavy URL encoding is detected
+  if (/%[0-9A-F]{2}/gi.test(text)) {
+    try {
+      const decoded = decodeURIComponent(text);
+      if (decoded !== text) {
+        processed += ' ' + decoded;
+      }
+    } catch {
+      // Ignored
+    }
+  }
+
+  // 4. ROT13 / Caesar cipher Basic deobfuscation
+  if (/[a-zA-Z]/.test(text)) {
+    const rot13Decoded = text.replace(/[a-zA-Z]/g, c => {
+      const charCode = c.charCodeAt(0);
+      const isUpper = charCode >= 65 && charCode <= 90;
+      const base = isUpper ? 65 : 97;
+      return String.fromCharCode(((charCode - base + 13) % 26) + base);
+    });
+    processed += ' ' + rot13Decoded;
+  }
+
+  return processed;
+}
+
+/**
+ * Returns localized instruction guidance based on the highest risk level detected.
+ */
+export function getSraisActionGuidance(
+  riskLevel: SRAISRiskLevel,
+  lang: 'en' | 'fr' | 'es' = 'en'
+): string {
+  switch (riskLevel) {
+    case 'Critical':
+      if (lang === 'fr') {
+        return 'Avertissement critique SRAIS : Cette requête implique des préoccupations de sécurité, de sûreté ou de conformité d’une extrême gravité (ex. falsification de preuves, corruption, haine, violence). Il est fortement déconseillé de soumettre cette requête. Consultez immédiatement votre direction, un avocat ou les autorités compétentes.';
+      }
+      if (lang === 'es') {
+        return 'Advertencia crítica de SRAIS: Esta consulta involucra problemas de seguridad o cumplimiento de extrema gravedad (p. ej., alteración de pruebas, de registros, sobornos, odio, violencia). Se recomienda encarecidamente no enviar esta solicitud. Consulte de inmediato a la dirección de su empresa, un abogado o los canales de cumplimiento correspondientes.';
+      }
+      return 'SRAIS Critical Warning: This query involves high-severity security, safety, or compliance concerns (such as potential evidence tampering, bribery, violence, or hate). It is strongly advised not to submit this request. Consult executive leadership, senior counsel, or appropriate compliance channels immediately.';
+
+    case 'High-Stakes':
+      if (lang === 'fr') {
+        return 'Risque juridique majeur : Cette demande est liée à des décisions commerciales ou juridiques hautement sensibles (ex. litiges actifs, rupture de contrat ou faute financière). Les résultats de l’IA dans ce domaine sont purement informatifs. Veuillez impliquer un conseiller juridique agréé ou un avocat spécialisé avant de prendre tout engagement ferme.';
+      }
+      if (lang === 'es') {
+        return 'Riesgo legal de alto impacto: Esta solicitud está relacionada con decisiones comerciales o legales críticas (p. ej., litigios activos, incumplimiento de contrato o conducta financiera inapropiada). Las respuestas de la IA son meramente informativas. Involucre a un abogado calificado o asesores especializados antes de proceder con cualquier acción vinculante.';
+      }
+      return 'High-Stakes Legal Risk: This prompt relates to critical corporate-legal decisions (such as active litigation, breach of contract, or financial misconduct). AI-generated advice in this space is purely informational. Involve licensed senior legal counsel or highly specialized advisors before proceeding with any binding commitments or actions.';
+
+    case 'Compliance':
+      if (lang === 'fr') {
+        return 'Risque de conformité réglementaire : Cette demande concerne des directives réglementaires, d’audit d’entreprise ou de conformité des données. Bien que le risque soit modéré, veillez à valider toutes les recommandations de l’IA par rapport aux codes juridiques officiels ou à vos politiques internes.';
+      }
+      if (lang === 'es') {
+        return 'Alineación de cumplimiento regulatorio: Esta consulta aborda pautas de regulación, auditorías corporativas o cumplimiento de datos. Aunque el riesgo es moderado, asegúrese de verificar las sugerencias de la IA con leyes oficiales o manuales internos de políticas de la organización.';
+      }
+      return "Regulatory Compliance Alignment: This prompt touches on regulatory guidelines, corporate audits, or data compliance. While moderate risk, ensure all AI-derived recommendations are verified against actual legal codes, official regulatory databases, or your organization's formal policy documentation.";
+
+    default:
+      return '';
+  }
 }
 
 export function buildSraisAnalysisMetadata(text: string): { sraisAnalysis?: AnalysisResult[] } {
@@ -48,67 +180,118 @@ export function countSraisDetectedHarms(analyses?: AnalysisResult[]): number {
 export function HarmAnalysis(inputs: string[]): AnalysisResult[] {
   /**
    * MULTILINGUAL DICTIONARY (EN, FR, ES)
-   * Using Unicode flag 'u' to handle accents correctly.
+   * Using Unicode property escape mapping to support accented characters and avoid false positives.
    */
   const HARM_MAP: Record<HarmCategory, RegExp> = {
-    Financial: /\b(bankrupt|debt|loss|fraud|money|faillite|dette|perte|fraude|argent|quiebra|deuda|pérdida|dinero|misconduct|embezzlement|swindle|bribe|bribery|conceal(?:ed)?|hide(?:n)?|cover[- ]up|tamper|fabricat(?:e|ed|ion)|falsif(?:y|ied|ication)|delete|destroy|erase|obstruct|mislead|manipulat(?:e|ed|ion))\b/ui,
-    Legal: /\b(sue|lawsuit|litigation|liability|poursuite|procès|litige|responsabilité|demanda|pleito|litigio|responsabilidad)\b/ui,
-    Regulatory: /\b(compliance|fine|penalty|sanction|regulator|regulatory|audit|investigation|oversight|inspection|evidence|bribery|tampering|conformité|amende|sanción|cumplimiento|multa)\b/ui,
-    IntellectualProperty: /\b(patent|trademark|copyright|infringement|brevet|marque|contrefaçon|patente|derechos de autor|infracción)\b/ui,
-    Contractual: /\b(breach|contract|agreement|nda|violation|contrat|accord|incumplimiento|contrato|acuerdo)\b/ui,
-    Reputational: /\b(slander|libel|scandal|defamation|diffamation|scandale|calomnie|difamación|escándalo)\b/ui,
-    Privacy: /\b(leak|private|confidential|disclosure|fuite|privé|confidentiel|divulgation|filtración|privado|confidencial)\b/ui,
-    Violence: /\b(kill|attack|threat|tuer|attaque|menace|matar|ataque|amenaza)\b/ui,
-    Hate: /\b(racist|sexist|slur|raciste|sexiste|insulte|racista|sexista|insulto)\b/ui
+    Financial: createUnicodeBoundaryRegex(
+      'bankrupt|bankruptcy|fraud|faillite|fraude|quiebra|misconduct|embezzlement|swindle|bribe|bribery|corruption|' +
+        // English compound concealment/tampering of risky targets
+        '(?:delete|destroy|erase|hide|conceal|tamper|fabricat(?:e|ed|ion)|falsif(?:y|ied|ication)|obstruct|cover[- ]up|covert|manipulat(?:e|ed|ion))\\s+(?:\\w+\\s+){0,3}(?:evidence|records?|files?|documents?|audits?|investigations?|proofs?|misconducts?|briber(?:y|ies)|frauds?|crimes?)' +
+        // French compound concealment/tampering of risky targets
+        '|(?:supprimer|détruire|effacer|cacher|dissimuler|altérer|falsifier|faire disparaître)\\s+(?:\\w+\\s+){0,3}(?:preuves?|dossiers?|documents?|enregistrements?|audits?|enquêtes?|fraudes?|délits?)' +
+        // Spanish compound concealment/tampering of risky targets
+        '|(?:eliminar|destruir|borrar|ocultar|esconder|alterar|falsificar|encubrir)\\s+(?:\\w+\\s+){0,3}(?:pruebas?|documentos?|archivos?|registros?|auditorías?|investigaciones?|fraudes?|delitos?)'
+    ),
+    Legal: createUnicodeBoundaryRegex(
+      'sue|lawsuit|litigation|poursuite|procès|litige|demanda|pleito|litigio'
+    ),
+    Regulatory: createUnicodeBoundaryRegex(
+      'regulator|regulatory|fine|penalty|sanction|amende|sanción|multa|pénalité'
+    ),
+    IntellectualProperty: createUnicodeBoundaryRegex('infringement|contrefaçon|infracción'),
+    Contractual: createUnicodeBoundaryRegex('breach|violation|incumplimiento'),
+    Reputational: createUnicodeBoundaryRegex(
+      'slander|libel|scandal|defamation|diffamation|scandale|calomnie|difamación|escándalo'
+    ),
+    Privacy: createUnicodeBoundaryRegex(
+      'leak|data breach|fuite|filtración|unauthorized disclosure|divulgation non autorisée|divulgación no autorizada'
+    ),
+    Violence: createUnicodeBoundaryRegex(
+      'kill|attack|threat|tuer|attaque|menace|matar|ataque|amenaza'
+    ),
+    Hate: createUnicodeBoundaryRegex(
+      'racist|sexist|slur|raciste|sexiste|insulte|racista|sexista|insulto'
+    ),
   };
 
   const ROLE_MAP: Record<string, RegExp> = {
-    Founder: /\b(founder|ceo|entrepreneur|fondateur|fondatrice|fundador|fundadora|emprendedor)\b/ui,
-    Investor: /\b(investor|shareholder|vc|investisseur|actionnaire|inversor|accionista)\b/ui,
-    Management: /\b(manager|director|executive|cadre|directeur|gerente|directivo)\b/ui,
-    Legal: /\b(lawyer|attorney|counsel|avocat|juriste|abogado|asesor)\b/ui,
-    Employee: /\b(employee|staff|worker|employé|salarié|empleado|trabajador)\b/ui
+    Founder: createUnicodeBoundaryRegex(
+      'founder|ceo|entrepreneur|fondateur|fondatrice|fundador|fundadora|emprendedor'
+    ),
+    Investor: createUnicodeBoundaryRegex(
+      'investor|shareholder|vc|investisseur|actionnaire|inversor|accionista'
+    ),
+    Management: createUnicodeBoundaryRegex(
+      'manager|director|executive|cadre|directeur|gerente|directivo'
+    ),
+    Legal: createUnicodeBoundaryRegex('lawyer|attorney|counsel|avocat|juriste|abogado|asesor'),
+    Employee: createUnicodeBoundaryRegex(
+      'employee|staff|worker|employé|salarié|empleado|trabajador'
+    ),
   };
 
-  const ENTITY_MAP = /\b(inc|corp|ltd|llc|startup|firm|company|société|entreprise|sarl|empresa|sociedad|sl)\b/ui;
+  const ENTITY_MAP = createUnicodeBoundaryRegex(
+    'inc|corp|ltd|llc|startup|firm|company|société|entreprise|sarl|empresa|sociedad|sl'
+  );
 
   const SITUATION_MAP: Record<string, RegExp> = {
-    M_and_A: /\b(merger|acquisition|exit|fusion|rachat|fusión|adquisición)\b/ui,
-    Board: /\b(board|committee|conseil|comité|junta)\b/ui,
-    Operations: /\b(logistics|supply|production|logistique|logística|cadena de suministro)\b/ui,
-    Digital: /\b(online|server|platform|ligne|serveur|plateforme|línea|servidor|plataforma)\b/ui
+    M_and_A: createUnicodeBoundaryRegex('merger|acquisition|exit|fusion|rachat|fusión|adquisición'),
+    Board: createUnicodeBoundaryRegex('board|committee|conseil|comité|junta'),
+    Operations: createUnicodeBoundaryRegex(
+      'logistics|supply|production|logistique|logística|cadena de suministro'
+    ),
+    Digital: createUnicodeBoundaryRegex(
+      'online|server|platform|ligne|serveur|plateforme|línea|servidor|plataforma'
+    ),
   };
 
   const CONSEQUENCE_MAP: Record<string, RegExp> = {
-    'Financial Loss': /\b(penalty|fine|damages|amende|dommages|multa|daños)\b/ui,
-    'Operational Halt': /\b(injunction|stoppage|suspension|injonction|arrêt|mandamiento|paralización)\b/ui,
-    'Personal Liability': /\b(personal liability|responsabilité personnelle|responsabilidad personal)\b/ui
+    'Financial Loss': createUnicodeBoundaryRegex('penalty|fine|amende|multa|sanción'),
+    'Operational Halt': createUnicodeBoundaryRegex(
+      'injunction|stoppage|suspension|injonction|arrêt|mandamiento|paralización'
+    ),
+    'Personal Liability': createUnicodeBoundaryRegex(
+      'personal liability|responsabilité personnelle|responsabilidad personal'
+    ),
   };
 
   return inputs.map(text => {
+    const processedText = preprocessAndDeobfuscate(text);
     const result: AnalysisResult = {
       originalText: text,
       detectedHarms: [],
       target: { type: 'General' },
-      consequences: []
+      consequences: [],
+      riskLevel: 'Low',
     };
 
-    // 1. Detect Harms
-    for (const [category, regex] of Object.entries(HARM_MAP)) {
-      if (regex.test(text)) result.detectedHarms.push(category as HarmCategory);
-    }
+    // Evaluate exemption anchors: If user is asking for general educational materials, mock drafts or templates description, bypass SRAIS
+    const isExempt =
+      /(?:draft(?:ing)?|creat(?:e|ing)?|describ(?:e|ing)?|writ(?:e|ing)?)\s+(?:a\s+)?(?:(?:standard|generic|template|blank|sample|example|educational|academic)\s+){1,3}(?:statement|guideline|disclosing|discussions?|articles?|disclosures?|agreements?)/i.test(
+        processedText
+      ) ||
+      /(?:draft(?:ing)?|creat(?:e|ing)?|describ(?:e|ing)?|writ(?:e|ing)?)\s+(?:a\s+)?(?:standard\s+|generic\s+|template\s+|blank\s+|sample\s+|example\s+|educational\s+|academic\s+)?(?:statement|guideline|disclosing|discussions?|articles?|disclosures?|agreements?)/i.test(
+        processedText
+      );
 
-    // 2. Detect Consequences
-    for (const [cons, regex] of Object.entries(CONSEQUENCE_MAP)) {
-      if (regex.test(text)) result.consequences.push(cons);
+    if (!isExempt) {
+      // 1. Detect Harms
+      for (const [category, regex] of Object.entries(HARM_MAP)) {
+        if (regex.test(processedText)) result.detectedHarms.push(category as HarmCategory);
+      }
+
+      // 2. Detect Consequences
+      for (const [cons, regex] of Object.entries(CONSEQUENCE_MAP)) {
+        if (regex.test(processedText)) result.consequences.push(cons);
+      }
     }
 
     // 3. Determine Framing
-    if (ENTITY_MAP.test(text)) {
+    if (ENTITY_MAP.test(processedText)) {
       result.target.type = 'Entity';
     } else {
       for (const [role, regex] of Object.entries(ROLE_MAP)) {
-        if (regex.test(text)) {
+        if (regex.test(processedText)) {
           result.target = { type: 'Role', value: role };
           break;
         }
@@ -117,7 +300,7 @@ export function HarmAnalysis(inputs: string[]): AnalysisResult[] {
 
     if (result.target.type === 'General') {
       for (const [sit, regex] of Object.entries(SITUATION_MAP)) {
-        if (regex.test(text)) {
+        if (regex.test(processedText)) {
           result.target = { type: 'Situation', value: sit };
           break;
         }
@@ -125,9 +308,37 @@ export function HarmAnalysis(inputs: string[]): AnalysisResult[] {
     }
 
     // Fallback for personal pronouns across 3 languages
-    if (result.target.type === 'General' && /\b(i|you|me|je|tu|moi|yo|tú|usted|mí)\b/ui.test(text)) {
+    const pronounsRegex = createUnicodeBoundaryRegex('i|you|me|je|tu|moi|yo|tú|usted|mí');
+    if (result.target.type === 'General' && pronounsRegex.test(processedText)) {
       result.target.type = 'Person';
     }
+
+    // Estimate highest Risk Level
+    let riskLevel: SRAISRiskLevel = 'Low';
+    if (result.detectedHarms.length > 0) {
+      riskLevel = 'Compliance'; // baseline if any harms are detected
+
+      const containsHighStakes = result.detectedHarms.some(h =>
+        ['Legal', 'Financial', 'Contractual', 'IntellectualProperty', 'Reputational'].includes(h)
+      );
+      if (containsHighStakes) {
+        riskLevel = 'High-Stakes';
+      }
+
+      // Check for absolute Critical harms/indicators
+      const containsCritical = result.detectedHarms.some(h => ['Violence', 'Hate'].includes(h));
+      const hasCorruptionOrEvidenceTampering =
+        /corruption|bribe|bribery|subordonner|pot-de-vin|soborno|cohecho/i.test(processedText) ||
+        /(?:delete|destroy|erase|hide|conceal|tamper|supprimer|altérer|falsifier|eliminar|destruir|ocultar)\s+(?:\w+\s+){0,3}(?:evidence|record|file|document|proof|proofs?|preuve|dossier|archivo|registro)/i.test(
+          processedText
+        );
+
+      if (containsCritical || hasCorruptionOrEvidenceTampering) {
+        riskLevel = 'Critical';
+      }
+    }
+
+    result.riskLevel = riskLevel;
 
     return result;
   });
@@ -139,7 +350,7 @@ class SRAISScanner {
     // For simplicity, running it on the full text.
     const results = HarmAnalysis([text]);
     const result = results[0];
-    
+
     return {
       hasFindings: result.detectedHarms.length > 0 || result.consequences.length > 0,
       findings: result.detectedHarms.length > 0 || result.consequences.length > 0 ? [result] : [],

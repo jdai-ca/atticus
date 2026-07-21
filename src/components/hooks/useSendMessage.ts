@@ -16,7 +16,7 @@ import { auditLogger, AuditEventType, AuditSeverity } from "../../services/audit
 import { isTextDocumentExtension } from "../../constants/fileExtensions";
 import { createLogger } from "../../services/debugLogger";
 import { DateUtils } from "../../utils/dateUtils";
-import { buildSraisAnalysisMetadata, sraisScanner } from "../../services/sraisScanner";
+import { buildSraisAnalysisMetadata } from "../../services/sraisScanner";
 
 const logger = createLogger("useSendMessage");
 

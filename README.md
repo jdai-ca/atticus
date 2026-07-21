@@ -14,6 +14,7 @@ Before using Atticus, please review these critical documents:
 | ------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
 | 📖 **[README.md](README.md)**         | Getting started & features   | Multi-provider AI, 67 legal + 67 business areas, jurisdictional analysis        |
 | 🔒 **[PRIVACY.md](PRIVACY.md)**       | Privacy & data protection    | Local-first architecture, third-party data flows, privacy rating: 7.5/10        |
+| 👥 **[HIL.md](HIL.md)**               | Human-in-the-Loop Guide      | PII and SRAIS decision gating flows, Mermaid diagrams, business augmentation   |
 | ⚠️ **[RISK.md](RISK.md)**             | Risk assessment & mitigation | Legal risks, accuracy concerns, security vulnerabilities, required user actions |
 | 🤖 **[ETHICAL-AI.md](ETHICAL-AI.md)** | Ethical AI principles        | EU AI ethics compliance, bias mitigation, transparency commitments              |
 | 📜 **[LICENSE.md](LICENSE.md)**       | Dual licensing terms         | Apache 2.0 (open source) or Commercial license                                  |
@@ -38,7 +39,7 @@ Before using Atticus, please review these critical documents:
 
 3. **Configure providers** - Get API keys and set up in Settings
 
-📖 **[Full Documentation](docs/README.md)** | 🎯 **[Quick Start Guide](docs/QUICKSTART.md)** | 🔒 **[Privacy Policy](PRIVACY.md)** | ⚠️ **[Risk Assessment](RISK.md)** | 🤖 **[Ethical AI Analysis](ETHICAL-AI.md)**
+📖 **[Full Documentation](docs/README.md)** | 🎯 **[Quick Start Guide](docs/QUICKSTART.md)** | 🔒 **[Privacy Policy](PRIVACY.md)** | 👥 **[HIL Guardrails](HIL.md)** | ⚠️ **[Risk Assessment](RISK.md)** | 🤖 **[Ethical AI Analysis](ETHICAL-AI.md)**
 
 ---
 
@@ -634,7 +635,11 @@ _All conversations are stored locally on your device with full search capabiliti
 
 ### 🔒 Privacy & Security
 
-- ✅ **Local storage** - API keys stored on your machine only
+- ✅ **Local storage** - Conversations stored on your machine only (never in the cloud).
+- ✅ **Mandatory PII Scanner** - Scans your messages locally to detect and warn you about Social Security Numbers, credit cards, emails, and 20+ categories of personally identifiable information before they are sent to AI servers.
+- ✅ **Safe & Responsible AI (SRAIS) Scanner** - Real-time compliance engine that scans your queries locally to detect potential legal, regulatory, reputational, or financial risks, complete with multilingual guidance and risk stratification.
+- ✅ **Anonymization Support** - One-click anonymization tool strips detected personal records and swaps them with dummy placeholders.
+- ✅ **Orchestrated Auditing** - Comprehensive local auditing ledger records scans and user choices to preserve user liability and ensure maximum privacy compliance.
 - ✅ **Direct API calls** - no intermediaries or third-party servers
 - ✅ **Full control** - you own your data
 - ✅ **Secure credentials** - encrypted local storage
