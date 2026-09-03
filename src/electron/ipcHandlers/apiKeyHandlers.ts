@@ -23,8 +23,8 @@ export function registerApiKeyHandlers(): void {
         success: false,
         error: {
           code: 'SAVE_API_KEY_FAILED',
-          message: 'Failed to save API key to secure storage.'
-        }
+          message: 'Failed to save API key to secure storage.',
+        },
       };
     }
   });
@@ -43,8 +43,8 @@ export function registerApiKeyHandlers(): void {
         success: false,
         error: {
           code: 'DELETE_API_KEY_FAILED',
-          message: 'Failed to delete API key from secure storage.'
-        }
+          message: 'Failed to delete API key from secure storage.',
+        },
       };
     }
   });

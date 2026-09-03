@@ -1,40 +1,26 @@
-import { useState, useEffect } from "react";
-import { useStore } from "../store";
-import { SettingsHeader } from "./settings/SettingsHeader";
-import { SettingsTabs, SettingsTabKey } from "./settings/SettingsTabs";
-import { SettingsTabContent } from "./settings/SettingsTabContent";
-import { SettingsYamlDialog } from "./settings/SettingsYamlDialog";
-import { useYamlEditor } from "./hooks/useYamlEditor";
-import { createLogger } from "../services/debugLogger";
+import { useState, useEffect } from 'react';
+import { useStore } from '../store';
+import { SettingsHeader } from './settings/SettingsHeader';
+import { SettingsTabs, SettingsTabKey } from './settings/SettingsTabs';
+import { SettingsTabContent } from './settings/SettingsTabContent';
+import { SettingsYamlDialog } from './settings/SettingsYamlDialog';
+import { useYamlEditor } from './hooks/useYamlEditor';
+import { createLogger } from '../services/debugLogger';
 
-const logger = createLogger("Settings");
+const logger = createLogger('Settings');
 
 interface SettingsProps {
   readonly onClose: () => void;
 }
 
 export default function Settings({ onClose }: SettingsProps) {
-  const {
-    config,
-    providerTemplates,
-    loadProviderTemplates,
-  } = useStore();
-  const [activeTab, setActiveTab] = useState<SettingsTabKey>("providers");
-  const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>(
-    {},
-  );
-  const [editingEndpoints, setEditingEndpoints] = useState<
-    Record<string, string>
-  >({});
-  const [selectedModels, setSelectedModels] = useState<Record<string, string>>(
-    {},
-  );
-  const [expandedPracticeAreas, setExpandedPracticeAreas] = useState<
-    Set<string>
-  >(new Set());
-  const [expandedAdvisoryAreas, setExpandedAdvisoryAreas] = useState<
-    Set<string>
-  >(new Set());
+  const { config, providerTemplates, loadProviderTemplates } = useStore();
+  const [activeTab, setActiveTab] = useState<SettingsTabKey>('providers');
+  const [editingApiKeys, setEditingApiKeys] = useState<Record<string, string>>({});
+  const [editingEndpoints, setEditingEndpoints] = useState<Record<string, string>>({});
+  const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
+  const [expandedPracticeAreas, setExpandedPracticeAreas] = useState<Set<string>>(new Set());
+  const [expandedAdvisoryAreas, setExpandedAdvisoryAreas] = useState<Set<string>>(new Set());
   const {
     showYamlEditor,
     editingYamlType,
@@ -68,7 +54,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
   // Debug: Log config changes
   useEffect(() => {
-    logger.debug("Config updated", {
+    logger.debug('Config updated', {
       advisoryAreas: config.advisoryAreas?.length || 0,
       practiceAreas: config.legalPracticeAreas?.length || 0,
       providers: config.providers?.length || 0,
@@ -132,4 +118,3 @@ export default function Settings({ onClose }: SettingsProps) {
     </div>
   );
 }
-

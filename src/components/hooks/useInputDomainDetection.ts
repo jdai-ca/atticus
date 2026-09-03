@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import { detectPracticeArea } from "../../modules/practiceArea";
-import { detectAdvisoryArea } from "../../modules/advisoryArea";
+import { useEffect } from 'react';
+import { detectPracticeArea } from '../../modules/practiceArea';
+import { detectAdvisoryArea } from '../../modules/advisoryArea';
 
 interface UseInputDomainDetectionParams {
   readonly input: string;
-  readonly setCurrentDomain: (domain: "practice" | "advisory" | undefined) => void;
+  readonly setCurrentDomain: (domain: 'practice' | 'advisory' | undefined) => void;
 }
 
 export function useInputDomainDetection({
@@ -20,14 +20,14 @@ export function useInputDomainDetection({
     const practiceArea = detectPracticeArea(input);
     const advisoryArea = detectAdvisoryArea(input);
 
-    if (advisoryArea.id === "general-advisory") {
-      if (practiceArea.id === "general") {
+    if (advisoryArea.id === 'general-advisory') {
+      if (practiceArea.id === 'general') {
         setCurrentDomain(undefined);
       } else {
-        setCurrentDomain("practice");
+        setCurrentDomain('practice');
       }
     } else {
-      setCurrentDomain("advisory");
+      setCurrentDomain('advisory');
     }
   }, [input, setCurrentDomain]);
 }

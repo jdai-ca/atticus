@@ -1,11 +1,11 @@
-import APIErrorInspector from "./APIErrorInspector";
-import ConversationCostLedger from "./ConversationCostLedger";
-import PrivacyWarningDialog from "./PrivacyWarningDialog";
-import HarmWarningDialog from "./HarmWarningDialog";
-import { PrivacyAuditLogViewer } from "./PrivacyAuditLogViewer";
-import { APITrace, Conversation } from "../types";
-import { PIIScanResult, piiScanner } from "../services/piiScanner";
-import type { SRAISScanResult } from "../services/sraisScanner";
+import APIErrorInspector from './APIErrorInspector';
+import ConversationCostLedger from './ConversationCostLedger';
+import PrivacyWarningDialog from './PrivacyWarningDialog';
+import HarmWarningDialog from './HarmWarningDialog';
+import { PrivacyAuditLogViewer } from './PrivacyAuditLogViewer';
+import { APITrace, Conversation } from '../types';
+import { PIIScanResult, piiScanner } from '../services/piiScanner';
+import type { SRAISScanResult } from '../services/sraisScanner';
 
 interface ChatSystemDialogsProps {
   readonly showPrivacyWarning: boolean;
@@ -73,17 +73,11 @@ export function ChatSystemDialogs({
       )}
 
       {showCostLedger && currentConversation && (
-        <ConversationCostLedger
-          conversation={currentConversation}
-          onClose={onCloseCostLedger}
-        />
+        <ConversationCostLedger conversation={currentConversation} onClose={onCloseCostLedger} />
       )}
 
       {inspectedApiTrace && (
-        <APIErrorInspector
-          apiTrace={inspectedApiTrace}
-          onClose={onCloseApiInspector}
-        />
+        <APIErrorInspector apiTrace={inspectedApiTrace} onClose={onCloseApiInspector} />
       )}
     </>
   );

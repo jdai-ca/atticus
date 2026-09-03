@@ -32,9 +32,9 @@ export function registerChatHandler(): void {
       const chatRequest = {
         ...request,
         provider: {
-          ...request.provider,  // Keep endpoint and other settings from request
-          apiKey: (providerWithKey as Record<string, unknown>).apiKey  // Add API key from secure storage
-        }
+          ...request.provider, // Keep endpoint and other settings from request
+          apiKey: (providerWithKey as Record<string, unknown>).apiKey, // Add API key from secure storage
+        },
       };
 
       logger.debug('Calling sendChatMessage');
@@ -46,14 +46,14 @@ export function registerChatHandler(): void {
         errorType: typeof error,
         errorMessage: error instanceof Error ? error.message : 'Unknown',
         errorStack: error instanceof Error ? error.stack : 'No stack',
-        errorName: error instanceof Error ? error.name : 'Unknown'
+        errorName: error instanceof Error ? error.name : 'Unknown',
       });
       return {
         success: false,
         error: {
           code: 'CHAT_REQUEST_FAILED',
           message: 'Failed to process chat request. Check logs for details.',
-        }
+        },
       };
     }
   });

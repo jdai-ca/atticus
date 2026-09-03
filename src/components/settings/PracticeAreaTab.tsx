@@ -34,7 +34,9 @@ export function PracticeAreaTab({
           >
             <Trash2 className="w-4 h-4" />
             <span>
-              {isResetting === 'practices' ? t.settingsProviders.resetting : t.settingsProviders.reset}
+              {isResetting === 'practices'
+                ? t.settingsProviders.resetting
+                : t.settingsProviders.reset}
             </span>
           </button>
           <button
@@ -105,7 +107,7 @@ export function PracticeAreaTab({
             • {config.legalPracticeAreas.length} {t.settingsContent.specializedPracticeAreas}{' '}
             {config.legalPracticeAreas.reduce(
               (sum: number, area): number => sum + area.keywords.length,
-              0,
+              0
             )}{' '}
             {t.settingsContent.keywords}
           </li>

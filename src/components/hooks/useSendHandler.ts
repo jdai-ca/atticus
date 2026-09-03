@@ -1,16 +1,12 @@
-import type { Conversation, Jurisdiction } from "../../types";
-import type { PIIScanResult } from "../../services/piiScanner";
-import { piiScanner } from "../../services/piiScanner";
-import type { SRAISScanResult } from "../../services/sraisScanner";
-import { buildSraisAnalysisMetadata } from "../../services/sraisScanner";
-import {
-  auditLogger,
-  AuditEventType,
-  AuditSeverity,
-} from "../../services/auditLogger";
-import { createLogger } from "../../services/debugLogger";
+import type { Conversation, Jurisdiction } from '../../types';
+import type { PIIScanResult } from '../../services/piiScanner';
+import { piiScanner } from '../../services/piiScanner';
+import type { SRAISScanResult } from '../../services/sraisScanner';
+import { buildSraisAnalysisMetadata } from '../../services/sraisScanner';
+import { auditLogger, AuditEventType, AuditSeverity } from '../../services/auditLogger';
+import { createLogger } from '../../services/debugLogger';
 
-const logger = createLogger("useSendHandler");
+const logger = createLogger('useSendHandler');
 
 interface UseSendHandlerProps {
   readonly input: string;
@@ -47,7 +43,7 @@ export function useSendHandler({
 
     const selectedModels = currentConversation.selectedModels || [];
     if (selectedModels.length === 0) {
-      alert("No models selected. Please select at least one model.");
+      alert('No models selected. Please select at least one model.');
       return;
     }
 
@@ -56,15 +52,15 @@ export function useSendHandler({
     await auditLogger.logEvent(
       AuditEventType.USER_MESSAGE_SUBMITTED,
       AuditSeverity.INFO,
-      "USER",
-      "User submitted message for sending",
+      'USER',
+      'User submitted message for sending',
       {
         messageLength: input.length,
         modelCount: selectedModels.length,
         jurisdictions: Array.from(selectedJurisdictions),
       },
       currentConversation.id,
-      messageId,
+      messageId
     );
 
     // PII Scan - MANDATORY security check for sensitive information
@@ -73,7 +69,7 @@ export function useSendHandler({
 
     const scanResult = piiScanner.scan(
       input,
-      activeJurisdictions.length > 0 ? activeJurisdictions : undefined,
+      activeJurisdictions.length > 0 ? activeJurisdictions : undefined
     );
 
     // AUDIT: PII scan performed
@@ -87,7 +83,7 @@ export function useSendHandler({
         detectedTypes: Array.from(scanResult.detectedCategories),
         jurisdictions: activeJurisdictions,
       },
-      input.substring(0, 100), // Preview only
+      input.substring(0, 100) // Preview only
     );
 
     if (scanResult.hasFindings) {
@@ -99,18 +95,18 @@ export function useSendHandler({
       await auditLogger.logEvent(
         AuditEventType.PII_WARNING_DISPLAYED,
         AuditSeverity.WARNING,
-        "SYSTEM",
-        "PII warning displayed to user",
+        'SYSTEM',
+        'PII warning displayed to user',
         {
           findingsCount: scanResult.findings.length,
           riskLevel: scanResult.riskLevel,
           displayedAt: new Date().toISOString(),
         },
         currentConversation.id,
-        messageId,
+        messageId
       );
 
-      logger.info("PII detected, showing privacy warning", {
+      logger.info('PII detected, showing privacy warning', {
         findings: scanResult.findings.length,
         riskLevel: scanResult.riskLevel,
         jurisdictions: activeJurisdictions,
@@ -129,14 +125,14 @@ export function useSendHandler({
     await auditLogger.logEvent(
       AuditEventType.SECURITY_SCAN_COMPLETED,
       AuditSeverity.INFO,
-      "SYSTEM",
-      "SRAIS scan performed on user input",
+      'SYSTEM',
+      'SRAIS scan performed on user input',
       {
         hasFindings: sraisResult.hasFindings,
         findingsCount: sraisResult.findings.length,
       },
       currentConversation.id,
-      messageId,
+      messageId
     );
 
     if (sraisResult.hasFindings) {
@@ -144,7 +140,7 @@ export function useSendHandler({
       setSraisScanResult(sraisResult);
       setShowHarmWarning(true);
 
-      logger.info("SRAIS harm potential detected, showing warning dialog", {
+      logger.info('SRAIS harm potential detected, showing warning dialog', {
         findingsCount: sraisResult.findings.length,
       });
       return; // Wait for user decision
@@ -155,7 +151,7 @@ export function useSendHandler({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }

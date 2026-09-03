@@ -18,22 +18,22 @@ const CONVERSION_CONSTANTS = {
     POWERPOINT: { width: 960, height: 720 },
     RTF: { width: 960, height: 1400 },
     EMAIL: { width: 900, height: 1200 },
-    EPUB: { width: 800, height: 1200 }
+    EPUB: { width: 800, height: 1200 },
   },
   RENDER_DELAYS: {
     STANDARD: 1000,
     FAST: 500,
-    SLOW: 1500
+    SLOW: 1500,
   },
   CONTENT_WIDTHS: {
     DOCUMENT: 816,
     EMAIL: 700,
-    MARKDOWN: 900
+    MARKDOWN: 900,
   },
   LIMITS: {
     MAX_EPUB_CHAPTERS: 10,
-    MAX_POWERPOINT_SLIDES: 50
-  }
+    MAX_POWERPOINT_SLIDES: 50,
+  },
 } as const;
 
 /**
@@ -48,16 +48,13 @@ function createRenderWindow(width: number, height: number, plugins = false): Bro
       plugins,
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
-    }
+      sandbox: true,
+    },
   });
 }
 
 function escapeHtml(content: string): string {
-  return content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function sanitizeHtmlContent(content: string): string {
@@ -81,14 +78,22 @@ async function cleanupTempFile(filePath: string): Promise<void> {
   try {
     await fs.promises.unlink(filePath);
   } catch (error) {
-    logger.warn('Failed to cleanup temp file', { filePath, error: error instanceof Error ? error.message : String(error) });
+    logger.warn('Failed to cleanup temp file', {
+      filePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
 /**
  * Helper: Render HTML to image using BrowserWindow
  */
-async function renderHtmlToImage(htmlContent: string, prefix: string, dimensions: { width: number; height: number }, renderDelay: number = CONVERSION_CONSTANTS.RENDER_DELAYS.STANDARD): Promise<string> {
+async function renderHtmlToImage(
+  htmlContent: string,
+  prefix: string,
+  dimensions: { width: number; height: number },
+  renderDelay: number = CONVERSION_CONSTANTS.RENDER_DELAYS.STANDARD
+): Promise<string> {
   let window: BrowserWindow | null = null;
   let tmpPath: string | null = null;
 
@@ -141,8 +146,8 @@ export async function convertWordToImagesElectron(base64Data: string): Promise<s
           "p[style-name='Heading 1'] => h1",
           "p[style-name='Heading 2'] => h2",
           "p[style-name='Heading 3'] => h3",
-          "table => table.document-table"
-        ]
+          'table => table.document-table',
+        ],
       }
     );
 
@@ -188,7 +193,7 @@ export async function convertWordToImagesElectron(base64Data: string): Promise<s
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert Word document using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -199,7 +204,10 @@ export async function convertWordToImagesElectron(base64Data: string): Promise<s
  * Supports .xls, .xlsx, .xlsm formats
  * Uses exceljs (secure alternative to SheetJS)
  */
-export async function convertExcelToImagesElectron(base64Data: string, fileName: string): Promise<string[]> {
+export async function convertExcelToImagesElectron(
+  base64Data: string,
+  fileName: string
+): Promise<string[]> {
   try {
     logger.info('Converting Excel spreadsheet to images using Electron renderer', { fileName });
     validateBase64Input(base64Data);
@@ -325,7 +333,7 @@ export async function convertExcelToImagesElectron(base64Data: string, fileName:
     return images;
   } catch (error) {
     logger.error('Failed to convert Excel using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -344,7 +352,7 @@ export async function convertMarkdownToImagesElectron(base64Data: string): Promi
 
     marked.setOptions({
       gfm: true,
-      breaks: true
+      breaks: true,
     });
 
     const htmlContent = `
@@ -428,7 +436,7 @@ export async function convertMarkdownToImagesElectron(base64Data: string): Promi
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert Markdown using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -437,7 +445,10 @@ export async function convertMarkdownToImagesElectron(base64Data: string): Promi
 /**
  * Convert CSV to images using HTML table rendering
  */
-export async function convertCsvToImagesElectron(base64Data: string, fileName: string): Promise<string[]> {
+export async function convertCsvToImagesElectron(
+  base64Data: string,
+  fileName: string
+): Promise<string[]> {
   try {
     logger.info('Converting CSV to images using Electron renderer', { fileName });
     validateBase64Input(base64Data);
@@ -447,7 +458,7 @@ export async function convertCsvToImagesElectron(base64Data: string, fileName: s
 
     const records = parse(csvText, {
       skip_empty_lines: true,
-      relax_column_count: true
+      relax_column_count: true,
     });
 
     if (records.length === 0) {
@@ -533,7 +544,7 @@ export async function convertCsvToImagesElectron(base64Data: string, fileName: s
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert CSV using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -543,7 +554,11 @@ export async function convertCsvToImagesElectron(base64Data: string, fileName: s
  * Convert text/code files to images with syntax highlighting
  * Supports .txt, .log, .json, .xml, .yaml, .yml, .html, .htm, .svg, etc.
  */
-export async function convertTextToImagesElectron(base64Data: string, fileName: string, extension: string): Promise<string[]> {
+export async function convertTextToImagesElectron(
+  base64Data: string,
+  fileName: string,
+  extension: string
+): Promise<string[]> {
   try {
     logger.info('Converting text file to images using Electron renderer', { fileName, extension });
 
@@ -619,7 +634,7 @@ export async function convertTextToImagesElectron(base64Data: string, fileName: 
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert text file using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -642,9 +657,11 @@ export async function convertPowerPointToImagesElectron(base64Data: string): Pro
 
     // Extract slide relationships
     const slidesPath = 'ppt/slides/';
-    const slideFiles = Object.keys(zip.files).filter((name): boolean =>
-      name.startsWith(slidesPath) && Boolean(name.match(/slide\d+\.xml$/))
-    ).sort();
+    const slideFiles = Object.keys(zip.files)
+      .filter(
+        (name): boolean => name.startsWith(slidesPath) && Boolean(name.match(/slide\d+\.xml$/))
+      )
+      .sort();
 
     if (slideFiles.length === 0) {
       // For .ppt files or if parsing fails, create a simple placeholder
@@ -745,7 +762,7 @@ export async function convertPowerPointToImagesElectron(base64Data: string): Pro
     return images;
   } catch (error) {
     logger.error('Failed to convert PowerPoint using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -805,7 +822,7 @@ export async function convertRtfToImagesElectron(base64Data: string): Promise<st
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert RTF using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -822,9 +839,7 @@ export async function convertTiffToImagesElectron(base64Data: string): Promise<s
     const sharp = (await import('sharp')).default;
 
     // Convert TIFF to PNG
-    const pngBuffer = await sharp(tiffBuffer)
-      .png()
-      .toBuffer();
+    const pngBuffer = await sharp(tiffBuffer).png().toBuffer();
 
     const pngBase64 = pngBuffer.toString('base64');
 
@@ -832,7 +847,7 @@ export async function convertTiffToImagesElectron(base64Data: string): Promise<s
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert TIFF using sharp', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -849,9 +864,7 @@ export async function convertHeicToImagesElectron(base64Data: string): Promise<s
     const sharp = (await import('sharp')).default;
 
     // Convert HEIC to PNG
-    const pngBuffer = await sharp(heicBuffer)
-      .png()
-      .toBuffer();
+    const pngBuffer = await sharp(heicBuffer).png().toBuffer();
 
     const pngBase64 = pngBuffer.toString('base64');
 
@@ -859,7 +872,7 @@ export async function convertHeicToImagesElectron(base64Data: string): Promise<s
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert HEIC/HEIF using sharp', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -868,7 +881,10 @@ export async function convertHeicToImagesElectron(base64Data: string): Promise<s
 /**
  * Convert email files (EML/MSG) to images
  */
-export async function convertEmailToImagesElectron(base64Data: string, fileName: string): Promise<string[]> {
+export async function convertEmailToImagesElectron(
+  base64Data: string,
+  fileName: string
+): Promise<string[]> {
   try {
     logger.info('Converting email to images using Electron renderer', { fileName });
 
@@ -878,9 +894,10 @@ export async function convertEmailToImagesElectron(base64Data: string, fileName:
     // Parse email
     const parsed = await simpleParser(emailBuffer);
 
-    const rawBody = typeof parsed.html === 'string' && parsed.html.trim().length > 0
-      ? parsed.html
-      : escapeHtml(parsed.text || 'No content').replace(/\n/g, '<br/>');
+    const rawBody =
+      typeof parsed.html === 'string' && parsed.html.trim().length > 0
+        ? parsed.html
+        : escapeHtml(parsed.text || 'No content').replace(/\n/g, '<br/>');
     const safeBody = sanitizeHtmlContent(rawBody);
 
     // Build HTML representation of email
@@ -939,12 +956,16 @@ export async function convertEmailToImagesElectron(base64Data: string, fileName:
         <div class="email-body">
 ${safeBody}
         </div>
-        ${parsed.attachments && parsed.attachments.length > 0 ? `
+        ${
+          parsed.attachments && parsed.attachments.length > 0
+            ? `
         <div class="attachments">
           <strong>📎 Attachments (${parsed.attachments.length}):</strong><br/>
-          ${parsed.attachments.map((att): string => `• ${escapeHtml(att.filename || 'unnamed')} (${(att.size || 0)} bytes)`).join('<br/>')}
+          ${parsed.attachments.map((att): string => `• ${escapeHtml(att.filename || 'unnamed')} (${att.size || 0} bytes)`).join('<br/>')}
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </body>
       </html>
     `;
@@ -960,7 +981,7 @@ ${safeBody}
     return [pngBase64];
   } catch (error) {
     logger.error('Failed to convert email using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }
@@ -980,9 +1001,9 @@ export async function convertEpubToImagesElectron(base64Data: string): Promise<s
     const zip = await JSZip.loadAsync(epubBuffer);
 
     // Find content files (simplified - full EPUB parsing is complex)
-    const contentFiles = Object.keys(zip.files).filter((name): boolean =>
-      name.endsWith('.xhtml') || name.endsWith('.html')
-    ).slice(0, CONVERSION_CONSTANTS.LIMITS.MAX_EPUB_CHAPTERS);
+    const contentFiles = Object.keys(zip.files)
+      .filter((name): boolean => name.endsWith('.xhtml') || name.endsWith('.html'))
+      .slice(0, CONVERSION_CONSTANTS.LIMITS.MAX_EPUB_CHAPTERS);
 
     if (contentFiles.length === 0) {
       throw new Error('No content found in EPUB');
@@ -1033,7 +1054,7 @@ export async function convertEpubToImagesElectron(base64Data: string): Promise<s
     return images;
   } catch (error) {
     logger.error('Failed to convert EPUB using Electron', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   }

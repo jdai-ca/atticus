@@ -1,7 +1,7 @@
 import {
   getTotalTokenCount,
   truncateToContextWindow,
-  getContextWindowStats
+  getContextWindowStats,
 } from '../utils/contextWindowManager';
 import { describe, it, expect } from 'vitest';
 
@@ -31,6 +31,8 @@ describe('contextWindowManager (edge/extended)', () => {
   });
 
   it('truncateToContextWindow throws on single empty message and small window', () => {
-    expect(() => truncateToContextWindow([emptyMessage], undefined, 1)).toThrow('Context window too small');
+    expect(() => truncateToContextWindow([emptyMessage], undefined, 1)).toThrow(
+      'Context window too small'
+    );
   });
 });

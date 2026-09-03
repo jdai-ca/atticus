@@ -1,16 +1,14 @@
-import { useMemo } from "react";
-import { ChatThreadConfigSection } from "../ChatThreadConfigSection";
+import { useMemo } from 'react';
+import { ChatThreadConfigSection } from '../ChatThreadConfigSection';
 
-type ChatThreadConfigSectionProps = React.ComponentProps<
-  typeof ChatThreadConfigSection
->;
+type ChatThreadConfigSectionProps = React.ComponentProps<typeof ChatThreadConfigSection>;
 
 interface UseChatThreadConfigSectionPropsResult {
   readonly chatThreadConfigSectionProps: ChatThreadConfigSectionProps;
 }
 
 export function useChatThreadConfigSectionProps(
-  params: ChatThreadConfigSectionProps,
+  params: ChatThreadConfigSectionProps
 ): UseChatThreadConfigSectionPropsResult {
   const chatThreadConfigSectionProps = useMemo(
     (): ChatThreadConfigSectionProps => ({ ...params }),
@@ -29,7 +27,7 @@ export function useChatThreadConfigSectionProps(
       params.toggleModelSelection,
       params.toggleJurisdiction,
       params.onCloseConfigDialog,
-    ],
+    ]
   );
 
   return {

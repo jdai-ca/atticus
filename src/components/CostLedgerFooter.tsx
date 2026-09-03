@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download } from 'lucide-react';
 
 interface CostLedgerFooterProps {
   readonly onExport: () => void;
@@ -10,8 +10,8 @@ export function CostLedgerFooter({ onExport, onClose }: CostLedgerFooterProps) {
     <div className="p-4 border-t border-gray-700 bg-gray-900/50">
       <div className="flex items-center justify-between text-xs text-gray-500">
         <div>
-          Costs are calculated based on provider pricing and token usage and may
-          be inaccurate due to tiered pricing or estimation.
+          Costs are calculated based on provider pricing and token usage and may be inaccurate due
+          to tiered pricing or estimation.
         </div>
         <div className="flex gap-2">
           <button

@@ -1,7 +1,7 @@
-import { useCallback } from "react";
-import { createLogger } from "../../services/debugLogger";
+import { useCallback } from 'react';
+import { createLogger } from '../../services/debugLogger';
 
-const logger = createLogger("useTextareaFocusRecovery");
+const logger = createLogger('useTextareaFocusRecovery');
 
 interface UseTextareaFocusRecoveryParams {
   readonly textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -15,11 +15,11 @@ export function useTextareaFocusRecovery({
   textareaRef,
 }: UseTextareaFocusRecoveryParams): UseTextareaFocusRecoveryResult {
   const restoreTextareaFocus = useCallback((): void => {
-    logger.debug("Restoring textarea focus");
+    logger.debug('Restoring textarea focus');
 
     const attemptFocus = (attempts = 0): void => {
       if (attempts > 5) {
-        logger.warn("Failed to restore textarea focus after 5 attempts");
+        logger.warn('Failed to restore textarea focus after 5 attempts');
         return;
       }
 
@@ -27,21 +27,21 @@ export function useTextareaFocusRecovery({
         setTimeout(
           (): void => {
             if (textareaRef.current) {
-              logger.debug("Focus attempt", { attempt: attempts + 1 });
+              logger.debug('Focus attempt', { attempt: attempts + 1 });
               textareaRef.current.focus();
 
               setTimeout((): void => {
                 const isFocused = document.activeElement === textareaRef.current;
-                logger.debug("Focus check result", { isFocused });
+                logger.debug('Focus check result', { isFocused });
                 if (!isFocused) {
                   attemptFocus(attempts + 1);
                 }
               }, 50);
             } else {
-              logger.warn("Textarea ref is null during focus attempt");
+              logger.warn('Textarea ref is null during focus attempt');
             }
           },
-          100 + attempts * 50,
+          100 + attempts * 50
         );
       });
     };

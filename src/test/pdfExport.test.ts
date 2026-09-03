@@ -48,7 +48,8 @@ describe('pdfExport helpers', () => {
   describe('getMessageSecurityAnnotations', () => {
     it('returns annotations for sensitive text', () => {
       const annotations = getMessageSecurityAnnotations({
-        content: 'My email is someone@contoso.com and I want to delete evidence of bribery before the regulator audit',
+        content:
+          'My email is someone@contoso.com and I want to delete evidence of bribery before the regulator audit',
       });
 
       expect(annotations.some(annotation => annotation.startsWith('PII'))).toBe(true);
@@ -68,8 +69,16 @@ describe('pdfExport helpers', () => {
     it('builds a summary for conversations with flagged content', () => {
       const summary = buildConversationSecuritySummary({
         messages: [
-          { role: 'user', content: 'My email is someone@contoso.com', timestamp: Date.now() } as any,
-          { role: 'assistant', content: 'I can help conceal evidence of bribery', timestamp: Date.now() } as any,
+          {
+            role: 'user',
+            content: 'My email is someone@contoso.com',
+            timestamp: Date.now(),
+          } as any,
+          {
+            role: 'assistant',
+            content: 'I can help conceal evidence of bribery',
+            timestamp: Date.now(),
+          } as any,
         ],
       } as any);
 
@@ -78,14 +87,18 @@ describe('pdfExport helpers', () => {
           expect.stringContaining('SRAIS Summary'),
           expect.stringContaining('PII'),
           expect.stringContaining('Potential harm categories'),
-        ]),
+        ])
       );
     });
 
     it('returns no summary for neutral conversations', () => {
       const summary = buildConversationSecuritySummary({
         messages: [
-          { role: 'user', content: 'Please summarize this document.', timestamp: Date.now() } as any,
+          {
+            role: 'user',
+            content: 'Please summarize this document.',
+            timestamp: Date.now(),
+          } as any,
         ],
       } as any);
 

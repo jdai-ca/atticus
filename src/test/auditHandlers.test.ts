@@ -58,27 +58,31 @@ import {
 type ReplaceHandler = (
   event: unknown,
   conversationId: string,
-  entriesJsonl: string,
+  entriesJsonl: string
 ) => Promise<{ success: boolean; error?: { code: string; message: string } }>;
 
 type ReadHandler = (
   event: unknown,
-  conversationId: string,
+  conversationId: string
 ) => Promise<{ success: boolean; lines: string[]; error?: { code: string; message: string } }>;
 
 type ListHandler = (
-  event: unknown,
-) => Promise<{ success: boolean; conversationIds: string[]; error?: { code: string; message: string } }>;
+  event: unknown
+) => Promise<{
+  success: boolean;
+  conversationIds: string[];
+  error?: { code: string; message: string };
+}>;
 
 type DeleteHandler = (
   event: unknown,
-  conversationId: string,
+  conversationId: string
 ) => Promise<{ success: boolean; error?: { code: string; message: string } }>;
 
 type AppendHandler = (
   event: unknown,
   conversationId: string,
-  entryJson: string,
+  entryJson: string
 ) => Promise<{ success: boolean; error?: { code: string; message: string } }>;
 
 type FailureResult = { success: boolean; error?: { code: string; message: string } };
@@ -167,32 +171,27 @@ const expectSuccess = (result: SuccessResult): void => {
   expect(result.success).toBe(true);
 };
 
-const expectAuditPathWrite = (
-  writeMock: unknown,
-  fileSuffix: string,
-  content: string,
-): void => {
+const expectAuditPathWrite = (writeMock: unknown, fileSuffix: string, content: string): void => {
   expect(writeMock as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
     expect.stringMatching(new RegExp(String.raw`[\\/]audit[\\/]${fileSuffix}$`)),
     content,
-    'utf-8',
+    'utf-8'
   );
 };
 
 const expectAuditPathCall = (pathMock: unknown, fileSuffix: string): void => {
   expect(pathMock as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
     expect.stringMatching(new RegExp(String.raw`[\\/]audit[\\/]${fileSuffix}$`)),
-    expect.anything(),
+    expect.anything()
   );
 };
 
 const expectEnsureAuditDirCalls = (expectedCount: number): void => {
   expect(hoisted.fsPromises.mkdir).toHaveBeenCalledTimes(expectedCount);
   if (expectedCount > 0) {
-    expect(hoisted.fsPromises.mkdir).toHaveBeenCalledWith(
-      expect.stringMatching(/[\\/]audit$/),
-      { recursive: true },
-    );
+    expect(hoisted.fsPromises.mkdir).toHaveBeenCalledWith(expect.stringMatching(/[\\/]audit$/), {
+      recursive: true,
+    });
   }
 };
 
@@ -203,7 +202,7 @@ const expectLinesResult = (result: LinesResult, expectedLines: string[]): void =
 
 const expectConversationIdsResult = (
   result: ConversationIdsResult,
-  expectedConversationIds: string[],
+  expectedConversationIds: string[]
 ): void => {
   expectSuccess(result);
   expect(result.conversationIds).toEqual(expectedConversationIds);
@@ -214,24 +213,19 @@ const invokeHandler = async <T>(
   ...args: any[]
 ): Promise<T> => handler({}, ...args);
 
-const invokeReplace = (
-  conversationId: string,
-  entriesJsonl: string,
-) => invokeHandler(getHandler<ReplaceHandler>('audit-log-replace'), conversationId, entriesJsonl);
+const invokeReplace = (conversationId: string, entriesJsonl: string) =>
+  invokeHandler(getHandler<ReplaceHandler>('audit-log-replace'), conversationId, entriesJsonl);
 
 const invokeRead = (conversationId: string) =>
   invokeHandler(getHandler<ReadHandler>('audit-log-read'), conversationId);
 
-const invokeList = () =>
-  invokeHandler(getHandler<ListHandler>('audit-log-list'));
+const invokeList = () => invokeHandler(getHandler<ListHandler>('audit-log-list'));
 
 const invokeDelete = (conversationId: string) =>
   invokeHandler(getHandler<DeleteHandler>('audit-log-delete'), conversationId);
 
-const invokeAppend = (
-  conversationId: string,
-  entryJson: string,
-) => invokeHandler(getHandler<AppendHandler>('audit-log-append'), conversationId, entryJson);
+const invokeAppend = (conversationId: string, entryJson: string) =>
+  invokeHandler(getHandler<AppendHandler>('audit-log-append'), conversationId, entryJson);
 
 const createErrnoError = (message: string, code: string): NodeJS.ErrnoException =>
   Object.assign(new Error(message), { code });
@@ -239,8 +233,7 @@ const createErrnoError = (message: string, code: string): NodeJS.ErrnoException 
 const createEnoentError = (message = 'missing'): NodeJS.ErrnoException =>
   createErrnoError(message, 'ENOENT');
 
-const createFailureError = (message: string): Error =>
-  new Error(message);
+const createFailureError = (message: string): Error => new Error(message);
 
 describe('auditHandlers registration', () => {
   beforeEach(() => {
@@ -255,7 +248,7 @@ describe('auditHandlers registration', () => {
   });
 
   it('exposes all expected channel handlers after registration', () => {
-    EXPECTED_AUDIT_CHANNELS.forEach((channel) => {
+    EXPECTED_AUDIT_CHANNELS.forEach(channel => {
       expect(hoisted.handlers.has(channel)).toBe(true);
     });
   });
@@ -280,7 +273,7 @@ describe('auditHandlers replace IPC', () => {
       expect.objectContaining({
         conversationId: 'conv-too-large',
         maxBytes: MAX_AUDIT_REPLACE_BYTES,
-      }),
+      })
     );
   });
 
@@ -291,7 +284,11 @@ describe('auditHandlers replace IPC', () => {
     const result = await invokeReplace('conv-byte-limit-ok', atLimitPayload);
 
     expectSuccess(result);
-    expectAuditPathWrite(hoisted.fsPromises.writeFile, 'conv-byte-limit-ok\\.jsonl', `${atLimitPayload}\n`);
+    expectAuditPathWrite(
+      hoisted.fsPromises.writeFile,
+      'conv-byte-limit-ok\\.jsonl',
+      `${atLimitPayload}\n`
+    );
     expectEnsureAuditDirCalls(1);
   });
 
@@ -336,7 +333,10 @@ describe('auditHandlers replace IPC', () => {
 
     expectFailureCode(result, 'AUDIT_REPLACE_FAILED');
     expect(hoisted.fsPromises.writeFile).not.toHaveBeenCalled();
-    expectLoggerErrorWithConversation('Failed to replace audit log entries', 'conv-mkdir-replace-fail');
+    expectLoggerErrorWithConversation(
+      'Failed to replace audit log entries',
+      'conv-mkdir-replace-fail'
+    );
   });
 
   it.each(SANITIZATION_CASES)(
@@ -345,8 +345,12 @@ describe('auditHandlers replace IPC', () => {
       const result = await invokeReplace(rawConversationId, '{"id":"a"}');
 
       expectSuccess(result);
-      expectAuditPathWrite(hoisted.fsPromises.writeFile, `${expectedSanitizedStem}\\.jsonl`, '{"id":"a"}\n');
-    },
+      expectAuditPathWrite(
+        hoisted.fsPromises.writeFile,
+        `${expectedSanitizedStem}\\.jsonl`,
+        '{"id":"a"}\n'
+      );
+    }
   );
 });
 
@@ -408,7 +412,7 @@ describe('auditHandlers read IPC', () => {
       await invokeRead(rawConversationId);
 
       expectAuditPathCall(hoisted.fsPromises.readFile, `${expectedSanitizedStem}\\.jsonl`);
-    },
+    }
   );
 });
 
@@ -477,7 +481,7 @@ describe('auditHandlers delete IPC', () => {
 
     expectSuccess(result);
     expect(hoisted.fsPromises.unlink).toHaveBeenCalledWith(
-      expect.stringMatching(/[\\/]audit[\\/]conv-delete-ok\.jsonl$/),
+      expect.stringMatching(/[\\/]audit[\\/]conv-delete-ok\.jsonl$/)
     );
     expectEnsureAuditDirCalls(0);
   });
@@ -510,9 +514,11 @@ describe('auditHandlers delete IPC', () => {
 
       expectSuccess(result);
       expect(hoisted.fsPromises.unlink).toHaveBeenCalledWith(
-        expect.stringMatching(new RegExp(String.raw`[\\/]audit[\\/]${expectedSanitizedStem}\.jsonl$`)),
+        expect.stringMatching(
+          new RegExp(String.raw`[\\/]audit[\\/]${expectedSanitizedStem}\.jsonl$`)
+        )
       );
-    },
+    }
   );
 });
 
@@ -556,7 +562,11 @@ describe('auditHandlers append IPC', () => {
       const result = await invokeAppend(rawConversationId, '{"id":"a"}');
 
       expectSuccess(result);
-      expectAuditPathWrite(hoisted.fsPromises.appendFile, `${expectedSanitizedStem}\\.jsonl`, '{"id":"a"}\n');
-    },
+      expectAuditPathWrite(
+        hoisted.fsPromises.appendFile,
+        `${expectedSanitizedStem}\\.jsonl`,
+        '{"id":"a"}\n'
+      );
+    }
   );
 });

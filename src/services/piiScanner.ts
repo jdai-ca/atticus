@@ -16,6 +16,9 @@ import type { Jurisdiction } from '../types';
 
 const logger = createLogger('PIIScanner');
 
+/** Defensive cap: bounds worst-case regex work against pathologically large scan input. */
+const MAX_PII_SCAN_TEXT_LENGTH = 200_000;
+
 export enum PIIType {
   // Identity Information - Universal
   SSN = 'SSN', // US Social Security Number
@@ -753,6 +756,11 @@ export class PIIScanner {
   }
 
   scan(text: string, jurisdictions?: Jurisdiction[]): PIIScanResult {
+    // Defensive cap: bounds worst-case regex work against pathologically large input
+    // (e.g. a very long pasted document or an unbounded external caller).
+    const scanText =
+      text.length > MAX_PII_SCAN_TEXT_LENGTH ? text.slice(0, MAX_PII_SCAN_TEXT_LENGTH) : text;
+
     const findings: PIIDetection[] = [];
     const detectedCategories = new Set<PIIType>();
 
@@ -768,7 +776,7 @@ export class PIIScanner {
       }
 
       // Process pattern and collect findings
-      const patternFindings = this.processPattern(text, patternConfig, jurisdictions);
+      const patternFindings = this.processPattern(scanText, patternConfig, jurisdictions);
       findings.push(...patternFindings);
 
       if (patternFindings.length > 0) {
@@ -829,6 +837,22 @@ export class PIIScanner {
   }
 
   /**
+   * Contextual Proximity Anchor: checks if a keyword pattern appears within +/- radius
+   * chars of the matched value. Used to gate generic numeric patterns (bare digit
+   * sequences) that would otherwise match phone numbers, invoice numbers, etc.
+   */
+  private hasNearbyKeyword(value: string, text: string, keywordPattern: RegExp, radius = 15): boolean {
+    const cleanedText = text.toLowerCase();
+    const valueIndex = cleanedText.indexOf(value.toLowerCase());
+    if (valueIndex === -1) return true; // Can't locate value in text; don't block on it
+    const contextSlice = cleanedText.substring(
+      Math.max(0, valueIndex - radius),
+      Math.min(cleanedText.length, valueIndex + value.length + radius)
+    );
+    return keywordPattern.test(contextSlice);
+  }
+
+  /**
    * Additional validation for specific PII types
    */
   private validateMatch(type: PIIType, value: string, text: string): boolean {
@@ -836,23 +860,32 @@ export class PIIScanner {
       case PIIType.CREDIT_CARD: {
         const rawDigits = this.extractDigits(value);
         if (!this.validateLuhn(rawDigits)) return false;
+        // Contextual Proximity Anchors: check if descriptive keywords are nearby
+        return this.hasNearbyKeyword(
+          value,
+          text,
+          /(?:card|cc|visa|mastercode|amex|credit|debit|payment|bill|number)/i
+        );
+      }
 
-        // Contextual Proximity Anchors: check if descriptive keywords are within +/- 15 chars
-        const cleanedText = text.toLowerCase();
-        const valueIndex = cleanedText.indexOf(value.toLowerCase());
-        if (valueIndex !== -1) {
-          const contextSlice = cleanedText.substring(
-            Math.max(0, valueIndex - 15),
-            Math.min(cleanedText.length, valueIndex + value.length + 15)
-          );
-          const hasAnchor = /(?:card|cc|visa|mastercode|amex|credit|debit|payment|bill|number)/i.test(
-            contextSlice
-          );
-          if (!hasAnchor) {
-            return false; // Skip, matches arbitrary formatted sequence but lacks proximity context keys
-          }
-        }
-        return true;
+      case PIIType.CLABE: {
+        // Bare 18-digit pattern is otherwise indistinguishable from many numeric IDs;
+        // require nearby banking-related context.
+        return this.hasNearbyKeyword(
+          value,
+          text,
+          /(?:clabe|cuenta|bancaria|banco|bank\s*account|iban)/i
+        );
+      }
+
+      case PIIType.HEALTH_CARD: {
+        // Bare 10-digit pattern is otherwise indistinguishable from phone numbers,
+        // case numbers, etc.; require nearby health-card-related context.
+        return this.hasNearbyKeyword(
+          value,
+          text,
+          /(?:health\s*card|healthcard|carte\s*sant[ée]|ohip|care\s*card|medicare|msp|ramq)/i
+        );
       }
 
       case PIIType.SSN: {
@@ -860,6 +893,7 @@ export class PIIScanner {
         const digits = this.extractDigits(value);
         return digits.length === 9 && digits !== '000000000' && digits !== '123456789';
       }
+
 
       case PIIType.EMAIL: {
         // Exclude common non-personal examples

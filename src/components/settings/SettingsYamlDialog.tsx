@@ -1,9 +1,9 @@
-import { LegalPracticeArea } from "../../types";
-import { YamlEditorDialog } from "./YamlEditorDialog";
+import { LegalPracticeArea } from '../../types';
+import { YamlEditorDialog } from './YamlEditorDialog';
 
 interface SettingsYamlDialogProps {
   readonly showYamlEditor: boolean;
-  readonly editingYamlType: "practices" | "advisory" | "analysis";
+  readonly editingYamlType: 'practices' | 'advisory' | 'analysis';
   readonly yamlLoadError: string | null;
   readonly analysisPrompt: string;
   readonly setAnalysisPrompt: (prompt: string) => void;

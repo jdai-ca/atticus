@@ -32,8 +32,8 @@ function createConversionHandler<T extends unknown[]>(
         success: false,
         error: {
           code: errorCode,
-          message: error instanceof Error ? error.message : `Conversion failed: ${eventName}`
-        }
+          message: error instanceof Error ? error.message : `Conversion failed: ${eventName}`,
+        },
       };
     }
   });

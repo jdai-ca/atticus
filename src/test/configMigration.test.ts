@@ -24,7 +24,13 @@ const validTemplate: ProviderTemplate = {
 
 describe('migrateProviderConfig', () => {
   it('returns provider if no template found', () => {
-    const provider = { id: '1', provider: 'missing' as AIProvider, name: 'Missing', model: 'm', enabled: true };
+    const provider = {
+      id: '1',
+      provider: 'missing' as AIProvider,
+      name: 'Missing',
+      model: 'm',
+      enabled: true,
+    };
     expect(migrateProviderConfig(provider, [validTemplate])).toBe(provider);
   });
   it('sets endpoint if missing', () => {
@@ -33,7 +39,14 @@ describe('migrateProviderConfig', () => {
     expect(migrated.endpoint).toBe('http://endpoint');
   });
   it('does not overwrite existing endpoint', () => {
-    const provider = { id: '3', provider: providerId, name: 'Test', model: 'm', enabled: true, endpoint: 'custom' };
+    const provider = {
+      id: '3',
+      provider: providerId,
+      name: 'Test',
+      model: 'm',
+      enabled: true,
+      endpoint: 'custom',
+    };
     const migrated = migrateProviderConfig(provider, [validTemplate]);
     expect(migrated.endpoint).toBe('custom');
   });
@@ -48,7 +61,7 @@ describe('migrateAllProviders', () => {
   it('migrates all missing endpoints', () => {
     const providers = [
       { id: '1', provider: providerId, name: 'A', model: 'm', enabled: true },
-      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true }
+      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true },
     ];
     const migrated = migrateAllProviders(providers, [validTemplate]);
     expect(migrated.every(p => p.endpoint === 'http://endpoint')).toBe(true);
@@ -56,7 +69,7 @@ describe('migrateAllProviders', () => {
   it('preserves existing endpoints', () => {
     const providers = [
       { id: '1', provider: providerId, name: 'A', model: 'm', enabled: true, endpoint: 'x' },
-      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true, endpoint: 'y' }
+      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true, endpoint: 'y' },
     ];
     const migrated = migrateAllProviders(providers, [validTemplate]);
     expect(migrated.map(p => p.endpoint)).toEqual(['x', 'y']);
@@ -64,7 +77,7 @@ describe('migrateAllProviders', () => {
   it('handles mix of missing and present endpoints', () => {
     const providers = [
       { id: '1', provider: providerId, name: 'A', model: 'm', enabled: true },
-      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true, endpoint: 'y' }
+      { id: '2', provider: providerId, name: 'B', model: 'm', enabled: true, endpoint: 'y' },
     ];
     const migrated = migrateAllProviders(providers, [validTemplate]);
     expect(migrated[0].endpoint).toBe('http://endpoint');
@@ -72,7 +85,7 @@ describe('migrateAllProviders', () => {
   });
   it('returns original if template missing', () => {
     const providers = [
-      { id: '1', provider: 'missing' as AIProvider, name: 'A', model: 'm', enabled: true }
+      { id: '1', provider: 'missing' as AIProvider, name: 'A', model: 'm', enabled: true },
     ];
     expect(migrateAllProviders(providers, [validTemplate])).toEqual(providers);
   });
@@ -95,14 +108,21 @@ describe('migrateProviderConfig (edge/extended)', () => {
     const provider = { id: '1', provider: providerId, name: 'A', model: 'm', enabled: true };
     const templates: ProviderTemplate[] = [
       { ...validTemplate, endpoint: 'A' },
-      { ...validTemplate, endpoint: 'B' }
+      { ...validTemplate, endpoint: 'B' },
     ];
     const migrated = migrateProviderConfig(provider, templates);
     // Should use the first match
     expect(migrated.endpoint).toBe('A');
   });
   it('treats empty string endpoint as missing', () => {
-    const provider = { id: '1', provider: providerId, name: 'A', model: 'm', enabled: true, endpoint: '' };
+    const provider = {
+      id: '1',
+      provider: providerId,
+      name: 'A',
+      model: 'm',
+      enabled: true,
+      endpoint: '',
+    };
     const migrated = migrateProviderConfig(provider, [validTemplate]);
     expect(migrated.endpoint).toBe('http://endpoint');
   });

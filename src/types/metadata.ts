@@ -4,7 +4,7 @@
  */
 
 // Audit event details - discriminated union for type-safe event details
-export type AuditEventDetails = 
+export type AuditEventDetails =
   | PiiScanDetails
   | ApiRequestDetails
   | ApiResponseDetails

@@ -1,11 +1,6 @@
-import type {
-  Conversation,
-  Message,
-  ProviderConfig,
-  ProviderTemplate,
-} from "../../types";
-import { useAnalysis } from "./useAnalysis";
-import { useAnalysisDialogOptions } from "./useAnalysisDialogOptions";
+import type { Conversation, Message, ProviderConfig, ProviderTemplate } from '../../types';
+import { useAnalysis } from './useAnalysis';
+import { useAnalysisDialogOptions } from './useAnalysisDialogOptions';
 
 interface UseChatAnalysisAdapterParams {
   readonly currentConversation: Conversation | null;
@@ -24,13 +19,9 @@ interface UseChatAnalysisAdapterParams {
 }
 
 interface UseChatAnalysisAdapterResult {
-  readonly handleRunAnalysis: ReturnType<typeof useAnalysis>["handleRunAnalysis"];
-  readonly availableModels: ReturnType<
-    typeof useAnalysisDialogOptions
-  >["availableModels"];
-  readonly modelsUsedInCluster: ReturnType<
-    typeof useAnalysisDialogOptions
-  >["modelsUsedInCluster"];
+  readonly handleRunAnalysis: ReturnType<typeof useAnalysis>['handleRunAnalysis'];
+  readonly availableModels: ReturnType<typeof useAnalysisDialogOptions>['availableModels'];
+  readonly modelsUsedInCluster: ReturnType<typeof useAnalysisDialogOptions>['modelsUsedInCluster'];
 }
 
 export function useChatAnalysisAdapter({
@@ -48,27 +39,23 @@ export function useChatAnalysisAdapter({
   setShowAnalysisDialog,
   setSelectedAnalysisModel,
 }: UseChatAnalysisAdapterParams): UseChatAnalysisAdapterResult {
-  const { handleRunAnalysis, getAvailableAnalysisModels, getModelsUsedInCluster } =
-    useAnalysis({
-      currentConversation,
-      selectedAnalysisModel,
-      analysisClusterStart,
-      analysisClusterEnd,
-      analysisConfig,
-      config,
-      providerTemplates,
-      maxTokensOverride,
-      setIsAnalyzing,
-      addMessage,
-      saveCurrentConversation,
-      setShowAnalysisDialog,
-      setSelectedAnalysisModel,
-    });
+  const { handleRunAnalysis, getAvailableAnalysisModels, getModelsUsedInCluster } = useAnalysis({
+    currentConversation,
+    selectedAnalysisModel,
+    analysisClusterStart,
+    analysisClusterEnd,
+    analysisConfig,
+    config,
+    providerTemplates,
+    maxTokensOverride,
+    setIsAnalyzing,
+    addMessage,
+    saveCurrentConversation,
+    setShowAnalysisDialog,
+    setSelectedAnalysisModel,
+  });
 
-  const {
-    availableModels,
-    modelsUsedInCluster,
-  } = useAnalysisDialogOptions({
+  const { availableModels, modelsUsedInCluster } = useAnalysisDialogOptions({
     analysisClusterStart,
     analysisClusterEnd,
     getAvailableAnalysisModels,

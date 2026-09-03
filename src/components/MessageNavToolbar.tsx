@@ -1,11 +1,6 @@
-import React from "react";
-import {
-  ChevronUp,
-  ChevronDown,
-  ArrowUpToLine,
-  ArrowDownToLine,
-} from "lucide-react";
-import { Message } from "../types/index";
+import React from 'react';
+import { ChevronUp, ChevronDown, ArrowUpToLine, ArrowDownToLine } from 'lucide-react';
+import { Message } from '../types/index';
 
 interface MessageNavToolbarProps {
   messages: Message[];
@@ -27,7 +22,7 @@ export default function MessageNavToolbar({
           const container = messagesContainerRef.current;
           const userMessages = messages
             .map((msg, idx): { msg: Message; idx: number } => ({ msg, idx }))
-            .filter(({ msg }): boolean => msg.role === "user");
+            .filter(({ msg }): boolean => msg.role === 'user');
 
           if (userMessages.length === 0) return;
 
@@ -35,7 +30,7 @@ export default function MessageNavToolbar({
 
           if (lastJumpedMessageId.current) {
             const currentIdx = userMessages.findIndex(
-              ({ msg }) => msg.id === lastJumpedMessageId.current,
+              ({ msg }) => msg.id === lastJumpedMessageId.current
             );
             if (currentIdx > 0) {
               targetIndex = currentIdx - 1;
@@ -50,7 +45,7 @@ export default function MessageNavToolbar({
 
             for (let i = userMessages.length - 1; i >= 0; i--) {
               const msgElement = container.querySelector(
-                `[data-message-id="${userMessages[i].msg.id}"]`,
+                `[data-message-id="${userMessages[i].msg.id}"]`
               );
               if (msgElement) {
                 const elementTop = (msgElement as HTMLElement).offsetTop;
@@ -66,11 +61,11 @@ export default function MessageNavToolbar({
           }
 
           const targetMsg = container.querySelector(
-            `[data-message-id="${userMessages[targetIndex].msg.id}"]`,
+            `[data-message-id="${userMessages[targetIndex].msg.id}"]`
           );
           if (targetMsg) {
             lastJumpedMessageId.current = userMessages[targetIndex].msg.id;
-            targetMsg.scrollIntoView({ behavior: "smooth", block: "start" });
+            targetMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }}
         className="bg-legal-blue/90 hover:bg-legal-blue p-3 rounded-lg shadow-lg transition-colors border border-blue-500 backdrop-blur-sm"
@@ -86,7 +81,7 @@ export default function MessageNavToolbar({
           if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollBy({
               top: -window.innerHeight * 0.8,
-              behavior: "smooth",
+              behavior: 'smooth',
             });
           }
         }}
@@ -103,7 +98,7 @@ export default function MessageNavToolbar({
           if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollBy({
               top: window.innerHeight * 0.8,
-              behavior: "smooth",
+              behavior: 'smooth',
             });
           }
         }}
@@ -121,7 +116,7 @@ export default function MessageNavToolbar({
           const container = messagesContainerRef.current;
           const userMessages = messages
             .map((msg, idx): { msg: Message; idx: number } => ({ msg, idx }))
-            .filter(({ msg }): boolean => msg.role === "user");
+            .filter(({ msg }): boolean => msg.role === 'user');
 
           if (userMessages.length === 0) return;
 
@@ -129,7 +124,7 @@ export default function MessageNavToolbar({
 
           if (lastJumpedMessageId.current) {
             const currentIdx = userMessages.findIndex(
-              ({ msg }) => msg.id === lastJumpedMessageId.current,
+              ({ msg }) => msg.id === lastJumpedMessageId.current
             );
             if (currentIdx !== -1 && currentIdx < userMessages.length - 1) {
               targetIndex = currentIdx + 1;
@@ -144,7 +139,7 @@ export default function MessageNavToolbar({
 
             for (let i = 0; i < userMessages.length; i++) {
               const msgElement = container.querySelector(
-                `[data-message-id="${userMessages[i].msg.id}"]`,
+                `[data-message-id="${userMessages[i].msg.id}"]`
               );
               if (msgElement) {
                 const elementTop = (msgElement as HTMLElement).offsetTop;
@@ -160,11 +155,11 @@ export default function MessageNavToolbar({
           }
 
           const targetMsg = container.querySelector(
-            `[data-message-id="${userMessages[targetIndex].msg.id}"]`,
+            `[data-message-id="${userMessages[targetIndex].msg.id}"]`
           );
           if (targetMsg) {
             lastJumpedMessageId.current = userMessages[targetIndex].msg.id;
-            targetMsg.scrollIntoView({ behavior: "smooth", block: "start" });
+            targetMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }}
         className="bg-legal-blue/90 hover:bg-legal-blue p-3 rounded-lg shadow-lg transition-colors border border-blue-500 backdrop-blur-sm"

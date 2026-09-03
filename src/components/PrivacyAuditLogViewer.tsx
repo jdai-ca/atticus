@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Download,
@@ -9,8 +9,8 @@ import {
   AlertTriangle,
   AlertCircle,
   CheckCircle,
-} from "lucide-react";
-import { PIIScanLogEntry, RiskLevel, PIIScanner } from "../services/piiScanner";
+} from 'lucide-react';
+import { PIIScanLogEntry, RiskLevel, PIIScanner } from '../services/piiScanner';
 
 interface PrivacyAuditLogViewerProps {
   conversationId: string;
@@ -43,13 +43,11 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
 
   const handleExport = () => {
     const json = piiScanner.exportLogs(conversationId);
-    const blob = new Blob([json], { type: "application/json" });
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `pii-audit-log-${conversationId}-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    a.download = `pii-audit-log-${conversationId}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -69,12 +67,12 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
     });
   };
@@ -95,37 +93,35 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
   const getRiskColor = (riskLevel: RiskLevel) => {
     switch (riskLevel) {
       case RiskLevel.CRITICAL:
-        return "border-red-500 bg-red-50/5";
+        return 'border-red-500 bg-red-50/5';
       case RiskLevel.HIGH:
-        return "border-orange-500 bg-orange-50/5";
+        return 'border-orange-500 bg-orange-50/5';
       case RiskLevel.MODERATE:
-        return "border-yellow-500 bg-yellow-50/5";
+        return 'border-yellow-500 bg-yellow-50/5';
       default:
-        return "border-green-500 bg-green-50/5";
+        return 'border-green-500 bg-green-50/5';
     }
   };
 
   const getDecisionBadge = (decision: string) => {
     const badges = {
       proceed: {
-        text: "PROCEEDED",
-        className: "bg-orange-500/20 text-orange-300 border-orange-500/50",
+        text: 'PROCEEDED',
+        className: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
       },
       cancel: {
-        text: "CANCELLED",
-        className: "bg-blue-500/20 text-blue-300 border-blue-500/50",
+        text: 'CANCELLED',
+        className: 'bg-blue-500/20 text-blue-300 border-blue-500/50',
       },
       anonymize: {
-        text: "ANONYMIZED",
-        className: "bg-green-500/20 text-green-300 border-green-500/50",
+        text: 'ANONYMIZED',
+        className: 'bg-green-500/20 text-green-300 border-green-500/50',
       },
     };
 
     const badge = badges[decision as keyof typeof badges] || badges.cancel;
     return (
-      <span
-        className={`px-2 py-1 text-xs font-semibold rounded border ${badge.className}`}
-      >
+      <span className={`px-2 py-1 text-xs font-semibold rounded border ${badge.className}`}>
         {badge.text}
       </span>
     );
@@ -142,9 +138,7 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center gap-2">
             <Shield className="w-6 h-6 text-blue-400" />
-            <h2 className="text-xl font-bold text-white">
-              Privacy Scan Audit Log
-            </h2>
+            <h2 className="text-xl font-bold text-white">Privacy Scan Audit Log</h2>
           </div>
           <div className="flex items-center gap-2">
             {logs.length > 0 && (
@@ -160,12 +154,12 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
                   onClick={handleClear}
                   className={`px-3 py-1.5 text-sm rounded border transition-colors flex items-center gap-2 ${
                     showClearConfirm
-                      ? "bg-red-500/30 hover:bg-red-500/40 text-red-200 border-red-500"
-                      : "bg-slate-700/50 hover:bg-slate-700 text-slate-300 border-slate-600"
+                      ? 'bg-red-500/30 hover:bg-red-500/40 text-red-200 border-red-500'
+                      : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300 border-slate-600'
                   }`}
                 >
                   <Trash2 className="w-4 h-4" />
-                  {showClearConfirm ? "Confirm Clear?" : "Clear"}
+                  {showClearConfirm ? 'Confirm Clear?' : 'Clear'}
                 </button>
               </>
             )}
@@ -187,154 +181,146 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
               <Shield className="w-16 h-16 mb-4 opacity-50" />
               <p className="text-lg font-medium">No scans recorded yet</p>
               <p className="text-sm mt-2 text-center max-w-md">
-                PII scanning is always enabled, all scan results and your
-                decisions will be logged here for legal protection.
+                PII scanning is always enabled, all scan results and your decisions will be logged
+                here for legal protection.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {logs.map((log): JSX.Element => (
-                <div
-                  key={log.id}
-                  className={`border rounded-lg overflow-hidden transition-all ${getRiskColor(
-                    log.scanResult.riskLevel
-                  )}`}
-                >
-                  {/* Log Entry Header */}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1">
-                        {getRiskIcon(log.scanResult.riskLevel)}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm text-slate-400">
-                              {formatTimestamp(log.timestamp)}
-                            </span>
-                            {getDecisionBadge(log.userDecision)}
-                          </div>
-                          <p className="text-sm text-slate-300 font-mono bg-slate-800/50 p-2 rounded border border-slate-700 truncate">
-                            "{log.messagePreview}"
-                          </p>
-                          {log.scanResult.hasFindings && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {Array.from(
-                                log.scanResult.detectedCategories
-                              ).map((type): JSX.Element => (
-                                <span
-                                  key={type}
-                                  className="px-2 py-1 text-xs bg-slate-700/50 text-slate-300 rounded border border-slate-600"
-                                >
-                                  {type}
-                                </span>
-                              ))}
+              {logs.map(
+                (log): JSX.Element => (
+                  <div
+                    key={log.id}
+                    className={`border rounded-lg overflow-hidden transition-all ${getRiskColor(
+                      log.scanResult.riskLevel
+                    )}`}
+                  >
+                    {/* Log Entry Header */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1">
+                          {getRiskIcon(log.scanResult.riskLevel)}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm text-slate-400">
+                                {formatTimestamp(log.timestamp)}
+                              </span>
+                              {getDecisionBadge(log.userDecision)}
                             </div>
-                          )}
-                          {log.jurisdictions &&
-                            log.jurisdictions.length > 0 && (
-                              <div className="mt-2 text-xs text-slate-400">
-                                Jurisdictions: {log.jurisdictions.join(", ")}
+                            <p className="text-sm text-slate-300 font-mono bg-slate-800/50 p-2 rounded border border-slate-700 truncate">
+                              "{log.messagePreview}"
+                            </p>
+                            {log.scanResult.hasFindings && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {Array.from(log.scanResult.detectedCategories).map(
+                                  (type): JSX.Element => (
+                                    <span
+                                      key={type}
+                                      className="px-2 py-1 text-xs bg-slate-700/50 text-slate-300 rounded border border-slate-600"
+                                    >
+                                      {type}
+                                    </span>
+                                  )
+                                )}
                               </div>
                             )}
+                            {log.jurisdictions && log.jurisdictions.length > 0 && (
+                              <div className="mt-2 text-xs text-slate-400">
+                                Jurisdictions: {log.jurisdictions.join(', ')}
+                              </div>
+                            )}
+                          </div>
                         </div>
+                        <button
+                          onClick={() => toggleExpanded(log.id)}
+                          className="p-1 hover:bg-slate-700/50 rounded transition-colors text-slate-400 hover:text-white"
+                        >
+                          {expandedLogId === log.id ? (
+                            <ChevronUp className="w-5 h-5" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5" />
+                          )}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => toggleExpanded(log.id)}
-                        className="p-1 hover:bg-slate-700/50 rounded transition-colors text-slate-400 hover:text-white"
-                      >
-                        {expandedLogId === log.id ? (
-                          <ChevronUp className="w-5 h-5" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5" />
-                        )}
-                      </button>
                     </div>
-                  </div>
 
-                  {/* Expanded Details */}
-                  {expandedLogId === log.id && (
-                    <div className="border-t border-slate-700 bg-slate-900/50 p-4 space-y-3">
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-300 mb-2">
-                          Scan Summary
-                        </h4>
-                        <p className="text-sm text-slate-400">
-                          {log.scanResult.summary}
-                        </p>
-                      </div>
-
-                      {log.scanResult.findings.length > 0 && (
+                    {/* Expanded Details */}
+                    {expandedLogId === log.id && (
+                      <div className="border-t border-slate-700 bg-slate-900/50 p-4 space-y-3">
                         <div>
                           <h4 className="text-sm font-semibold text-slate-300 mb-2">
-                            Detailed Findings ({log.scanResult.findings.length})
+                            Scan Summary
                           </h4>
-                          <div className="space-y-2">
-                            {log.scanResult.findings.map((finding): JSX.Element => (
-                              <div
-                                key={`finding-${finding.type}-${finding.value}`}
-                                className="p-3 bg-slate-800/50 rounded border border-slate-700"
-                              >
-                                <div className="flex items-start justify-between mb-1">
-                                  <span className="text-sm font-medium text-slate-200">
-                                    {finding.description}
-                                  </span>
-                                  <span
-                                    className={`text-xs px-2 py-0.5 rounded ${(() => {
-                                      if (
-                                        finding.riskLevel === RiskLevel.CRITICAL
-                                      ) {
-                                        return "bg-red-500/20 text-red-300";
-                                      }
-                                      if (
-                                        finding.riskLevel === RiskLevel.HIGH
-                                      ) {
-                                        return "bg-orange-500/20 text-orange-300";
-                                      }
-                                      return "bg-yellow-500/20 text-yellow-300";
-                                    })()}`}
-                                  >
-                                    {finding.riskLevel}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-slate-400 mb-1">
-                                  Value:{" "}
-                                  <code className="font-mono">
-                                    {finding.value}
-                                  </code>
-                                </p>
-                                {finding.jurisdiction && (
-                                  <p className="text-xs text-slate-400 mb-1">
-                                    Jurisdiction: {finding.jurisdiction}
-                                  </p>
-                                )}
-                                <p className="text-xs text-slate-300 italic">
-                                  {finding.recommendation}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
+                          <p className="text-sm text-slate-400">{log.scanResult.summary}</p>
                         </div>
-                      )}
 
-                      <div className="pt-2 border-t border-slate-700">
-                        <div className="grid grid-cols-2 gap-4 text-xs">
+                        {log.scanResult.findings.length > 0 && (
                           <div>
-                            <span className="text-slate-400">Message ID:</span>
-                            <span className="ml-2 text-slate-300 font-mono">
-                              {log.messageId}
-                            </span>
+                            <h4 className="text-sm font-semibold text-slate-300 mb-2">
+                              Detailed Findings ({log.scanResult.findings.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {log.scanResult.findings.map(
+                                (finding): JSX.Element => (
+                                  <div
+                                    key={`finding-${finding.type}-${finding.value}`}
+                                    className="p-3 bg-slate-800/50 rounded border border-slate-700"
+                                  >
+                                    <div className="flex items-start justify-between mb-1">
+                                      <span className="text-sm font-medium text-slate-200">
+                                        {finding.description}
+                                      </span>
+                                      <span
+                                        className={`text-xs px-2 py-0.5 rounded ${(() => {
+                                          if (finding.riskLevel === RiskLevel.CRITICAL) {
+                                            return 'bg-red-500/20 text-red-300';
+                                          }
+                                          if (finding.riskLevel === RiskLevel.HIGH) {
+                                            return 'bg-orange-500/20 text-orange-300';
+                                          }
+                                          return 'bg-yellow-500/20 text-yellow-300';
+                                        })()}`}
+                                      >
+                                        {finding.riskLevel}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mb-1">
+                                      Value: <code className="font-mono">{finding.value}</code>
+                                    </p>
+                                    {finding.jurisdiction && (
+                                      <p className="text-xs text-slate-400 mb-1">
+                                        Jurisdiction: {finding.jurisdiction}
+                                      </p>
+                                    )}
+                                    <p className="text-xs text-slate-300 italic">
+                                      {finding.recommendation}
+                                    </p>
+                                  </div>
+                                )
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-slate-400">Scan Time:</span>
-                            <span className="ml-2 text-slate-300">
-                              {formatTimestamp(log.scanResult.scanTimestamp)}
-                            </span>
+                        )}
+
+                        <div className="pt-2 border-t border-slate-700">
+                          <div className="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                              <span className="text-slate-400">Message ID:</span>
+                              <span className="ml-2 text-slate-300 font-mono">{log.messageId}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400">Scan Time:</span>
+                              <span className="ml-2 text-slate-300">
+                                {formatTimestamp(log.scanResult.scanTimestamp)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>
@@ -345,12 +331,11 @@ export const PrivacyAuditLogViewer: React.FC<PrivacyAuditLogViewerProps> = ({
             {logs.length > 0 ? (
               <>
                 <strong>{logs.length}</strong> scan
-                {logs.length === 1 ? "" : "s"} recorded for legal protection.
-                This audit trail proves you were warned about sensitive data
-                sharing.
+                {logs.length === 1 ? '' : 's'} recorded for legal protection. This audit trail
+                proves you were warned about sensitive data sharing.
               </>
             ) : (
-              "Privacy by Design"
+              'Privacy by Design'
             )}
           </p>
         </div>

@@ -1,10 +1,10 @@
-import { Conversation } from "../types";
-import { validateCostBreakdown, CostBreakdown } from "./costCalculator";
+import { Conversation } from '../types';
+import { validateCostBreakdown, CostBreakdown } from './costCalculator';
 
 export interface CostLedgerEntry {
   messageId: string;
   timestamp: string;
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   provider?: string;
   model?: string;
   inputTokens: number;
@@ -12,6 +12,8 @@ export interface CostLedgerEntry {
   totalTokens: number;
   inputCost: number;
   outputCost: number;
+  cacheCreationCost?: number;
+  cacheReadCost?: number;
   cost: number;
   durationMs: number;
   tokensPerSecond: number;
@@ -23,23 +25,21 @@ export interface CostLedgerTotals {
   totalTokens: number;
   inputCost: number;
   outputCost: number;
+  cacheCreationCost: number;
+  cacheReadCost: number;
   cost: number;
 }
 
-export type CostLedgerTier = "low" | "medium" | "high";
+export type CostLedgerTier = 'low' | 'medium' | 'high';
 
 export const costLedgerTierColors: Record<CostLedgerTier, string> = {
-  low: "text-green-400",
-  medium: "text-amber-400",
-  high: "text-red-400",
+  low: 'text-green-400',
+  medium: 'text-amber-400',
+  high: 'text-red-400',
 };
 
 interface BuildCostLedgerDataOptions {
-  onCostValidationFailed?: (payload: {
-    messageId: string;
-    error: string;
-    cost: unknown;
-  }) => void;
+  onCostValidationFailed?: (payload: { messageId: string; error: string; cost: unknown }) => void;
   onTotalCostMismatch?: (payload: {
     totalCost: string;
     expectedTotal: string;
@@ -48,31 +48,28 @@ interface BuildCostLedgerDataOptions {
 }
 
 export function getCostLedgerTier(cost: number): CostLedgerTier {
-  if (cost < 0.01) return "low";
-  if (cost < 0.1) return "medium";
-  return "high";
+  if (cost < 0.01) return 'low';
+  if (cost < 0.1) return 'medium';
+  return 'high';
 }
 
 export function buildCostLedgerData(
   conversation: Conversation,
-  options: BuildCostLedgerDataOptions = {},
+  options: BuildCostLedgerDataOptions = {}
 ) {
   const costEntries: CostLedgerEntry[] = conversation.messages
     .filter((msg): boolean => Boolean(msg.apiTrace?.usage && msg.apiTrace?.cost))
     .map((msg): CostLedgerEntry => {
       const durationMs = msg.apiTrace!.durationMs || 0;
       const totalTokens = msg.apiTrace!.usage!.totalTokens;
-      const tokensPerSecond =
-        durationMs > 0 ? (totalTokens / durationMs) * 1000 : 0;
+      const tokensPerSecond = durationMs > 0 ? (totalTokens / durationMs) * 1000 : 0;
 
       const costData = msg.apiTrace!.cost!;
-      const validation = validateCostBreakdown(
-        costData as unknown as CostBreakdown,
-      );
+      const validation = validateCostBreakdown(costData as unknown as CostBreakdown);
       if (!validation.valid) {
         options.onCostValidationFailed?.({
           messageId: msg.id,
-          error: validation.error || "Unknown validation error",
+          error: validation.error || 'Unknown validation error',
           cost: costData,
         });
       }
@@ -88,6 +85,8 @@ export function buildCostLedgerData(
         totalTokens,
         inputCost: msg.apiTrace!.cost!.inputCost,
         outputCost: msg.apiTrace!.cost!.outputCost,
+        cacheCreationCost: msg.apiTrace!.cost!.cacheCreationCost,
+        cacheReadCost: msg.apiTrace!.cost!.cacheReadCost,
         cost: msg.apiTrace!.cost!.totalCost,
         durationMs,
         tokensPerSecond,
@@ -101,6 +100,8 @@ export function buildCostLedgerData(
       totalTokens: acc.totalTokens + entry.totalTokens,
       inputCost: acc.inputCost + entry.inputCost,
       outputCost: acc.outputCost + entry.outputCost,
+      cacheCreationCost: acc.cacheCreationCost + (entry.cacheCreationCost || 0),
+      cacheReadCost: acc.cacheReadCost + (entry.cacheReadCost || 0),
       cost: acc.cost + entry.cost,
     }),
     {
@@ -109,12 +110,15 @@ export function buildCostLedgerData(
       totalTokens: 0,
       inputCost: 0,
       outputCost: 0,
+      cacheCreationCost: 0,
+      cacheReadCost: 0,
       cost: 0,
-    },
+    }
   );
 
   const epsilon = 0.01;
-  const expectedTotalCost = totals.inputCost + totals.outputCost;
+  const expectedTotalCost =
+    totals.inputCost + totals.outputCost + totals.cacheCreationCost + totals.cacheReadCost;
   const costDiff = Math.abs(totals.cost - expectedTotalCost);
   if (costDiff > epsilon) {
     options.onTotalCostMismatch?.({

@@ -1,5 +1,5 @@
-import { Conversation } from "../types";
-import AnalysisDialog from "./AnalysisDialog";
+import { Conversation } from '../types';
+import AnalysisDialog from './AnalysisDialog';
 
 interface AvailableModel {
   key: string;

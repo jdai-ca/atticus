@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { Attachment, AttachmentMeta } from "../../types";
+import { useCallback } from 'react';
+import { Attachment, AttachmentMeta } from '../../types';
 
 interface UseAttachmentRegistryParams {
   readonly attachmentDataRef: React.MutableRefObject<Map<string, string>>;
@@ -18,7 +18,7 @@ export function useAttachmentRegistry({
         attachmentDataRef.current.set(id, data);
         return { id, name, type, size } satisfies AttachmentMeta;
       }),
-    [attachmentDataRef],
+    [attachmentDataRef]
   );
 
   return {

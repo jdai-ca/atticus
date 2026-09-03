@@ -3,8 +3,20 @@ import { getModelDomain, modelMatchesDomain, getModelsForProvider } from '../uti
 
 import { AIProvider, ProviderTemplate } from '../types';
 describe('modelHelpers', () => {
-  const provider = { id: 'prov', provider: 'openai' as AIProvider, name: 'Prov', model: 'm1', enabled: true, modelDomains: [{ modelId: 'm1', domains: 'practice' as const }] };
-  const template = { models: [{ id: 'm1', name: 'M1', description: '', maxContextWindow: 1000 }], displayName: 'Prov', icon: '', id: 'prov' } as unknown as ProviderTemplate;
+  const provider = {
+    id: 'prov',
+    provider: 'openai' as AIProvider,
+    name: 'Prov',
+    model: 'm1',
+    enabled: true,
+    modelDomains: [{ modelId: 'm1', domains: 'practice' as const }],
+  };
+  const template = {
+    models: [{ id: 'm1', name: 'M1', description: '', maxContextWindow: 1000 }],
+    displayName: 'Prov',
+    icon: '',
+    id: 'prov',
+  } as unknown as ProviderTemplate;
   it('gets model domain', () => {
     expect(getModelDomain(provider, 'm1')).toBe('practice');
   });

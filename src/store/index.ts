@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { produce } from 'immer';
-import { AppConfig, Conversation, Message, ProviderConfig, SelectedModel, Jurisdiction, ProviderTemplate } from '../types';
+import {
+  AppConfig,
+  Conversation,
+  Message,
+  ProviderConfig,
+  SelectedModel,
+  Jurisdiction,
+  ProviderTemplate,
+} from '../types';
 import { configLoader } from '../services/configLoader';
 import { practiceLoader } from '../services/practiceLoader';
 import { advisoryLoader } from '../services/advisoryLoader';
@@ -29,9 +37,7 @@ function findConversationIndexMemoized(conversations: Conversation[], id: string
 
 // Helper function to truncate message content
 const truncateMessage = (content: string, maxLength = 50): string => {
-  return content.length > maxLength
-    ? content.slice(0, maxLength) + '...'
-    : content;
+  return content.length > maxLength ? content.slice(0, maxLength) + '...' : content;
 };
 
 interface AppState {
@@ -93,7 +99,7 @@ function updateConversationField<K extends keyof Conversation>(
   get: () => AppState,
   conversationId: string,
   field: K,
-  value: Conversation[K],
+  value: Conversation[K]
 ): void {
   const state = get();
   const current = state.currentConversation;
@@ -107,7 +113,7 @@ function updateConversationField<K extends keyof Conversation>(
     }
   });
 
-  const updatedConversation = isCurrent 
+  const updatedConversation = isCurrent
     ? conversations[findConversationIndexMemoized(conversations, conversationId)]
     : current;
 
@@ -131,7 +137,13 @@ export const useStore = create<AppState>((set, get) => ({
   setConfig: (config: AppConfig): void => set({ config }),
 
   loadProviderTemplates: async (language: Language = 'en') => {
-    set((s: AppState): Partial<AppState> => ({ pendingLoads: s.pendingLoads + 1, isLoading: true, error: null }));
+    set(
+      (s: AppState): Partial<AppState> => ({
+        pendingLoads: s.pendingLoads + 1,
+        isLoading: true,
+        error: null,
+      })
+    );
     try {
       const templates = await configLoader.loadConfig(language);
       set({ providerTemplates: templates });
@@ -140,12 +152,21 @@ export const useStore = create<AppState>((set, get) => ({
       logger.error('Failed to load provider templates', { error });
       set({ error: 'Failed to load provider configuration' });
     } finally {
-      set((s: AppState): Partial<AppState> => { const n = Math.max(0, s.pendingLoads - 1); return { pendingLoads: n, isLoading: n > 0 }; });
+      set((s: AppState): Partial<AppState> => {
+        const n = Math.max(0, s.pendingLoads - 1);
+        return { pendingLoads: n, isLoading: n > 0 };
+      });
     }
   },
 
   loadPracticeAreas: async (language: Language = 'en') => {
-    set((s: AppState): Partial<AppState> => ({ pendingLoads: s.pendingLoads + 1, isLoading: true, error: null }));
+    set(
+      (s: AppState): Partial<AppState> => ({
+        pendingLoads: s.pendingLoads + 1,
+        isLoading: true,
+        error: null,
+      })
+    );
     try {
       const practiceAreas = await practiceLoader.loadConfig(language);
 
@@ -161,12 +182,21 @@ export const useStore = create<AppState>((set, get) => ({
       logger.error('Failed to load practice areas', { error });
       set({ error: 'Failed to load practice area configuration' });
     } finally {
-      set((s: AppState): Partial<AppState> => { const n = Math.max(0, s.pendingLoads - 1); return { pendingLoads: n, isLoading: n > 0 }; });
+      set((s: AppState): Partial<AppState> => {
+        const n = Math.max(0, s.pendingLoads - 1);
+        return { pendingLoads: n, isLoading: n > 0 };
+      });
     }
   },
 
   loadAdvisoryAreas: async (language: Language = 'en') => {
-    set((s: AppState): Partial<AppState> => ({ pendingLoads: s.pendingLoads + 1, isLoading: true, error: null }));
+    set(
+      (s: AppState): Partial<AppState> => ({
+        pendingLoads: s.pendingLoads + 1,
+        isLoading: true,
+        error: null,
+      })
+    );
     try {
       logger.debug('Loading advisory areas', { language });
       const advisoryAreas = await advisoryLoader.loadConfig(language);
@@ -177,7 +207,9 @@ export const useStore = create<AppState>((set, get) => ({
 
       // Store in config (consistent with practice areas)
       const config = get().config;
-      logger.debug('Config before advisory update', { currentAreasCount: config.advisoryAreas?.length || 0 });
+      logger.debug('Config before advisory update', {
+        currentAreasCount: config.advisoryAreas?.length || 0,
+      });
       set({
         config: { ...config, advisoryAreas: advisoryAreas },
       });
@@ -186,7 +218,10 @@ export const useStore = create<AppState>((set, get) => ({
       logger.error('Failed to load advisory areas', { error });
       set({ error: 'Failed to load advisory area configuration' });
     } finally {
-      set((s: AppState): Partial<AppState> => { const n = Math.max(0, s.pendingLoads - 1); return { pendingLoads: n, isLoading: n > 0 }; });
+      set((s: AppState): Partial<AppState> => {
+        const n = Math.max(0, s.pendingLoads - 1);
+        return { pendingLoads: n, isLoading: n > 0 };
+      });
     }
   },
 
@@ -204,8 +239,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   updateProvider: (id: string, updates: Partial<ProviderConfig>): void => {
     const config = get().config;
-    const newProviders = config.providers.map((p): ProviderConfig =>
-      p.id === id ? ({ ...p, ...updates } satisfies ProviderConfig) : p,
+    const newProviders = config.providers.map(
+      (p): ProviderConfig => (p.id === id ? ({ ...p, ...updates } satisfies ProviderConfig) : p)
     );
     set({ config: { ...config, providers: newProviders } });
     get().saveConfig();
@@ -213,18 +248,15 @@ export const useStore = create<AppState>((set, get) => ({
 
   removeProvider: (id: string): void => {
     const config = get().config;
-    const newProviders = config.providers.filter(
-      (p): boolean => p.id !== id,
-    );
-    const newActiveId = config.activeProviderId === id
-      ? (newProviders[0]?.id || '')
-      : config.activeProviderId;
+    const newProviders = config.providers.filter((p): boolean => p.id !== id);
+    const newActiveId =
+      config.activeProviderId === id ? newProviders[0]?.id || '' : config.activeProviderId;
     set({
       config: {
         ...config,
         providers: newProviders,
         activeProviderId: newActiveId,
-      }
+      },
     });
     get().saveConfig();
   },
@@ -236,10 +268,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   createConversation: (providerId: string): void => {
-    const provider = get().config.providers.find(
-      (p): boolean => p.id === providerId,
-    );
-    
+    const provider = get().config.providers.find((p): boolean => p.id === providerId);
+
     // Initialize selectedModels with the provider's default model
     const selectedModels: SelectedModel[] = provider?.model
       ? [
@@ -249,7 +279,7 @@ export const useStore = create<AppState>((set, get) => ({
           } satisfies SelectedModel,
         ]
       : [];
-    
+
     const newConversation: Conversation = {
       id: crypto.randomUUID(),
       title: 'New Conversation',
@@ -289,11 +319,10 @@ export const useStore = create<AppState>((set, get) => ({
     unreadConversations.delete(conversationId);
     set({
       unreadConversations,
-      conversations: get().conversations.map((c): Conversation =>
-        c.id === conversationId
-          ? ({ ...c, hasUnreadResponses: false } satisfies Conversation)
-          : c,
-      )
+      conversations: get().conversations.map(
+        (c): Conversation =>
+          c.id === conversationId ? ({ ...c, hasUnreadResponses: false } satisfies Conversation) : c
+      ),
     });
   },
 
@@ -302,11 +331,10 @@ export const useStore = create<AppState>((set, get) => ({
     unreadConversations.add(conversationId);
     set({
       unreadConversations,
-      conversations: get().conversations.map((c): Conversation =>
-        c.id === conversationId
-          ? ({ ...c, hasUnreadResponses: true } satisfies Conversation)
-          : c,
-      )
+      conversations: get().conversations.map(
+        (c): Conversation =>
+          c.id === conversationId ? ({ ...c, hasUnreadResponses: true } satisfies Conversation) : c
+      ),
     });
   },
 
@@ -331,7 +359,7 @@ export const useStore = create<AppState>((set, get) => ({
     });
 
     const updatedConversation = isCurrentConversation
-      ? conversations.find((c): boolean => c.id === targetId) ?? state.currentConversation
+      ? (conversations.find((c): boolean => c.id === targetId) ?? state.currentConversation)
       : state.currentConversation;
 
     set({
@@ -361,7 +389,8 @@ export const useStore = create<AppState>((set, get) => ({
 
     set({
       conversations,
-      currentConversation: conversations.find((c): boolean => c.id === currentId) ?? state.currentConversation,
+      currentConversation:
+        conversations.find((c): boolean => c.id === currentId) ?? state.currentConversation,
     });
   },
 
@@ -374,9 +403,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
 
     // Update in-memory state
-    const conversations = get().conversations.filter(
-      (c): boolean => c.id !== id,
-    );
+    const conversations = get().conversations.filter((c): boolean => c.id !== id);
     const current = get().currentConversation;
 
     set({
@@ -397,21 +424,19 @@ export const useStore = create<AppState>((set, get) => ({
       };
       set({
         currentConversation: updatedConversation,
-        conversations: get().conversations.map((c): Conversation =>
-          c.id === conversationId ? updatedConversation : c,
+        conversations: get().conversations.map(
+          (c): Conversation => (c.id === conversationId ? updatedConversation : c)
         ),
       });
     } else {
       // Find the conversation in the list
-      const conversation = get().conversations.find(
-        (c): boolean => c.id === conversationId,
-      );
+      const conversation = get().conversations.find((c): boolean => c.id === conversationId);
       if (!conversation) return;
 
       updatedConversation = { ...conversation, title, updatedAt: DateUtils.now() };
       set({
-        conversations: get().conversations.map((c): Conversation =>
-          c.id === conversationId ? updatedConversation : c,
+        conversations: get().conversations.map(
+          (c): Conversation => (c.id === conversationId ? updatedConversation : c)
         ),
       });
     }
@@ -428,38 +453,41 @@ export const useStore = create<AppState>((set, get) => ({
     updateConversationField(set, get, conversationId, 'model', model);
   },
 
-  setConversationSelectedModels: (conversationId: string, selectedModels: SelectedModel[]): void => {
-    updateConversationField(
-      set,
-      get,
-      conversationId,
-      'selectedModels',
-      selectedModels,
-    );
+  setConversationSelectedModels: (
+    conversationId: string,
+    selectedModels: SelectedModel[]
+  ): void => {
+    updateConversationField(set, get, conversationId, 'selectedModels', selectedModels);
   },
 
-  setConversationJurisdictions: (conversationId: string, selectedJurisdictions: Jurisdiction[]): void => {
+  setConversationJurisdictions: (
+    conversationId: string,
+    selectedJurisdictions: Jurisdiction[]
+  ): void => {
     updateConversationField(
       set,
       get,
       conversationId,
       'selectedJurisdictions',
-      selectedJurisdictions,
+      selectedJurisdictions
     );
   },
 
-  setConversationMaxTokens: (conversationId: string, maxTokensOverride: number | undefined): void => {
-    updateConversationField(
-      set,
-      get,
-      conversationId,
-      'maxTokensOverride',
-      maxTokensOverride,
-    );
+  setConversationMaxTokens: (
+    conversationId: string,
+    maxTokensOverride: number | undefined
+  ): void => {
+    updateConversationField(set, get, conversationId, 'maxTokensOverride', maxTokensOverride);
   },
 
   loadConfig: async (): Promise<void> => {
-    set((s: AppState): Partial<AppState> => ({ pendingLoads: s.pendingLoads + 1, isLoading: true, error: null }));
+    set(
+      (s: AppState): Partial<AppState> => ({
+        pendingLoads: s.pendingLoads + 1,
+        isLoading: true,
+        error: null,
+      })
+    );
     try {
       const result = await globalThis.window.electronAPI.loadConfig();
 
@@ -479,17 +507,20 @@ export const useStore = create<AppState>((set, get) => ({
             // Keep the dynamically loaded areas (they're not saved to disk)
             legalPracticeAreas: currentConfig.legalPracticeAreas,
             advisoryAreas: currentConfig.advisoryAreas,
-          }
+          },
         });
         logger.debug('Config loaded, preserved areas', {
           practiceAreasCount: currentConfig.legalPracticeAreas.length,
-          advisoryAreasCount: currentConfig.advisoryAreas?.length ?? 0
+          advisoryAreasCount: currentConfig.advisoryAreas?.length ?? 0,
         });
       }
     } catch (error) {
       set({ error: (error as Error).message });
     } finally {
-      set((s: AppState): Partial<AppState> => { const n = Math.max(0, s.pendingLoads - 1); return { pendingLoads: n, isLoading: n > 0 }; });
+      set((s: AppState): Partial<AppState> => {
+        const n = Math.max(0, s.pendingLoads - 1);
+        return { pendingLoads: n, isLoading: n > 0 };
+      });
     }
   },
 
@@ -503,7 +534,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   loadConversations: async (): Promise<void> => {
-    set((s: AppState): Partial<AppState> => ({ pendingLoads: s.pendingLoads + 1, isLoading: true, error: null }));
+    set(
+      (s: AppState): Partial<AppState> => ({
+        pendingLoads: s.pendingLoads + 1,
+        isLoading: true,
+        error: null,
+      })
+    );
     try {
       const result = await globalThis.window.electronAPI.loadConversations();
 
@@ -516,15 +553,20 @@ export const useStore = create<AppState>((set, get) => ({
             ...conv,
             createdAt: DateUtils.ensureISOString(conv.createdAt),
             updatedAt: DateUtils.ensureISOString(conv.updatedAt),
-            messages: conv.messages.map((msg: Message): Message => ({
-              ...msg,
-              timestamp: DateUtils.ensureISOString(msg.timestamp)
-            }))
+            messages: conv.messages.map(
+              (msg: Message): Message => ({
+                ...msg,
+                timestamp: DateUtils.ensureISOString(msg.timestamp),
+              })
+            ),
           };
 
           // Keep the most recently updated version if duplicates exist
           const existing = conversationMap.get(migratedConv.id);
-          if (!existing || DateUtils.parse(migratedConv.updatedAt) > DateUtils.parse(existing.updatedAt)) {
+          if (
+            !existing ||
+            DateUtils.parse(migratedConv.updatedAt) > DateUtils.parse(existing.updatedAt)
+          ) {
             conversationMap.set(migratedConv.id, migratedConv);
           }
         }
@@ -534,7 +576,10 @@ export const useStore = create<AppState>((set, get) => ({
     } catch (error) {
       set({ error: (error as Error).message });
     } finally {
-      set((s: AppState): Partial<AppState> => { const n = Math.max(0, s.pendingLoads - 1); return { pendingLoads: n, isLoading: n > 0 }; });
+      set((s: AppState): Partial<AppState> => {
+        const n = Math.max(0, s.pendingLoads - 1);
+        return { pendingLoads: n, isLoading: n > 0 };
+      });
     }
   },
 
@@ -549,11 +594,10 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  setLoading: (loading: boolean): void => set((s: AppState): Partial<AppState> => {
-    const pendingLoads = loading
-      ? s.pendingLoads + 1
-      : Math.max(0, s.pendingLoads - 1);
-    return { pendingLoads, isLoading: pendingLoads > 0 };
-  }),
+  setLoading: (loading: boolean): void =>
+    set((s: AppState): Partial<AppState> => {
+      const pendingLoads = loading ? s.pendingLoads + 1 : Math.max(0, s.pendingLoads - 1);
+      return { pendingLoads, isLoading: pendingLoads > 0 };
+    }),
   setError: (error: string | null): void => set({ error }),
 }));

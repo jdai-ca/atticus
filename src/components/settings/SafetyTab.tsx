@@ -21,9 +21,15 @@ export function SafetyTab() {
                 {t.settingsContent.alwaysEnabled}
               </span>
             </h4>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-gray-400 text-sm mb-2">
               {t.settingsSafety.sraisGuardrailsDescription}
             </p>
+            <div className="bg-yellow-900/20 border border-yellow-700 rounded p-3 mt-3">
+              <p className="text-yellow-300 text-xs font-medium flex items-start gap-2">
+                <span>⚠️</span>
+                <span>{t.settingsSafety.safetyLegalProtection}</span>
+              </p>
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,8 @@
-import { getLocalizedConfigFilename, getConfigFilenameWithFallback, CONFIG_FILES } from '../utils/configLanguage';
+import {
+  getLocalizedConfigFilename,
+  getConfigFilenameWithFallback,
+  CONFIG_FILES,
+} from '../utils/configLanguage';
 import { describe, it, expect } from 'vitest';
 
 describe('configLanguage', () => {
@@ -12,7 +16,10 @@ describe('configLanguage', () => {
   });
   it('getConfigFilenameWithFallback returns correct order', () => {
     expect(getConfigFilenameWithFallback('providers', 'es')).toEqual(['providers.yaml']);
-    expect(getConfigFilenameWithFallback('practices.yaml', 'es')).toEqual(['practices.es.yaml', 'practices.en.yaml']);
+    expect(getConfigFilenameWithFallback('practices.yaml', 'es')).toEqual([
+      'practices.es.yaml',
+      'practices.en.yaml',
+    ]);
     expect(getConfigFilenameWithFallback('advisory.yaml', 'en')).toEqual(['advisory.en.yaml']);
   });
   it('CONFIG_FILES constants are correct', () => {

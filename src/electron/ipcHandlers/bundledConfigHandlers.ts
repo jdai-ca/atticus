@@ -51,7 +51,13 @@ export function registerBundledConfigHandlers(isDev: boolean, electronDir: strin
 
           // If still not found, try app.asar.unpacked
           if (!fs.existsSync(configPath)) {
-            configPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'config', configName);
+            configPath = path.join(
+              process.resourcesPath,
+              'app.asar.unpacked',
+              'dist',
+              'config',
+              configName
+            );
           }
         }
       }
@@ -70,8 +76,8 @@ export function registerBundledConfigHandlers(isDev: boolean, electronDir: strin
         success: false,
         error: {
           code: 'BUNDLED_CONFIG_LOAD_FAILED',
-          message: 'Failed to load bundled configuration. Check logs for details.'
-        }
+          message: 'Failed to load bundled configuration. Check logs for details.',
+        },
       };
     }
   });
@@ -94,39 +100,41 @@ export function registerBundledConfigHandlers(isDev: boolean, electronDir: strin
       const url = `https://jdai.ca/atticus/${configName}`;
       logger.info('Fetching factory config', { url });
 
-      return new Promise((resolve) => {
-        https.get(url, (res) => {
-          if (res.statusCode !== 200) {
-            logger.error('Failed to fetch factory config', { statusCode: res.statusCode });
+      return new Promise(resolve => {
+        https
+          .get(url, res => {
+            if (res.statusCode !== 200) {
+              logger.error('Failed to fetch factory config', { statusCode: res.statusCode });
+              resolve({
+                success: false,
+                error: {
+                  code: 'FETCH_FAILED',
+                  message: `Failed to fetch factory configuration (HTTP ${res.statusCode})`,
+                },
+              });
+              return;
+            }
+
+            let data = '';
+            res.on('data', chunk => {
+              data += chunk;
+            });
+
+            res.on('end', () => {
+              logger.info('Factory config fetched successfully', { size: data.length });
+              resolve({ success: true, data });
+            });
+          })
+          .on('error', error => {
+            logger.error('Failed to fetch factory config', { error });
             resolve({
               success: false,
               error: {
-                code: 'FETCH_FAILED',
-                message: `Failed to fetch factory configuration (HTTP ${res.statusCode})`
-              }
+                code: 'NETWORK_ERROR',
+                message: `Network error: ${(error as Error).message}`,
+              },
             });
-            return;
-          }
-
-          let data = '';
-          res.on('data', (chunk) => {
-            data += chunk;
           });
-
-          res.on('end', () => {
-            logger.info('Factory config fetched successfully', { size: data.length });
-            resolve({ success: true, data });
-          });
-        }).on('error', (error) => {
-          logger.error('Failed to fetch factory config', { error });
-          resolve({
-            success: false,
-            error: {
-              code: 'NETWORK_ERROR',
-              message: `Network error: ${(error as Error).message}`
-            }
-          });
-        });
       });
     } catch (error) {
       logger.error('Failed to fetch factory config', { error });
@@ -134,8 +142,8 @@ export function registerBundledConfigHandlers(isDev: boolean, electronDir: strin
         success: false,
         error: {
           code: 'FETCH_ERROR',
-          message: 'Failed to fetch factory configuration. Check logs for details.'
-        }
+          message: 'Failed to fetch factory configuration. Check logs for details.',
+        },
       };
     }
   });
@@ -186,8 +194,8 @@ export function registerBundledConfigHandlers(isDev: boolean, electronDir: strin
         success: false,
         error: {
           code: 'BUNDLED_CONFIG_SAVE_FAILED',
-          message: 'Failed to save configuration. Check logs for details.'
-        }
+          message: 'Failed to save configuration. Check logs for details.',
+        },
       };
     }
   });

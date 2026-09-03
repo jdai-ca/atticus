@@ -46,10 +46,16 @@ export function sanitizeTextForPDF(text: string): string {
   clean = clean.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
   // Normalize Unicode to NFD first (decomposed), remove combining marks, then back to NFC
-  clean = clean.normalize('NFD').replace(/[\u0300-\u036F]/g, '').normalize('NFC');
+  clean = clean
+    .normalize('NFD')
+    .replace(/[\u0300-\u036F]/g, '')
+    .normalize('NFC');
 
   // Remove any remaining non-printable characters but be more permissive (allow emojis/surrogates)
-  clean = clean.replace(/[^\x20-\x7E\n\r\t\u00A0-\u024F\u1E00-\u1EFF\u2000-\u3300\uD800-\uDFFF]/g, '');
+  clean = clean.replace(
+    /[^\x20-\x7E\n\r\t\u00A0-\u024F\u1E00-\u1EFF\u2000-\u3300\uD800-\uDFFF]/g,
+    ''
+  );
 
   return clean;
 }
@@ -110,12 +116,14 @@ export function getMessageSecurityAnnotations(message: Pick<Message, 'content'>)
 
   const piiResult = piiScanner.scan(message.content);
   if (piiResult.hasFindings) {
-    annotations.push(`PII: ${piiResult.findings.length} finding${piiResult.findings.length === 1 ? '' : 's'}`);
+    annotations.push(
+      `PII: ${piiResult.findings.length} finding${piiResult.findings.length === 1 ? '' : 's'}`
+    );
   }
 
   const harmMetadata = buildSraisAnalysisMetadata(message.content);
   if (harmMetadata.sraisAnalysis?.length) {
-    const harmNames = harmMetadata.sraisAnalysis.flatMap((analysis) => analysis.detectedHarms);
+    const harmNames = harmMetadata.sraisAnalysis.flatMap(analysis => analysis.detectedHarms);
     const uniqueHarms = Array.from(new Set(harmNames));
     annotations.push(`Harm: ${uniqueHarms.join(', ')}`);
   }
@@ -152,7 +160,7 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
         text: stripMarkdown(headingMatch[2]), // Clean markdown from heading text
         isHeading: level,
         bold: true,
-        fontSize: 16 - level
+        fontSize: 16 - level,
       });
       continue;
     }
@@ -164,7 +172,7 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
       segments.push({
         text: stripMarkdown(text), // Clean markdown from bullet text
         isBullet: true,
-        indent: indent
+        indent: indent,
       });
       continue;
     }
@@ -177,7 +185,7 @@ export function parseMarkdownToPDFSegments(markdown: string): FormattedTextSegme
       segments.push({
         text: stripMarkdown(text), // Clean markdown from numbered list text
         isNumbered: true,
-        indent: indent
+        indent: indent,
       });
       continue;
     }
@@ -214,8 +222,8 @@ export function buildConversationSecuritySummary(conversation: Conversation): st
 
   for (const message of conversation.messages) {
     const annotations = getMessageSecurityAnnotations(message);
-    const hasPii = annotations.some((annotation) => annotation.startsWith('PII'));
-    const hasHarm = annotations.some((annotation) => annotation.startsWith('Harm'));
+    const hasPii = annotations.some(annotation => annotation.startsWith('PII'));
+    const hasHarm = annotations.some(annotation => annotation.startsWith('Harm'));
 
     if (hasPii) {
       piiMessageCount += 1;
@@ -228,9 +236,9 @@ export function buildConversationSecuritySummary(conversation: Conversation): st
           annotation
             .slice(6)
             .split(',')
-            .map((category) => category.trim())
+            .map(category => category.trim())
             .filter(Boolean)
-            .forEach((category) => harmCategories.add(category));
+            .forEach(category => harmCategories.add(category));
         }
       }
     }
@@ -242,7 +250,9 @@ export function buildConversationSecuritySummary(conversation: Conversation): st
 
   const summaryLines = ['SRAIS Summary'];
   if (piiMessageCount > 0) {
-    summaryLines.push(`PII flagged in ${piiMessageCount} message${piiMessageCount === 1 ? '' : 's'}`);
+    summaryLines.push(
+      `PII flagged in ${piiMessageCount} message${piiMessageCount === 1 ? '' : 's'}`
+    );
   }
   if (harmMessageCount > 0) {
     const categories = Array.from(harmCategories).join(', ');
@@ -252,7 +262,12 @@ export function buildConversationSecuritySummary(conversation: Conversation): st
   return summaryLines;
 }
 
-function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pageWidth: number): number {
+function addPDFHeader(
+  pdf: jsPDF,
+  conversation: Conversation,
+  margin: number,
+  pageWidth: number
+): number {
   let yPosition = margin;
 
   // Header with background
@@ -290,7 +305,9 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
 
   // Check conversation object
   if (conversation.practiceArea || conversation.otherPracticeArea) {
-    practiceAreas = [conversation.practiceArea, conversation.otherPracticeArea].filter(Boolean) as string[];
+    practiceAreas = [conversation.practiceArea, conversation.otherPracticeArea].filter(
+      Boolean
+    ) as string[];
   }
   if (conversation.advisoryArea) {
     advisoryArea = conversation.advisoryArea;
@@ -300,7 +317,7 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
   }
 
   // If not on conversation, extract from first user message
-  if (practiceAreas.length === 0 && !advisoryArea || jurisdictions.length === 0) {
+  if ((practiceAreas.length === 0 && !advisoryArea) || jurisdictions.length === 0) {
     const firstMessage = conversation.messages.find((m): boolean => m.role === 'user');
     if (firstMessage) {
       if (practiceAreas.length === 0 && firstMessage.practiceArea) {
@@ -349,10 +366,21 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
   const securitySummary = buildConversationSecuritySummary(conversation);
   if (securitySummary.length > 0) {
     pdf.setFillColor(255, 247, 235);
-    pdf.rect(margin - 3, yPosition - 2, pageWidth - (margin * 2) + 6, 18 + (securitySummary.length * 4.5), 'F');
+    pdf.rect(
+      margin - 3,
+      yPosition - 2,
+      pageWidth - margin * 2 + 6,
+      18 + securitySummary.length * 4.5,
+      'F'
+    );
     pdf.setDrawColor(220, 160, 80);
     pdf.setLineWidth(0.3);
-    pdf.rect(margin - 3, yPosition - 2, pageWidth - (margin * 2) + 6, 18 + (securitySummary.length * 4.5));
+    pdf.rect(
+      margin - 3,
+      yPosition - 2,
+      pageWidth - margin * 2 + 6,
+      18 + securitySummary.length * 4.5
+    );
 
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
@@ -362,10 +390,10 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(90, 60, 20);
     for (let i = 1; i < securitySummary.length; i++) {
-      pdf.text(securitySummary[i], margin + 3, yPosition + 9 + ((i - 1) * 4.5));
+      pdf.text(securitySummary[i], margin + 3, yPosition + 9 + (i - 1) * 4.5);
     }
 
-    yPosition += 18 + (securitySummary.length * 4.5);
+    yPosition += 18 + securitySummary.length * 4.5;
   }
 
   pdf.setTextColor(0, 0, 0);
@@ -373,7 +401,13 @@ function addPDFHeader(pdf: jsPDF, conversation: Conversation, margin: number, pa
   return yPosition;
 }
 
-function addMessageAttachments(pdf: jsPDF, attachments: Array<{ name: string; size: number }>, margin: number, pageHeight: number, yPosition: number): number {
+function addMessageAttachments(
+  pdf: jsPDF,
+  attachments: Array<{ name: string; size: number }>,
+  margin: number,
+  pageHeight: number,
+  yPosition: number
+): number {
   let y = yPosition + 3;
   pdf.setFontSize(9);
   pdf.setTextColor(100, 100, 100);
@@ -403,11 +437,14 @@ interface MessagePDFOptions {
 }
 
 function addPDFMessage(options: MessagePDFOptions): number {
-  const { pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition, prevModelInfo } = options;
+  const { pdf, message, margin, maxWidth, pageWidth, pageHeight, yPosition, prevModelInfo } =
+    options;
   let y = yPosition;
 
   // Check if this is a new model responding (for multi-model conversations)
-  const isNewModel = message.modelInfo && prevModelInfo &&
+  const isNewModel =
+    message.modelInfo &&
+    prevModelInfo &&
     (message.modelInfo.providerId !== prevModelInfo.providerId ||
       message.modelInfo.modelId !== prevModelInfo.modelId);
 
@@ -422,7 +459,11 @@ function addPDFMessage(options: MessagePDFOptions): number {
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(70, 70, 150);
-    pdf.text(`--- Response from ${message.modelInfo.providerName} (${message.modelInfo.modelName}) ---`, margin, y + 8);
+    pdf.text(
+      `--- Response from ${message.modelInfo.providerName} (${message.modelInfo.modelName}) ---`,
+      margin,
+      y + 8
+    );
     pdf.setTextColor(0, 0, 0);
     y += 18;
   }
@@ -436,7 +477,15 @@ function addPDFMessage(options: MessagePDFOptions): number {
   return addMessageContent(pdf, message, margin, maxWidth, pageWidth, pageHeight, y);
 }
 
-function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidth: number, pageWidth: number, pageHeight: number, startY: number): number {
+function addMessageContent(
+  pdf: jsPDF,
+  message: Message,
+  margin: number,
+  maxWidth: number,
+  pageWidth: number,
+  pageHeight: number,
+  startY: number
+): number {
   let y = startY;
   const isUser = message.role === 'user';
 
@@ -496,7 +545,10 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
     }
 
     // Add jurisdiction if present
-    if (message.metadata?.selectedJurisdictions && message.metadata.selectedJurisdictions.length > 0) {
+    if (
+      message.metadata?.selectedJurisdictions &&
+      message.metadata.selectedJurisdictions.length > 0
+    ) {
       areaText += ` | Jurisdictions: ${message.metadata.selectedJurisdictions.join(', ')}`;
     }
 
@@ -602,7 +654,10 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
       // Wrap bullet text
       pdf.setFontSize(10);
       const sanitized = sanitizeTextForPDF(segment.text);
-      const bulletLines = pdf.splitTextToSize(sanitized, maxWidth - 25 - (segment.indent || 0) * 10);
+      const bulletLines = pdf.splitTextToSize(
+        sanitized,
+        maxWidth - 25 - (segment.indent || 0) * 10
+      );
       for (let i = 0; i < bulletLines.length; i++) {
         if (y > pageHeight - 20) {
           pdf.addPage();
@@ -628,7 +683,10 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
 
       // Wrap numbered text
       const sanitized = sanitizeTextForPDF(segment.text);
-      const numberLines = pdf.splitTextToSize(sanitized, maxWidth - 25 - (segment.indent || 0) * 10);
+      const numberLines = pdf.splitTextToSize(
+        sanitized,
+        maxWidth - 25 - (segment.indent || 0) * 10
+      );
       for (let i = 0; i < numberLines.length; i++) {
         if (y > pageHeight - 20) {
           pdf.addPage();
@@ -660,7 +718,7 @@ function addMessageContent(pdf: jsPDF, message: Message, margin: number, maxWidt
   }
 
   pdf.setTextColor(0, 0, 0);
-  pdf.setFont("helvetica", "normal");
+  pdf.setFont('helvetica', 'normal');
 
   // Attachments
   if (message.attachments && message.attachments.length > 0) {
@@ -676,12 +734,7 @@ function addPDFFooters(pdf: jsPDF, pageWidth: number, pageHeight: number): void 
     pdf.setPage(i);
     pdf.setFontSize(8);
     pdf.setTextColor(150, 150, 150);
-    pdf.text(
-      `Page ${i} of ${totalPages}`,
-      pageWidth / 2,
-      pageHeight - 10,
-      { align: 'center' }
-    );
+    pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
     pdf.text(
       `Generated by Atticus - In-House AI Counsel v${packageJson.version}`,
       pageWidth / 2,
@@ -693,10 +746,10 @@ function addPDFFooters(pdf: jsPDF, pageWidth: number, pageHeight: number): void 
 
 /**
  * Generate PDF data for a complete conversation transcript
- * 
+ *
  * Internal function that creates the PDF document with all messages.
  * Called by: downloadPDF() (from Sidebar export button)
- * 
+ *
  * @param conversation - Full conversation object with all messages
  * @returns Base64 encoded PDF data
  * @output Filename: atticus-{id}-transcript-{timestamp}.pdf
@@ -711,7 +764,7 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
-  const maxWidth = pageWidth - (margin * 2);
+  const maxWidth = pageWidth - margin * 2;
 
   // Add header
   let yPosition = addPDFHeader(pdf, conversation, margin, pageWidth);
@@ -765,7 +818,7 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
       pageWidth,
       pageHeight,
       yPosition,
-      prevModelInfo
+      prevModelInfo,
     });
     if (message.role === 'assistant' && message.modelInfo) {
       prevModelInfo = message.modelInfo;
@@ -781,15 +834,15 @@ export async function exportConversationToPDF(conversation: Conversation): Promi
 
 /**
  * Download complete conversation transcript as PDF
- * 
+ *
  * USE CASE 1: Full Conversation Transcript
  * - Trigger: Sidebar "Export to PDF" button
  * - Output: atticus-{id}-transcript-{timestamp}.pdf
  * - Content: All messages in the conversation with page breaks between Q&A pairs
- * 
+ *
  * Public API function that exports the entire conversation with all messages
  * and metadata, including proper page breaks for professional formatting.
- * 
+ *
  * @param conversation - Complete conversation to export
  * @throws Error if PDF generation or save fails
  */
@@ -815,16 +868,16 @@ export async function downloadPDF(conversation: Conversation): Promise<void> {
 
 /**
  * Generate PDF data for a single message
- * 
+ *
  * Internal function that creates a PDF document containing one message.
  * Handles TWO distinct use cases:
  * 1. Regular message export (user/assistant messages)
  * 2. Analysis message export (validation/comparison results)
- * 
+ *
  * Automatically detects analysis messages (_analysis in ID) and enhances
  * header with model information and validation type.
  * Called by: downloadMessagePDF() (from message dropdown menu)
- * 
+ *
  * @param message - The message to export
  * @param conversationTitle - Title of parent conversation for context
  * @returns Base64 encoded PDF data
@@ -843,7 +896,7 @@ export async function exportMessageToPDF(
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
-  const maxWidth = pageWidth - (margin * 2);
+  const maxWidth = pageWidth - margin * 2;
 
   // Check if this is an analysis message
   const isAnalysis = message.id.includes('_analysis');
@@ -889,9 +942,11 @@ export async function exportMessageToPDF(
       }
 
       // Check for validation type
-      if (message.content.includes('Consistency Analysis') ||
+      if (
+        message.content.includes('Consistency Analysis') ||
         message.content.includes('Quality Rankings') ||
-        message.content.includes('Accuracy Assessment')) {
+        message.content.includes('Accuracy Assessment')
+      ) {
         pdf.setTextColor(30, 58, 138);
         pdf.setFont('times', 'bold');
         pdf.text('Multi-Model Validation Analysis', margin, headerY);
@@ -918,20 +973,20 @@ export async function exportMessageToPDF(
 
 /**
  * Download a single message as PDF
- * 
+ *
  * Public API function triggered by individual message "Export PDF" menu option.
  * Handles TWO of the FOUR PDF export use cases:
- * 
+ *
  * USE CASE 2: Regular Message Export
  * - Trigger: Message dropdown menu → Export PDF (non-analysis messages)
  * - Output: atticus-{id}-message-user-{timestamp}.pdf
  *          atticus-{id}-message-assistant-{timestamp}.pdf
- * 
+ *
  * USE CASE 4: Individual Analysis Export
  * - Trigger: Analysis message dropdown menu → Export PDF
  * - Output: atticus-{id}-analysis-{timestamp}.pdf
  * - Special handling: Enhanced header with model info and validation type
- * 
+ *
  * @param message - The message to export
  * @param conversationTitle - Parent conversation title for header
  * @param conversationId - Conversation ID for filename generation
@@ -972,19 +1027,19 @@ export async function downloadMessagePDF(
 
 /**
  * Download a cluster of messages as PDF
- * 
+ *
  * USE CASE 3: Cluster Export (Q&A Group)
  * - Trigger: Cluster action bar "Export PDF" button
  * - Output: atticus-{id}-cluster-{timestamp}.pdf (regular)
  *          atticus-{id}-analysis-{timestamp}.pdf (contains analysis)
  * - Content: Query + response(s) with page breaks between Q&A pairs
- * 
+ *
  * Public API function that exports a query and its response(s) as a cohesive
  * group with professional page breaks between different Q&A pairs.
- * 
+ *
  * Note: When a cluster contains analysis results, type='analysis' for proper
  * filename generation, but the content is still the original Q&A cluster.
- * 
+ *
  * @param messages - Array of messages in the cluster (user query + assistant responses)
  * @param conversationTitle - Parent conversation title for header
  * @param conversationId - Conversation ID for filename generation
@@ -1017,12 +1072,12 @@ export async function downloadClusterPDF(
 
 /**
  * Generate PDF data for a message cluster (Q&A group)
- * 
+ *
  * Internal function that creates a PDF document for a group of related messages.
  * Automatically adds page breaks between assistant→user transitions to separate
  * different Q&A pairs for improved readability.
  * Called by: downloadClusterPDF() (from cluster action bar)
- * 
+ *
  * @param messages - Array of messages in the cluster
  * @param conversationTitle - Parent conversation title for header
  * @returns Base64 encoded PDF data
@@ -1041,7 +1096,7 @@ export async function exportClusterToPDF(
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
-  const maxWidth = pageWidth - (margin * 2);
+  const maxWidth = pageWidth - margin * 2;
 
   // Add header
   pdf.setFontSize(16);
@@ -1074,8 +1129,15 @@ export async function exportClusterToPDF(
     }
 
     // Show jurisdictions if specified
-    if (firstMessage.metadata?.selectedJurisdictions && firstMessage.metadata.selectedJurisdictions.length > 0) {
-      pdf.text(`Jurisdictions: ${firstMessage.metadata.selectedJurisdictions.join(', ')}`, margin, headerY);
+    if (
+      firstMessage.metadata?.selectedJurisdictions &&
+      firstMessage.metadata.selectedJurisdictions.length > 0
+    ) {
+      pdf.text(
+        `Jurisdictions: ${firstMessage.metadata.selectedJurisdictions.join(', ')}`,
+        margin,
+        headerY
+      );
       headerY += 5;
     }
   }

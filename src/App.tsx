@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
-import { useStore } from "./store";
-import Sidebar from "./components/Sidebar";
-import ChatWindow from "./components/ChatWindow";
-import Settings from "./components/Settings";
-import LogViewer from "./components/LogViewer";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Scale, Settings as SettingsIcon, FileText } from "lucide-react";
-import packageJson from "../package.json";
-import { LanguageProvider } from "./i18n/LanguageContext";
-import { Language, getTranslations } from "./i18n/translations";
+import { useEffect, useState } from 'react';
+import { useStore } from './store';
+import Sidebar from './components/Sidebar';
+import ChatWindow from './components/ChatWindow';
+import Settings from './components/Settings';
+import LogViewer from './components/LogViewer';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Scale, Settings as SettingsIcon, FileText } from 'lucide-react';
+import packageJson from '../package.json';
+import { LanguageProvider } from './i18n/LanguageContext';
+import { Language, getTranslations } from './i18n/translations';
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLogViewer, setShowLogViewer] = useState(false);
   const [openConfigDialog, setOpenConfigDialog] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>('en');
   const {
     loadConfig,
     loadConversations,
@@ -81,9 +81,7 @@ function App() {
               <div className="flex items-center gap-3">
                 <Scale className="w-8 h-8 text-legal-gold" />
                 <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    {t.appTitle}
-                  </h1>
+                  <h1 className="text-2xl font-bold text-white">{t.appTitle}</h1>
                   <p className="text-sm text-gray-400">{t.appSubtitle}</p>
                 </div>
               </div>
@@ -91,8 +89,8 @@ function App() {
                 <div className="text-xs text-gray-500">
                   {config.providers.length > 0 && (
                     <span>
-                      {config.providers.length}{" "}
-                      {config.providers.length === 1 ? t.provider : t.providers}{" "}
+                      {config.providers.length}{' '}
+                      {config.providers.length === 1 ? t.provider : t.providers}{' '}
                       {t.providersConfigured}
                     </span>
                   )}
@@ -113,33 +111,33 @@ function App() {
                 </button>
                 <div className="flex items-center gap-1 bg-gray-700 rounded-lg p-1">
                   <button
-                    onClick={() => setLanguage("en")}
+                    onClick={() => setLanguage('en')}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      language === "en"
-                        ? "bg-legal-gold text-gray-900"
-                        : "text-gray-300 hover:text-white"
+                      language === 'en'
+                        ? 'bg-legal-gold text-gray-900'
+                        : 'text-gray-300 hover:text-white'
                     }`}
                     title="English"
                   >
                     EN
                   </button>
                   <button
-                    onClick={() => setLanguage("fr")}
+                    onClick={() => setLanguage('fr')}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      language === "fr"
-                        ? "bg-legal-gold text-gray-900"
-                        : "text-gray-300 hover:text-white"
+                      language === 'fr'
+                        ? 'bg-legal-gold text-gray-900'
+                        : 'text-gray-300 hover:text-white'
                     }`}
                     title="Français"
                   >
                     FR
                   </button>
                   <button
-                    onClick={() => setLanguage("es")}
+                    onClick={() => setLanguage('es')}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      language === "es"
-                        ? "bg-legal-gold text-gray-900"
-                        : "text-gray-300 hover:text-white"
+                      language === 'es'
+                        ? 'bg-legal-gold text-gray-900'
+                        : 'text-gray-300 hover:text-white'
                     }`}
                     title="Español"
                   >
@@ -163,12 +161,8 @@ function App() {
           {/* Global Footer Disclaimer */}
           <footer className="bg-gray-800 border-t border-gray-700 px-6 py-2 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-gray-500 text-center flex-1">
-                {t.disclaimer}
-              </div>
-              <div className="text-xs text-gray-600">
-                v{packageJson.version}
-              </div>
+              <div className="text-xs text-gray-500 text-center flex-1">{t.disclaimer}</div>
+              <div className="text-xs text-gray-600">v{packageJson.version}</div>
             </div>
           </footer>
         </div>

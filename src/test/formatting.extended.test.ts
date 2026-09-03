@@ -7,7 +7,7 @@ import {
   formatBytes,
   pluralize,
   formatDuration,
-  formatList
+  formatList,
 } from '../utils/formatting';
 
 describe('formatting helpers (extended)', () => {

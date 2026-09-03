@@ -119,11 +119,11 @@ export interface CohereResponse {
 }
 
 // Union type for all provider responses
-export type ProviderResponse = 
-  | OpenAIResponse 
-  | AnthropicResponse 
-  | GoogleResponse 
-  | MistralResponse 
+export type ProviderResponse =
+  | OpenAIResponse
+  | AnthropicResponse
+  | GoogleResponse
+  | MistralResponse
   | CohereResponse;
 
 // Generic usage extraction result

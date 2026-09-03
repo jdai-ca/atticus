@@ -8,12 +8,11 @@
  * Development mode is detected by:
  * - hostname is 'localhost'
  * - port is '5173' (Vite dev server default)
- * 
+ *
  * @returns true if running in development mode, false otherwise
  */
 export function isDevelopmentMode(): boolean {
-    return globalThis.location?.hostname === 'localhost' ||
-        globalThis.location?.port === '5173';
+  return globalThis.location?.hostname === 'localhost' || globalThis.location?.port === '5173';
 }
 
 /**
@@ -21,5 +20,5 @@ export function isDevelopmentMode(): boolean {
  * @returns true if running in production mode, false otherwise
  */
 export function isProductionMode(): boolean {
-    return !isDevelopmentMode();
+  return !isDevelopmentMode();
 }

@@ -1,4 +1,4 @@
-import { Conversation } from "../types";
+import { Conversation } from '../types';
 
 interface TagDialogProps {
   currentConversation: Conversation;
@@ -35,12 +35,7 @@ export default function TagDialog({
             className="text-gray-400 hover:text-white transition-colors"
             title="Close tag dialog"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -55,9 +50,7 @@ export default function TagDialog({
           {/* Existing Tags */}
           {existingTags.length > 0 && (
             <div>
-              <div className="text-sm font-medium text-gray-300 mb-2">
-                Existing Tags
-              </div>
+              <div className="text-sm font-medium text-gray-300 mb-2">Existing Tags</div>
               <div className="flex flex-wrap gap-2">
                 {existingTags.map((tag): JSX.Element => {
                   const isActive = currentConversation.messages
@@ -70,8 +63,8 @@ export default function TagDialog({
                       onClick={() => onTagToggle(tag)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? "bg-legal-blue text-white border-2 border-legal-blue"
-                          : "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500"
+                          ? 'bg-legal-blue text-white border-2 border-legal-blue'
+                          : 'bg-gray-700 text-gray-300 border-2 border-gray-600 hover:border-gray-500'
                       }`}
                     >
                       #{tag}
@@ -84,24 +77,19 @@ export default function TagDialog({
 
           {/* Add New Tag */}
           <div>
-            <label
-              htmlFor="new-tag-input"
-              className="text-sm font-medium text-gray-300 mb-2 block"
-            >
+            <label htmlFor="new-tag-input" className="text-sm font-medium text-gray-300 mb-2 block">
               Add New Tag
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  #
-                </span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">#</span>
                 <input
                   id="new-tag-input"
                   type="text"
                   value={newTagInput}
-                  onChange={(e) => onNewTagInputChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                  onChange={e => onNewTagInputChange(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
                       e.preventDefault();
                       onAddNewTag();
                     }

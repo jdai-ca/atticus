@@ -4,7 +4,7 @@ import {
   toISOString,
   getRelativeTime,
   ensureISOString,
-  migrateDateFields
+  migrateDateFields,
 } from '../utils/dateUtils';
 
 describe('dateUtils (extended)', () => {

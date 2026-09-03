@@ -1,6 +1,6 @@
-import React from "react";
-import { Conversation } from "../types";
-import MessageNavToolbar from "./MessageNavToolbar";
+import React from 'react';
+import { Conversation } from '../types';
+import MessageNavToolbar from './MessageNavToolbar';
 
 interface ChatMessageNavToolbarProps {
   readonly currentConversation: Conversation | null;

@@ -2,7 +2,7 @@ import {
   sanitizeTextForPDF,
   stripMarkdown,
   parseMarkdownToPDFSegments,
-  formatFileSize
+  formatFileSize,
 } from '../utils/pdfExport';
 import { describe, it, expect } from 'vitest';
 

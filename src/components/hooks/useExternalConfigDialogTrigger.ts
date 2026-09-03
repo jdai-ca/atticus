@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 interface UseExternalConfigDialogTriggerParams {
   readonly openConfigDialog: boolean | undefined;

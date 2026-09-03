@@ -1,59 +1,45 @@
-import { Fragment } from "react";
-import { Message } from "../types";
-import MessageBubble from "./MessageBubble";
-import ClusterActionBar from "./ClusterActionBar";
+import { Fragment } from 'react';
+import { Message } from '../types';
+import MessageBubble from './MessageBubble';
+import ClusterActionBar from './ClusterActionBar';
 
 interface ChatMessageListProps {
   readonly messages: Message[];
-  readonly providerTemplates: React.ComponentProps<
-    typeof MessageBubble
-  >["providerTemplates"];
-  readonly config: React.ComponentProps<typeof MessageBubble>["config"];
-  readonly inlineTagMessageId: React.ComponentProps<
-    typeof MessageBubble
-  >["inlineTagMessageId"];
-  readonly inlineTagInput: React.ComponentProps<typeof MessageBubble>["inlineTagInput"];
-  readonly isLoading: React.ComponentProps<typeof MessageBubble>["isLoading"];
+  readonly providerTemplates: React.ComponentProps<typeof MessageBubble>['providerTemplates'];
+  readonly config: React.ComponentProps<typeof MessageBubble>['config'];
+  readonly inlineTagMessageId: React.ComponentProps<typeof MessageBubble>['inlineTagMessageId'];
+  readonly inlineTagInput: React.ComponentProps<typeof MessageBubble>['inlineTagInput'];
+  readonly isLoading: React.ComponentProps<typeof MessageBubble>['isLoading'];
   readonly onSetInlineTagMessageId: React.ComponentProps<
     typeof MessageBubble
-  >["onSetInlineTagMessageId"];
-  readonly onSetInlineTagInput: React.ComponentProps<
-    typeof MessageBubble
-  >["onSetInlineTagInput"];
-  readonly onRemoveInlineTag: React.ComponentProps<
-    typeof MessageBubble
-  >["onRemoveInlineTag"];
-  readonly onAddInlineTag: React.ComponentProps<
-    typeof MessageBubble
-  >["onAddInlineTag"];
+  >['onSetInlineTagMessageId'];
+  readonly onSetInlineTagInput: React.ComponentProps<typeof MessageBubble>['onSetInlineTagInput'];
+  readonly onRemoveInlineTag: React.ComponentProps<typeof MessageBubble>['onRemoveInlineTag'];
+  readonly onAddInlineTag: React.ComponentProps<typeof MessageBubble>['onAddInlineTag'];
   readonly onSetInspectedApiTrace: React.ComponentProps<
     typeof MessageBubble
-  >["onSetInspectedApiTrace"];
-  readonly onResendMessage: React.ComponentProps<typeof MessageBubble>["onResendMessage"];
-  readonly onExportMessage: React.ComponentProps<typeof MessageBubble>["onExportMessage"];
-  readonly conversationTitle: React.ComponentProps<
-    typeof ClusterActionBar
-  >["conversationTitle"];
-  readonly conversationId: React.ComponentProps<typeof ClusterActionBar>["conversationId"];
-  readonly onShowTagDialog: React.ComponentProps<
-    typeof ClusterActionBar
-  >["onShowTagDialog"];
+  >['onSetInspectedApiTrace'];
+  readonly onResendMessage: React.ComponentProps<typeof MessageBubble>['onResendMessage'];
+  readonly onExportMessage: React.ComponentProps<typeof MessageBubble>['onExportMessage'];
+  readonly conversationTitle: React.ComponentProps<typeof ClusterActionBar>['conversationTitle'];
+  readonly conversationId: React.ComponentProps<typeof ClusterActionBar>['conversationId'];
+  readonly onShowTagDialog: React.ComponentProps<typeof ClusterActionBar>['onShowTagDialog'];
   readonly onShowAnalysisDialog: React.ComponentProps<
     typeof ClusterActionBar
-  >["onShowAnalysisDialog"];
+  >['onShowAnalysisDialog'];
 }
 
 function deriveClusterActionContext(messages: Message[], index: number) {
   const message = messages[index];
 
   const isLastInCluster =
-    message.role === "assistant" &&
-    (index === messages.length - 1 || messages[index + 1]?.role === "user");
+    message.role === 'assistant' &&
+    (index === messages.length - 1 || messages[index + 1]?.role === 'user');
 
   let clusterStartIndex = index;
-  if (message.role === "assistant") {
+  if (message.role === 'assistant') {
     for (let i = index; i >= 0; i--) {
-      if (messages[i].role === "user") {
+      if (messages[i].role === 'user') {
         clusterStartIndex = i;
         break;
       }
@@ -64,19 +50,16 @@ function deriveClusterActionContext(messages: Message[], index: number) {
     isLastInCluster &&
     messages
       .slice(clusterStartIndex, index + 1)
-      .some((entry): boolean => entry.id.includes("_analysis"));
+      .some((entry): boolean => entry.id.includes('_analysis'));
 
   let originalClusterStart = clusterStartIndex;
   let originalClusterEnd = index;
   if (isAnalysisCluster && clusterStartIndex > 0) {
     for (let i = clusterStartIndex - 1; i >= 0; i--) {
-      if (
-        messages[i].role === "assistant" &&
-        (i === 0 || messages[i + 1]?.role === "user")
-      ) {
+      if (messages[i].role === 'assistant' && (i === 0 || messages[i + 1]?.role === 'user')) {
         originalClusterEnd = i;
         for (let j = i; j >= 0; j--) {
-          if (messages[j].role === "user") {
+          if (messages[j].role === 'user') {
             originalClusterStart = j;
             break;
           }

@@ -25,23 +25,39 @@ export interface ElectronAPI {
   loadConversations: () => Promise<OperationResult<Conversation[]>>;
   deleteConversation: (conversationId: string) => Promise<OperationResult>;
   uploadFile: () => Promise<OperationResult<FileUploadResult>>;
-  savePDF: (data: { filename: string; data: string }) => Promise<OperationResult<{ filepath: string }>>;
+  savePDF: (data: {
+    filename: string;
+    data: string;
+  }) => Promise<OperationResult<{ filepath: string }>>;
   loadBundledConfig: (configName: string) => Promise<OperationResult<string>>;
-  saveBundledConfig: (configName: string, content: string) => Promise<OperationResult<{ path: string }>>;
+  saveBundledConfig: (
+    configName: string,
+    content: string
+  ) => Promise<OperationResult<{ path: string }>>;
   fetchFactoryConfig: (configName: string) => Promise<OperationResult<string>>;
   saveApiKey: (providerId: string, apiKey: string) => Promise<OperationResult>;
   deleteApiKey: (providerId: string) => Promise<OperationResult>;
   secureChatRequest: (request: SecureChatRequest) => Promise<OperationResult<ChatResponse>>;
   convertWordToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
-  convertExcelToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
+  convertExcelToImages: (
+    base64Data: string,
+    fileName: string
+  ) => Promise<OperationResult<string[]>>;
   convertMarkdownToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertCsvToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
-  convertTextToImages: (base64Data: string, fileName: string, extension: string) => Promise<OperationResult<string[]>>;
+  convertTextToImages: (
+    base64Data: string,
+    fileName: string,
+    extension: string
+  ) => Promise<OperationResult<string[]>>;
   convertPowerPointToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertRtfToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertTiffToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   convertHeicToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
-  convertEmailToImages: (base64Data: string, fileName: string) => Promise<OperationResult<string[]>>;
+  convertEmailToImages: (
+    base64Data: string,
+    fileName: string
+  ) => Promise<OperationResult<string[]>>;
   convertEpubToImages: (base64Data: string) => Promise<OperationResult<string[]>>;
   auditLogAppend: (conversationId: string, entryJson: string) => Promise<OperationResult>;
   auditLogReplace: (conversationId: string, entriesJsonl: string) => Promise<OperationResult>;
@@ -321,7 +337,7 @@ export interface ChatResponse {
 }
 
 // Re-export typed API responses and metadata from separate modules
-export type { 
+export type {
   OpenAIResponse,
   AnthropicResponse,
   GoogleResponse,

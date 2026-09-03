@@ -1,27 +1,21 @@
-import { ChatDialogsSection } from "../ChatDialogsSection";
-import { ChatInputSection } from "../ChatInputSection";
-import { ChatThreadConfigSection } from "../ChatThreadConfigSection";
-import type { ChatWindowSectionProps } from "./useChatWindowSectionProps.types";
-import { useChatDialogsSectionProps } from "./useChatDialogsSectionProps";
-import { useChatInputSectionProps } from "./useChatInputSectionProps";
-import { useChatMessagesAreaProps } from "./useChatMessagesAreaProps";
-import { useChatThreadConfigSectionProps } from "./useChatThreadConfigSectionProps";
+import { ChatDialogsSection } from '../ChatDialogsSection';
+import { ChatInputSection } from '../ChatInputSection';
+import { ChatThreadConfigSection } from '../ChatThreadConfigSection';
+import type { ChatWindowSectionProps } from './useChatWindowSectionProps.types';
+import { useChatDialogsSectionProps } from './useChatDialogsSectionProps';
+import { useChatInputSectionProps } from './useChatInputSectionProps';
+import { useChatMessagesAreaProps } from './useChatMessagesAreaProps';
+import { useChatThreadConfigSectionProps } from './useChatThreadConfigSectionProps';
 
 export type {
   ChatWindowSectionProps,
   CommonSectionProps,
   FallbackSectionProps,
   ReadySectionProps,
-} from "./useChatWindowSectionProps.types";
+} from './useChatWindowSectionProps.types';
 
-type FallbackSectionProps = Extract<
-  ChatWindowSectionProps,
-  { sectionState: "fallback" }
->;
-type ReadySectionProps = Extract<
-  ChatWindowSectionProps,
-  { sectionState: "ready" }
->;
+type FallbackSectionProps = Extract<ChatWindowSectionProps, { sectionState: 'fallback' }>;
+type ReadySectionProps = Extract<ChatWindowSectionProps, { sectionState: 'ready' }>;
 
 interface UseChatWindowSectionPropsParams {
   readonly threadConfigParams: React.ComponentProps<typeof ChatThreadConfigSection>;
@@ -36,8 +30,7 @@ export function useChatWindowSectionProps({
   inputSectionParams,
   dialogsSectionParams,
 }: UseChatWindowSectionPropsParams): ChatWindowSectionProps {
-  const { chatThreadConfigSectionProps } =
-    useChatThreadConfigSectionProps(threadConfigParams);
+  const { chatThreadConfigSectionProps } = useChatThreadConfigSectionProps(threadConfigParams);
   const { chatMessagesAreaProps } = useChatMessagesAreaProps(messagesAreaParams);
   const { chatInputSectionProps } = useChatInputSectionProps(inputSectionParams);
   const { chatDialogsSectionProps } = useChatDialogsSectionProps(dialogsSectionParams);
@@ -50,14 +43,14 @@ export function useChatWindowSectionProps({
 
   if (!chatMessagesAreaProps) {
     return {
-      sectionState: "fallback",
+      sectionState: 'fallback',
       chatMessagesAreaProps: null,
       ...commonSectionProps,
     } satisfies FallbackSectionProps;
   }
 
   return {
-    sectionState: "ready",
+    sectionState: 'ready',
     chatMessagesAreaProps,
     ...commonSectionProps,
   } satisfies ReadySectionProps;

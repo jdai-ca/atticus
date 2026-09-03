@@ -1,20 +1,37 @@
-import { buildSystemPrompt, createUserMessage, createAssistantMessages } from '../utils/messageBuilders';
+import {
+  buildSystemPrompt,
+  createUserMessage,
+  createAssistantMessages,
+} from '../utils/messageBuilders';
 import { describe, it, expect } from 'vitest';
 import type { Jurisdiction, AttachmentMeta, APITrace } from '../types';
 
 // Mocks
-const mockAdvisoryArea = { id: 'advisory-1', name: 'Advisory Name', systemPrompt: 'Advisory system prompt.' };
-const mockGeneralAdvisory = { id: 'general-advisory', name: 'General Advisory', systemPrompt: 'General advisory prompt.' };
+const mockAdvisoryArea = {
+  id: 'advisory-1',
+  name: 'Advisory Name',
+  systemPrompt: 'Advisory system prompt.',
+};
+const mockGeneralAdvisory = {
+  id: 'general-advisory',
+  name: 'General Advisory',
+  systemPrompt: 'General advisory prompt.',
+};
 const mockJurisdictions: Jurisdiction[] = ['US', 'CA'];
 const mockAttachments: AttachmentMeta[] = [
   { id: 'a1', name: 'file1.pdf', type: 'application/pdf', size: 1234 },
-  { id: 'a2', name: 'file2.txt', type: 'text/plain', size: 567 }
+  { id: 'a2', name: 'file2.txt', type: 'text/plain', size: 567 },
 ];
 const mockAttachmentData = new Map([
   ['a1', 'data1'],
-  ['a2', 'data2']
+  ['a2', 'data2'],
 ]);
-const mockModelInfo = { providerId: 'openai', providerName: 'OpenAI', modelId: 'gpt-4', modelName: 'GPT-4' };
+const mockModelInfo = {
+  providerId: 'openai',
+  providerName: 'OpenAI',
+  modelId: 'gpt-4',
+  modelName: 'GPT-4',
+};
 const mockApiTrace: APITrace = {
   requestId: 'req-1',
   timestamp: new Date().toISOString(),
@@ -40,7 +57,13 @@ describe('messageBuilders', () => {
   });
 
   it('createUserMessage builds correct user message', () => {
-    const msg = createUserMessage('Hello', 'Practice', mockAdvisoryArea, mockAttachments, mockAttachmentData);
+    const msg = createUserMessage(
+      'Hello',
+      'Practice',
+      mockAdvisoryArea,
+      mockAttachments,
+      mockAttachmentData
+    );
     expect(msg.role).toBe('user');
     expect(msg.content).toBe('Hello');
     expect(msg.practiceArea).toBe('Practice');
@@ -58,7 +81,7 @@ describe('messageBuilders', () => {
     const responses = [
       { content: 'Response 1', modelInfo: mockModelInfo, apiTrace: mockApiTrace },
       null,
-      { content: 'Response 2', modelInfo: mockModelInfo }
+      { content: 'Response 2', modelInfo: mockModelInfo },
     ];
     const msgs = createAssistantMessages(responses, 'Practice', mockAdvisoryArea);
     expect(msgs.length).toBe(2);

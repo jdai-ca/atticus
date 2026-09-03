@@ -1,12 +1,12 @@
-import { Calendar, DollarSign } from "lucide-react";
-import { formatCost, formatTokens } from "../utils/costCalculator";
-import { DateUtils } from "../utils/dateUtils";
+import { Calendar, DollarSign } from 'lucide-react';
+import { formatCost, formatTokens } from '../utils/costCalculator';
+import { DateUtils } from '../utils/dateUtils';
 import {
   CostLedgerEntry,
   CostLedgerTier,
   CostLedgerTotals,
   getCostLedgerTier,
-} from "../utils/costLedgerData";
+} from '../utils/costLedgerData';
 
 interface CostLedgerTableProps {
   readonly costEntries: CostLedgerEntry[];
@@ -27,39 +27,21 @@ export function CostLedgerTable({
         <div className="text-center py-12 text-gray-500">
           <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>No cost data available yet</p>
-          <p className="text-sm mt-2">
-            Costs will appear here after API calls are made
-          </p>
+          <p className="text-sm mt-2">Costs will appear here after API calls are made</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                  Timestamp
-                </th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                  Provider / Model
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Input Tokens
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Output Tokens
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Total Tokens
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Duration
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Tokens/sec
-                </th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">
-                  Cost
-                </th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">Timestamp</th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">Provider / Model</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Input Tokens</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Output Tokens</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Total Tokens</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Duration</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Tokens/sec</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Cost</th>
               </tr>
             </thead>
             <tbody>
@@ -69,7 +51,7 @@ export function CostLedgerTable({
                   <tr
                     key={entry.messageId}
                     className={`border-b border-gray-800 hover:bg-gray-800/50 transition-colors ${
-                      index % 2 === 0 ? "bg-gray-900/30" : ""
+                      index % 2 === 0 ? 'bg-gray-900/30' : ''
                     }`}
                   >
                     <td className="py-3 px-4 text-gray-300 flex items-center gap-2">
@@ -77,12 +59,8 @@ export function CostLedgerTable({
                       {DateUtils.formatMessageTimestamp(entry.timestamp)}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="text-gray-300">
-                        {entry.provider || "Unknown"}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {entry.model || "Unknown Model"}
-                      </div>
+                      <div className="text-gray-300">{entry.provider || 'Unknown'}</div>
+                      <div className="text-xs text-gray-500">{entry.model || 'Unknown Model'}</div>
                     </td>
                     <td className="py-3 px-4 text-right text-gray-400 font-mono">
                       {formatTokens(entry.inputTokens)}
@@ -116,10 +94,7 @@ export function CostLedgerTable({
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-gray-600 font-semibold">
-                <td
-                  colSpan={2}
-                  className="py-4 px-4 text-gray-300 text-right"
-                >
+                <td colSpan={2} className="py-4 px-4 text-gray-300 text-right">
                   Total
                 </td>
                 <td className="py-4 px-4 text-right text-gray-300 font-mono">
@@ -137,15 +112,9 @@ export function CostLedgerTable({
                 <td className="py-4 px-4 text-right text-blue-400 font-mono text-lg">
                   {formatTokens(totals.totalTokens)}
                 </td>
-                <td className="py-4 px-4 text-right text-gray-400 font-mono">
-                  -
-                </td>
-                <td className="py-4 px-4 text-right text-gray-400 font-mono">
-                  -
-                </td>
-                <td
-                  className={`py-4 px-4 text-right font-mono text-lg ${tierColors[totalTier]}`}
-                >
+                <td className="py-4 px-4 text-right text-gray-400 font-mono">-</td>
+                <td className="py-4 px-4 text-right text-gray-400 font-mono">-</td>
+                <td className={`py-4 px-4 text-right font-mono text-lg ${tierColors[totalTier]}`}>
                   {formatCost(totals.cost)}
                 </td>
               </tr>

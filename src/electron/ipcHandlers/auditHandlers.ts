@@ -33,34 +33,37 @@ export function registerAuditHandlers(): void {
     }
   });
 
-  ipcMain.handle('audit-log-replace', async (_event, conversationId: string, entriesJsonl: string) => {
-    try {
-      const payloadSize = Buffer.byteLength(entriesJsonl, 'utf-8');
-      if (payloadSize > MAX_AUDIT_REPLACE_BYTES) {
-        logger.warn('Audit log replace payload too large', {
-          conversationId,
-          payloadSize,
-          maxBytes: MAX_AUDIT_REPLACE_BYTES,
-        });
-        return {
-          success: false,
-          error: {
-            code: 'AUDIT_REPLACE_TOO_LARGE',
-            message: `Audit log payload exceeds ${MAX_AUDIT_REPLACE_BYTES} bytes`,
-          },
-        };
-      }
+  ipcMain.handle(
+    'audit-log-replace',
+    async (_event, conversationId: string, entriesJsonl: string) => {
+      try {
+        const payloadSize = Buffer.byteLength(entriesJsonl, 'utf-8');
+        if (payloadSize > MAX_AUDIT_REPLACE_BYTES) {
+          logger.warn('Audit log replace payload too large', {
+            conversationId,
+            payloadSize,
+            maxBytes: MAX_AUDIT_REPLACE_BYTES,
+          });
+          return {
+            success: false,
+            error: {
+              code: 'AUDIT_REPLACE_TOO_LARGE',
+              message: `Audit log payload exceeds ${MAX_AUDIT_REPLACE_BYTES} bytes`,
+            },
+          };
+        }
 
-      await ensureAuditDir();
-      const filePath = getAuditFilePath(conversationId);
-      const normalized = entriesJsonl.length > 0 ? `${entriesJsonl}\n` : '';
-      await fs.promises.writeFile(filePath, normalized, 'utf-8');
-      return { success: true };
-    } catch (error) {
-      logger.error('Failed to replace audit log entries', { error, conversationId });
-      return { success: false, error: { code: 'AUDIT_REPLACE_FAILED', message: String(error) } };
+        await ensureAuditDir();
+        const filePath = getAuditFilePath(conversationId);
+        const normalized = entriesJsonl.length > 0 ? `${entriesJsonl}\n` : '';
+        await fs.promises.writeFile(filePath, normalized, 'utf-8');
+        return { success: true };
+      } catch (error) {
+        logger.error('Failed to replace audit log entries', { error, conversationId });
+        return { success: false, error: { code: 'AUDIT_REPLACE_FAILED', message: String(error) } };
+      }
     }
-  });
+  );
 
   ipcMain.handle('audit-log-read', async (_event, conversationId: string) => {
     try {
@@ -77,7 +80,11 @@ export function registerAuditHandlers(): void {
       }
     } catch (error) {
       logger.error('Failed to read audit log', { error, conversationId });
-      return { success: false, lines: [], error: { code: 'AUDIT_READ_FAILED', message: String(error) } };
+      return {
+        success: false,
+        lines: [],
+        error: { code: 'AUDIT_READ_FAILED', message: String(error) },
+      };
     }
   });
 
@@ -91,7 +98,11 @@ export function registerAuditHandlers(): void {
       return { success: true, conversationIds };
     } catch (error) {
       logger.error('Failed to list audit logs', { error });
-      return { success: false, conversationIds: [], error: { code: 'AUDIT_LIST_FAILED', message: String(error) } };
+      return {
+        success: false,
+        conversationIds: [],
+        error: { code: 'AUDIT_LIST_FAILED', message: String(error) },
+      };
     }
   });
 

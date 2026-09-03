@@ -34,7 +34,9 @@ export function AdvisoryAreaTab({
           >
             <Trash2 className="w-4 h-4" />
             <span>
-              {isResetting === 'advisory' ? t.settingsProviders.resetting : t.settingsProviders.reset}
+              {isResetting === 'advisory'
+                ? t.settingsProviders.resetting
+                : t.settingsProviders.reset}
             </span>
           </button>
           <button
@@ -88,7 +90,9 @@ export function AdvisoryAreaTab({
                           }}
                           className="text-xs text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
                         >
-                          {isExpanded ? t.settingsAreas.showLess : `+${area.keywords.length - 8} more`}
+                          {isExpanded
+                            ? t.settingsAreas.showLess
+                            : `+${area.keywords.length - 8} more`}
                         </button>
                       )}
                     </div>
@@ -109,7 +113,7 @@ export function AdvisoryAreaTab({
             • {config.advisoryAreas?.length || 0} {t.settingsContent.specializedAdvisoryAreas}{' '}
             {config.advisoryAreas?.reduce(
               (sum: number, area): number => sum + area.keywords.length,
-              0,
+              0
             ) || 0}{' '}
             {t.settingsContent.keywords}
           </li>

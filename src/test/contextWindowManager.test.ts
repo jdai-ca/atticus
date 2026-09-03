@@ -13,7 +13,7 @@ import type { Message } from '../types';
 function makeMsg(
   content: string,
   role: 'user' | 'assistant' | 'system' = 'user',
-  id = crypto.randomUUID(),
+  id = crypto.randomUUID()
 ): Message {
   return { id, role, content, timestamp: new Date().toISOString() };
 }
@@ -45,7 +45,10 @@ describe('getTotalTokenCount', () => {
   it('increases with attachment metadata', () => {
     const withoutAttachment = getTotalTokenCount([makeMsg('hi')]);
     const withAttachment = getTotalTokenCount([
-      { ...makeMsg('hi'), attachments: [{ id: 'a1', name: 'document.pdf', type: '.pdf', size: 1024, data: '' }] },
+      {
+        ...makeMsg('hi'),
+        attachments: [{ id: 'a1', name: 'document.pdf', type: '.pdf', size: 1024, data: '' }],
+      },
     ]);
     expect(withAttachment).toBeGreaterThan(withoutAttachment);
   });
@@ -83,7 +86,13 @@ describe('getTotalTokenCount (edge/extended)', () => {
     expect(getTotalTokenCount([msg4])).toBeGreaterThanOrEqual(4);
   });
   it('throws for attachments with undefined name', () => {
-    const msg = { id: '1', role: 'user' as const, content: 'hi', timestamp: '', attachments: [{ id: 'a', name: undefined as any, type: '', size: 0, data: '' }] };
+    const msg = {
+      id: '1',
+      role: 'user' as const,
+      content: 'hi',
+      timestamp: '',
+      attachments: [{ id: 'a', name: undefined as any, type: '', size: 0, data: '' }],
+    };
     expect(() => getTotalTokenCount([msg as any])).toThrow();
   });
 });
@@ -111,7 +120,7 @@ describe('truncateToContextWindow', () => {
   it('sets truncated=true when messages are removed', () => {
     // 40 msgs × 1000 chars ≈ 40×291 = 11640 tokens > 8000×0.85=6800 limit
     const msgs: Message[] = Array.from({ length: 40 }, (_, i) =>
-      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant'),
+      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant')
     );
     const result = truncateToContextWindow(msgs, undefined, 8_000);
     expect(result.truncated).toBe(true);
@@ -120,7 +129,7 @@ describe('truncateToContextWindow', () => {
 
   it('always preserves the most recent message', () => {
     const msgs: Message[] = Array.from({ length: 40 }, (_, i) =>
-      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant'),
+      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant')
     );
     const last = msgs[msgs.length - 1];
     const result = truncateToContextWindow(msgs, undefined, 8_000);
@@ -130,7 +139,7 @@ describe('truncateToContextWindow', () => {
 
   it('inserts a truncation notice message when messages are dropped', () => {
     const msgs: Message[] = Array.from({ length: 40 }, (_, i) =>
-      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant'),
+      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant')
     );
     const result = truncateToContextWindow(msgs, undefined, 8_000);
     const notice = result.truncatedMessages[0];
@@ -140,9 +149,9 @@ describe('truncateToContextWindow', () => {
 
   it('throws when system prompt alone overflows the window', () => {
     const hugeSystemPrompt = repeat(100_000);
-    expect(() =>
-      truncateToContextWindow([makeMsg('hi')], hugeSystemPrompt, 1_000),
-    ).toThrow(/context window too small/i);
+    expect(() => truncateToContextWindow([makeMsg('hi')], hugeSystemPrompt, 1_000)).toThrow(
+      /context window too small/i
+    );
   });
 
   it('tokenCount in result is >= removedCount messages worth of tokens', () => {
@@ -156,13 +165,11 @@ describe('truncateToContextWindow', () => {
     // aggressive: 32000×0.5=16000, available=16000-4000=12000 → truncates
     // relaxed:   32000×0.95=30400, available=30400-4000=26400 → keeps all
     const msgs: Message[] = Array.from({ length: 60 }, (_, i) =>
-      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant'),
+      makeMsg(repeat(1_000), i % 2 === 0 ? 'user' : 'assistant')
     );
     const aggressive = truncateToContextWindow(msgs, undefined, 32_000, 0.5);
     const relaxed = truncateToContextWindow(msgs, undefined, 32_000, 0.95);
-    expect(aggressive.truncatedMessages.length).toBeLessThan(
-      relaxed.truncatedMessages.length,
-    );
+    expect(aggressive.truncatedMessages.length).toBeLessThan(relaxed.truncatedMessages.length);
   });
 });
 

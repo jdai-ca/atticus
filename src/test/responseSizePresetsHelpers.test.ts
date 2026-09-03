@@ -3,7 +3,7 @@ import {
   getPresetByTokens,
   constrainMaxTokens,
   getRecommendedPreset,
-  getAvailablePresets
+  getAvailablePresets,
 } from '../utils/responseSizePresets';
 import { describe, it, expect } from 'vitest';
 

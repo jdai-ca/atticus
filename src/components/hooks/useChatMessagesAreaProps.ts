@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { Conversation } from "../../types";
-import { ChatMessagesArea } from "../ChatMessagesArea";
+import { useMemo } from 'react';
+import { Conversation } from '../../types';
+import { ChatMessagesArea } from '../ChatMessagesArea';
 
 type ChatMessagesAreaProps = Omit<
   React.ComponentProps<typeof ChatMessagesArea>,
-  "currentConversation"
+  'currentConversation'
 > & {
   currentConversation: Conversation | null;
 };
@@ -16,42 +16,39 @@ interface UseChatMessagesAreaPropsResult {
 }
 
 export function useChatMessagesAreaProps(
-  params: ChatMessagesAreaProps,
+  params: ChatMessagesAreaProps
 ): UseChatMessagesAreaPropsResult {
-  const chatMessagesAreaProps = useMemo(
-    (): ResolvedChatMessagesAreaProps | null => {
-      if (!params.currentConversation) {
-        return null;
-      }
+  const chatMessagesAreaProps = useMemo((): ResolvedChatMessagesAreaProps | null => {
+    if (!params.currentConversation) {
+      return null;
+    }
 
-      return {
-        ...params,
-        currentConversation: params.currentConversation,
-      } satisfies ResolvedChatMessagesAreaProps;
-    },
-    [
-      params.currentConversation,
-      params.startConversationLabel,
-      params.appName,
-      params.isLoading,
-      params.messagesContainerRef,
-      params.messagesEndRef,
-      params.lastJumpedMessageId,
-      params.providerTemplates,
-      params.config,
-      params.inlineTagMessageId,
-      params.inlineTagInput,
-      params.onSetInlineTagMessageId,
-      params.onSetInlineTagInput,
-      params.onRemoveInlineTag,
-      params.onAddInlineTag,
-      params.onSetInspectedApiTrace,
-      params.onResendMessage,
-      params.onExportMessage,
-      params.onShowTagDialog,
-      params.onShowAnalysisDialog,
-    ],
-  );
+    return {
+      ...params,
+      currentConversation: params.currentConversation,
+    } satisfies ResolvedChatMessagesAreaProps;
+  }, [
+    params.currentConversation,
+    params.startConversationLabel,
+    params.appName,
+    params.isLoading,
+    params.messagesContainerRef,
+    params.messagesEndRef,
+    params.lastJumpedMessageId,
+    params.providerTemplates,
+    params.config,
+    params.inlineTagMessageId,
+    params.inlineTagInput,
+    params.onSetInlineTagMessageId,
+    params.onSetInlineTagInput,
+    params.onRemoveInlineTag,
+    params.onAddInlineTag,
+    params.onSetInspectedApiTrace,
+    params.onResendMessage,
+    params.onExportMessage,
+    params.onShowTagDialog,
+    params.onShowAnalysisDialog,
+  ]);
 
   return {
     chatMessagesAreaProps,

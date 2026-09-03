@@ -1,8 +1,8 @@
-import type { Conversation, Message } from "../../types";
-import { downloadMessagePDF } from "../../utils/pdfExport";
-import { createLogger } from "../../services/debugLogger";
+import type { Conversation, Message } from '../../types';
+import { downloadMessagePDF } from '../../utils/pdfExport';
+import { createLogger } from '../../services/debugLogger';
 
-const logger = createLogger("useMessageActionHandlers");
+const logger = createLogger('useMessageActionHandlers');
 
 interface UseMessageActionHandlersProps {
   readonly currentConversation: Conversation | null;
@@ -25,7 +25,7 @@ export function useMessageActionHandlers({
 
     const userMessage = currentConversation.messages[messageIndex];
 
-    if (userMessage?.role === "user") {
+    if (userMessage?.role === 'user') {
       await sendMessage(userMessage.content);
     }
   };
@@ -34,14 +34,10 @@ export function useMessageActionHandlers({
     if (!currentConversation) return;
 
     try {
-      await downloadMessagePDF(
-        message,
-        currentConversation.title,
-        currentConversation.id,
-      );
-      logger.info("Message exported to PDF", { messageId: message.id });
+      await downloadMessagePDF(message, currentConversation.title, currentConversation.id);
+      logger.info('Message exported to PDF', { messageId: message.id });
     } catch (error) {
-      logger.error("Failed to export message to PDF", { error });
+      logger.error('Failed to export message to PDF', { error });
     }
   };
 

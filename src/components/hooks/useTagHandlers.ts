@@ -1,5 +1,5 @@
-import type { Conversation } from "../../types";
-import { useStore } from "../../store";
+import type { Conversation } from '../../types';
+import { useStore } from '../../store';
 
 interface UseTagHandlersProps {
   readonly currentConversation: Conversation | null;
@@ -17,10 +17,7 @@ interface UseTagHandlersResult {
   readonly handleTagToggle: (tag: string) => void;
   readonly handleAddNewTag: () => void;
   readonly handleAddInlineTag: (messageId: string) => void;
-  readonly handleRemoveInlineTag: (
-    messageId: string,
-    tagToRemove: string,
-  ) => void;
+  readonly handleRemoveInlineTag: (messageId: string, tagToRemove: string) => void;
 }
 
 export function useTagHandlers({
@@ -52,27 +49,23 @@ export function useTagHandlers({
       const tags = msg.tags || [];
       const hasTag = tags.includes(tag);
       useStore.getState().updateMessage(msg.id, {
-        tags: hasTag
-          ? tags.filter((t): boolean => t !== tag)
-          : [...tags, tag],
+        tags: hasTag ? tags.filter((t): boolean => t !== tag) : [...tags, tag],
       });
     }
   };
 
   const handleAddNewTag = (): void => {
-    const tag = newTagInput.trim().toLowerCase().replace(/^#+/, "");
+    const tag = newTagInput.trim().toLowerCase().replace(/^#+/, '');
     if (tag && !getAllExistingTags().includes(tag)) {
       handleTagToggle(tag);
-      setNewTagInput("");
+      setNewTagInput('');
     }
   };
 
   const handleAddInlineTag = (messageId: string): void => {
-    const tag = inlineTagInput.trim().toLowerCase().replace(/^#+/, "");
+    const tag = inlineTagInput.trim().toLowerCase().replace(/^#+/, '');
     if (tag) {
-      const message = currentConversation?.messages.find(
-        (m): boolean => m.id === messageId,
-      );
+      const message = currentConversation?.messages.find((m): boolean => m.id === messageId);
       if (message) {
         const existingTags = message.tags || [];
         if (!existingTags.includes(tag)) {
@@ -81,18 +74,13 @@ export function useTagHandlers({
           });
         }
       }
-      setInlineTagInput("");
+      setInlineTagInput('');
       setInlineTagMessageId(null);
     }
   };
 
-  const handleRemoveInlineTag = (
-    messageId: string,
-    tagToRemove: string,
-  ): void => {
-    const message = currentConversation?.messages.find(
-      (m): boolean => m.id === messageId,
-    );
+  const handleRemoveInlineTag = (messageId: string, tagToRemove: string): void => {
+    const message = currentConversation?.messages.find((m): boolean => m.id === messageId);
     if (message && message.tags) {
       useStore.getState().updateMessage(messageId, {
         tags: message.tags.filter((t): boolean => t !== tagToRemove),

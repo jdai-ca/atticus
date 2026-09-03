@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 
 interface AvailableModel {
   readonly key: string;
@@ -11,12 +11,9 @@ interface UseAnalysisDialogOptionsParams {
   readonly analysisClusterEnd: number;
   readonly getAvailableAnalysisModels: (
     clusterStart: number,
-    clusterEnd: number,
+    clusterEnd: number
   ) => AvailableModel[];
-  readonly getModelsUsedInCluster: (
-    clusterStart: number,
-    clusterEnd: number,
-  ) => Set<string>;
+  readonly getModelsUsedInCluster: (clusterStart: number, clusterEnd: number) => Set<string>;
 }
 
 interface UseAnalysisDialogOptionsResult {
@@ -31,15 +28,13 @@ export function useAnalysisDialogOptions({
   getModelsUsedInCluster,
 }: UseAnalysisDialogOptionsParams): UseAnalysisDialogOptionsResult {
   const availableModels = useMemo(
-    (): AvailableModel[] =>
-      getAvailableAnalysisModels(analysisClusterStart, analysisClusterEnd),
-    [analysisClusterStart, analysisClusterEnd, getAvailableAnalysisModels],
+    (): AvailableModel[] => getAvailableAnalysisModels(analysisClusterStart, analysisClusterEnd),
+    [analysisClusterStart, analysisClusterEnd, getAvailableAnalysisModels]
   );
 
   const modelsUsedInCluster = useMemo(
-    (): Set<string> =>
-      getModelsUsedInCluster(analysisClusterStart, analysisClusterEnd),
-    [analysisClusterStart, analysisClusterEnd, getModelsUsedInCluster],
+    (): Set<string> => getModelsUsedInCluster(analysisClusterStart, analysisClusterEnd),
+    [analysisClusterStart, analysisClusterEnd, getModelsUsedInCluster]
   );
 
   return {

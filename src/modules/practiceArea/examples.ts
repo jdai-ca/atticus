@@ -1,14 +1,14 @@
 /**
  * Practice Area Module - Example Usage
- * 
+ *
  * This file demonstrates practical usage patterns for the practice area module.
  * These examples can be adapted for use in your components.
  */
 
 import {
-    detectPracticeArea,
-    detectPracticeAreaWithConfidence,
-    practiceAreaManager
+  detectPracticeArea,
+  detectPracticeAreaWithConfidence,
+  practiceAreaManager,
 } from '../practiceArea';
 
 // ============================================================================
@@ -16,19 +16,19 @@ import {
 // ============================================================================
 
 export function exampleBasicDetection() {
-    const userMessage = "I need help reviewing a merger agreement for my company";
+  const userMessage = 'I need help reviewing a merger agreement for my company';
 
-    // Simple detection
-    const area = detectPracticeArea(userMessage);
+  // Simple detection
+  const area = detectPracticeArea(userMessage);
 
-    console.log(`Detected Area: ${area.name}`);
-    console.log(`Color: ${area.color}`);
-    console.log(`Description: ${area.description}`);
+  console.log(`Detected Area: ${area.name}`);
+  console.log(`Color: ${area.color}`);
+  console.log(`Description: ${area.description}`);
 
-    // Use the system prompt for AI request
-    const systemPrompt = area.systemPrompt;
+  // Use the system prompt for AI request
+  const systemPrompt = area.systemPrompt;
 
-    return { area, systemPrompt };
+  return { area, systemPrompt };
 }
 
 // ============================================================================
@@ -36,27 +36,27 @@ export function exampleBasicDetection() {
 // ============================================================================
 
 export function exampleAdvancedDetection() {
-    const userMessage = "We're facing a wrongful termination lawsuit from a former employee";
+  const userMessage = "We're facing a wrongful termination lawsuit from a former employee";
 
-    // Get detailed detection results
-    const result = detectPracticeAreaWithConfidence(userMessage, {
-        includeAlternatives: true,
-        maxAlternatives: 3
+  // Get detailed detection results
+  const result = detectPracticeAreaWithConfidence(userMessage, {
+    includeAlternatives: true,
+    maxAlternatives: 3,
+  });
+
+  console.log('=== Detection Results ===');
+  console.log(`Primary Area: ${result.area.name}`);
+  console.log(`Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+  console.log(`Matched Keywords: ${result.matchedKeywords.join(', ')}`);
+
+  if (result.alternatives && result.alternatives.length > 0) {
+    console.log('\nAlternative Matches:');
+    result.alternatives.forEach((alt, idx): void => {
+      console.log(`  ${idx + 1}. ${alt.area.name} - ${(alt.confidence * 100).toFixed(1)}%`);
     });
+  }
 
-    console.log('=== Detection Results ===');
-    console.log(`Primary Area: ${result.area.name}`);
-    console.log(`Confidence: ${(result.confidence * 100).toFixed(1)}%`);
-    console.log(`Matched Keywords: ${result.matchedKeywords.join(', ')}`);
-
-    if (result.alternatives && result.alternatives.length > 0) {
-        console.log('\nAlternative Matches:');
-        result.alternatives.forEach((alt, idx): void => {
-            console.log(`  ${idx + 1}. ${alt.area.name} - ${(alt.confidence * 100).toFixed(1)}%`);
-        });
-    }
-
-    return result;
+  return result;
 }
 
 // ============================================================================
@@ -64,17 +64,29 @@ export function exampleAdvancedDetection() {
 // ============================================================================
 
 export function exampleCreateCustomArea() {
-    // Create a custom Immigration Law practice area
-    const immigrationArea = practiceAreaManager.createCustomArea(
-        'immigration',
-        'Immigration Law',
-        [
-            'visa', 'green card', 'naturalization', 'asylum', 'deportation',
-            'work permit', 'H1B', 'L1', 'EB5', 'USCIS', 'immigration status',
-            'citizenship', 'permanent resident', 'refugee', 'removal proceedings'
-        ],
-        'Immigration and naturalization matters',
-        `You are a specialized legal AI assistant focusing on Immigration Law.
+  // Create a custom Immigration Law practice area
+  const immigrationArea = practiceAreaManager.createCustomArea(
+    'immigration',
+    'Immigration Law',
+    [
+      'visa',
+      'green card',
+      'naturalization',
+      'asylum',
+      'deportation',
+      'work permit',
+      'H1B',
+      'L1',
+      'EB5',
+      'USCIS',
+      'immigration status',
+      'citizenship',
+      'permanent resident',
+      'refugee',
+      'removal proceedings',
+    ],
+    'Immigration and naturalization matters',
+    `You are a specialized legal AI assistant focusing on Immigration Law.
 
 **Your Core Competencies:**
 - Visa Categories - H1B, L1, O1, E2, tourist, student visas
@@ -100,18 +112,18 @@ export function exampleCreateCustomArea() {
 - Deportation cases require immediate legal representation
 - Always recommend consultation with licensed immigration attorneys
 - Forms must be filled accurately - errors can cause denials or delays`,
-        '#10b981' // Green color
-    );
+    '#10b981' // Green color
+  );
 
-    console.log(`Created custom area: ${immigrationArea.name}`);
+  console.log(`Created custom area: ${immigrationArea.name}`);
 
-    // Test detection with immigration-related text
-    const testMessage = "I need help with my H1B visa extension application";
-    const detected = practiceAreaManager.detectArea(testMessage);
+  // Test detection with immigration-related text
+  const testMessage = 'I need help with my H1B visa extension application';
+  const detected = practiceAreaManager.detectArea(testMessage);
 
-    console.log(`Test detection: ${detected.name}`);
+  console.log(`Test detection: ${detected.name}`);
 
-    return immigrationArea;
+  return immigrationArea;
 }
 
 // ============================================================================
@@ -119,23 +131,31 @@ export function exampleCreateCustomArea() {
 // ============================================================================
 
 export function exampleCustomizeArea() {
-    // Get the corporate law area
-    const corporate = practiceAreaManager.getAreaById('corporate');
+  // Get the corporate law area
+  const corporate = practiceAreaManager.getAreaById('corporate');
 
-    if (!corporate) return;
+  if (!corporate) return;
 
-    // Add industry-specific keywords
-    const enhancedKeywords = [
-        ...corporate.keywords,
-        'Series A', 'Series B', 'cap table', 'SAFE', 'convertible note',
-        'term sheet', 'drag-along rights', 'anti-dilution', 'liquidation preference',
-        'founder vesting', 'stock option pool'
-    ];
+  // Add industry-specific keywords
+  const enhancedKeywords = [
+    ...corporate.keywords,
+    'Series A',
+    'Series B',
+    'cap table',
+    'SAFE',
+    'convertible note',
+    'term sheet',
+    'drag-along rights',
+    'anti-dilution',
+    'liquidation preference',
+    'founder vesting',
+    'stock option pool',
+  ];
 
-    practiceAreaManager.updateKeywords('corporate', enhancedKeywords);
+  practiceAreaManager.updateKeywords('corporate', enhancedKeywords);
 
-    // Customize the system prompt for startup focus
-    const startupPrompt = `${corporate.systemPrompt}
+  // Customize the system prompt for startup focus
+  const startupPrompt = `${corporate.systemPrompt}
 
 **Additional Startup-Specific Expertise:**
 - Venture Capital Financing - term sheets, SAFE notes, convertible debt
@@ -151,11 +171,11 @@ When working with startup clients, always consider:
 4. Cap table impact of new financing
 5. Exit scenario implications`;
 
-    practiceAreaManager.updateSystemPrompt('corporate', startupPrompt);
+  practiceAreaManager.updateSystemPrompt('corporate', startupPrompt);
 
-    console.log('Enhanced Corporate Law area for startup practice');
+  console.log('Enhanced Corporate Law area for startup practice');
 
-    return practiceAreaManager.getAreaById('corporate');
+  return practiceAreaManager.getAreaById('corporate');
 }
 
 // ============================================================================
@@ -163,26 +183,26 @@ When working with startup clients, always consider:
 // ============================================================================
 
 export function exampleManageAreas() {
-    // Get all areas
-    const allAreas = practiceAreaManager.getAllAreas();
-    console.log(`Total practice areas: ${allAreas.length}`);
+  // Get all areas
+  const allAreas = practiceAreaManager.getAllAreas();
+  console.log(`Total practice areas: ${allAreas.length}`);
 
-    // Get only enabled areas
-    const enabled = practiceAreaManager.getEnabledAreas();
-    console.log(`Enabled areas: ${enabled.length}`);
+  // Get only enabled areas
+  const enabled = practiceAreaManager.getEnabledAreas();
+  console.log(`Enabled areas: ${enabled.length}`);
 
-    // Disable criminal law (firm doesn't practice in this area)
-    practiceAreaManager.setAreaEnabled('criminal', false);
-    console.log('Disabled Criminal Law');
+  // Disable criminal law (firm doesn't practice in this area)
+  practiceAreaManager.setAreaEnabled('criminal', false);
+  console.log('Disabled Criminal Law');
 
-    // List enabled areas with keyword counts
-    console.log('\n=== Active Practice Areas ===');
-    practiceAreaManager.getEnabledAreas().forEach((area): void => {
-        console.log(`${area.name}: ${area.keywords.length} keywords`);
-    });
+  // List enabled areas with keyword counts
+  console.log('\n=== Active Practice Areas ===');
+  practiceAreaManager.getEnabledAreas().forEach((area): void => {
+    console.log(`${area.name}: ${area.keywords.length} keywords`);
+  });
 
-    // Re-enable if needed
-    practiceAreaManager.setAreaEnabled('criminal', true);
+  // Re-enable if needed
+  practiceAreaManager.setAreaEnabled('criminal', true);
 }
 
 // ============================================================================
@@ -190,25 +210,25 @@ export function exampleManageAreas() {
 // ============================================================================
 
 export function exampleExportImport() {
-    // Export current configuration
-    const config = practiceAreaManager.exportConfigs();
+  // Export current configuration
+  const config = practiceAreaManager.exportConfigs();
 
-    // Save to localStorage
-    localStorage.setItem('atticus-practice-areas', JSON.stringify(config));
-    console.log('Configuration exported to localStorage');
+  // Save to localStorage
+  localStorage.setItem('atticus-practice-areas', JSON.stringify(config));
+  console.log('Configuration exported to localStorage');
 
-    // Later, import the configuration
-    const savedConfig = localStorage.getItem('atticus-practice-areas');
-    if (savedConfig) {
-        const configs = JSON.parse(savedConfig);
-        practiceAreaManager.importConfigs(configs);
-        console.log('Configuration imported from localStorage');
-    }
+  // Later, import the configuration
+  const savedConfig = localStorage.getItem('atticus-practice-areas');
+  if (savedConfig) {
+    const configs = JSON.parse(savedConfig);
+    practiceAreaManager.importConfigs(configs);
+    console.log('Configuration imported from localStorage');
+  }
 
-    // Reset to defaults if needed
-    // practiceAreaManager.resetToDefaults();
+  // Reset to defaults if needed
+  // practiceAreaManager.resetToDefaults();
 
-    return config;
+  return config;
 }
 
 // ============================================================================
@@ -216,41 +236,45 @@ export function exampleExportImport() {
 // ============================================================================
 
 export function exampleUIIntegration() {
-    // Get all areas for dropdown/selector
-    const areas = practiceAreaManager.getEnabledAreas();
+  // Get all areas for dropdown/selector
+  const areas = practiceAreaManager.getEnabledAreas();
 
-    // Create UI options
-    const options = areas.map((area): {
-        value: string;
-        label: string;
-        description: string;
-        color: string;
-        icon: string;
+  // Create UI options
+  const options = areas.map(
+    (
+      area
+    ): {
+      value: string;
+      label: string;
+      description: string;
+      color: string;
+      icon: string;
     } => ({
-        value: area.id,
-        label: area.name,
-        description: area.description,
-        color: area.color,
-        icon: getPracticeAreaIcon(area.id)
-    }));
+      value: area.id,
+      label: area.name,
+      description: area.description,
+      color: area.color,
+      icon: getPracticeAreaIcon(area.id),
+    })
+  );
 
-    return options;
+  return options;
 }
 
 function getPracticeAreaIcon(areaId: string): string {
-    const icons: Record<string, string> = {
-        'corporate': '🏢',
-        'litigation': '⚖️',
-        'intellectual-property': '💡',
-        'real-estate': '🏠',
-        'employment': '👔',
-        'contracts': '📄',
-        'criminal': '👨‍⚖️',
-        'tax': '💰',
-        'general': '📚'
-    };
+  const icons: Record<string, string> = {
+    corporate: '🏢',
+    litigation: '⚖️',
+    'intellectual-property': '💡',
+    'real-estate': '🏠',
+    employment: '👔',
+    contracts: '📄',
+    criminal: '👨‍⚖️',
+    tax: '💰',
+    general: '📚',
+  };
 
-    return icons[areaId] || '⚖️';
+  return icons[areaId] || '⚖️';
 }
 
 // ============================================================================
@@ -258,29 +282,30 @@ function getPracticeAreaIcon(areaId: string): string {
 // ============================================================================
 
 export function exampleSmartDetection(userMessage: string) {
-    // Get detection with alternatives
-    const result = detectPracticeAreaWithConfidence(userMessage, {
-        includeAlternatives: true,
-        maxAlternatives: 2,
-        minConfidence: 0.15
-    });
+  // Get detection with alternatives
+  const result = detectPracticeAreaWithConfidence(userMessage, {
+    includeAlternatives: true,
+    maxAlternatives: 2,
+    minConfidence: 0.15,
+  });
 
-    // If confidence is low, offer user a choice
-    if (result.confidence < 0.3 && result.alternatives && result.alternatives.length > 0) {
-        return {
-            shouldPromptUser: true,
-            primaryArea: result.area,
-            alternatives: result.alternatives.map((alt): typeof result.area => alt.area),
-            message: 'We detected this might be related to multiple practice areas. Please select the most relevant one:'
-        };
-    }
-
-    // High confidence - use automatically
+  // If confidence is low, offer user a choice
+  if (result.confidence < 0.3 && result.alternatives && result.alternatives.length > 0) {
     return {
-        shouldPromptUser: false,
-        selectedArea: result.area,
-        confidence: result.confidence
+      shouldPromptUser: true,
+      primaryArea: result.area,
+      alternatives: result.alternatives.map((alt): typeof result.area => alt.area),
+      message:
+        'We detected this might be related to multiple practice areas. Please select the most relevant one:',
     };
+  }
+
+  // High confidence - use automatically
+  return {
+    shouldPromptUser: false,
+    selectedArea: result.area,
+    confidence: result.confidence,
+  };
 }
 
 // ============================================================================
@@ -288,38 +313,45 @@ export function exampleSmartDetection(userMessage: string) {
 // ============================================================================
 
 export function exampleBatchDetection(documents: Array<{ id: string; content: string }>) {
-    const results = documents.map((doc): {
-        documentId: string;
-        practiceArea: string;
-        confidence: number;
-        matchedKeywords: string[];
+  const results = documents.map(
+    (
+      doc
+    ): {
+      documentId: string;
+      practiceArea: string;
+      confidence: number;
+      matchedKeywords: string[];
     } => {
-        const result = detectPracticeAreaWithConfidence(doc.content, {
-            includeAlternatives: false
-        });
+      const result = detectPracticeAreaWithConfidence(doc.content, {
+        includeAlternatives: false,
+      });
 
-        return {
-            documentId: doc.id,
-            practiceArea: result.area.name,
-            confidence: result.confidence,
-            matchedKeywords: result.matchedKeywords.slice(0, 5) // Top 5 keywords
-        };
-    });
+      return {
+        documentId: doc.id,
+        practiceArea: result.area.name,
+        confidence: result.confidence,
+        matchedKeywords: result.matchedKeywords.slice(0, 5), // Top 5 keywords
+      };
+    }
+  );
 
-    // Group by practice area
-    const grouped = results.reduce((acc, item): Record<string, typeof results> => {
-        const area = item.practiceArea;
-        if (!acc[area]) acc[area] = [];
-        acc[area].push(item);
-        return acc;
-    }, {} as Record<string, typeof results>);
+  // Group by practice area
+  const grouped = results.reduce(
+    (acc, item): Record<string, typeof results> => {
+      const area = item.practiceArea;
+      if (!acc[area]) acc[area] = [];
+      acc[area].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof results>
+  );
 
-    console.log('=== Document Analysis ===');
-    Object.entries(grouped).forEach(([area, docs]): void => {
-        console.log(`${area}: ${docs.length} documents`);
-    });
+  console.log('=== Document Analysis ===');
+  Object.entries(grouped).forEach(([area, docs]): void => {
+    console.log(`${area}: ${docs.length} documents`);
+  });
 
-    return { results, grouped };
+  return { results, grouped };
 }
 
 // ============================================================================
@@ -327,25 +359,25 @@ export function exampleBatchDetection(documents: Array<{ id: string; content: st
 // ============================================================================
 
 export function exampleRealTimeDetection(currentText: string) {
-    // Only detect if there's enough text
-    if (currentText.length < 20) {
-        return null;
-    }
-
-    const result = detectPracticeAreaWithConfidence(currentText, {
-        minConfidence: 0.2 // Higher threshold for real-time
-    });
-
-    // Return for UI display (e.g., show badge with practice area)
-    if (result.confidence > 0.2) {
-        return {
-            area: result.area.name,
-            color: result.area.color,
-            confidence: result.confidence
-        };
-    }
-
+  // Only detect if there's enough text
+  if (currentText.length < 20) {
     return null;
+  }
+
+  const result = detectPracticeAreaWithConfidence(currentText, {
+    minConfidence: 0.2, // Higher threshold for real-time
+  });
+
+  // Return for UI display (e.g., show badge with practice area)
+  if (result.confidence > 0.2) {
+    return {
+      area: result.area.name,
+      color: result.area.color,
+      confidence: result.confidence,
+    };
+  }
+
+  return null;
 }
 
 // ============================================================================
@@ -353,36 +385,41 @@ export function exampleRealTimeDetection(currentText: string) {
 // ============================================================================
 
 export function exampleStatistics(conversations: Array<{ practiceAreaId: string }>) {
-    const stats = conversations.reduce((acc, conv): Record<string, number> => {
-        const areaId = conv.practiceAreaId;
-        acc[areaId] = (acc[areaId] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+  const stats = conversations.reduce(
+    (acc, conv): Record<string, number> => {
+      const areaId = conv.practiceAreaId;
+      acc[areaId] = (acc[areaId] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
-    // Sort by usage
-    const sorted = Object.entries(stats)
-        .map(([areaId, count]): {
-            areaId: string;
-            name: string;
-            count: number;
-            percentage: string;
-        } => {
-            const area = practiceAreaManager.getAreaById(areaId);
-            return {
-                areaId,
-                name: area?.name || 'Unknown',
-                count,
-                percentage: (count / conversations.length * 100).toFixed(1)
-            };
-        })
-        .sort((a, b) => b.count - a.count);
+  // Sort by usage
+  const sorted = Object.entries(stats)
+    .map(
+      ([areaId, count]): {
+        areaId: string;
+        name: string;
+        count: number;
+        percentage: string;
+      } => {
+        const area = practiceAreaManager.getAreaById(areaId);
+        return {
+          areaId,
+          name: area?.name || 'Unknown',
+          count,
+          percentage: ((count / conversations.length) * 100).toFixed(1),
+        };
+      }
+    )
+    .sort((a, b) => b.count - a.count);
 
-    console.log('=== Practice Area Usage Statistics ===');
-    sorted.forEach((stat, idx): void => {
-        console.log(`${idx + 1}. ${stat.name}: ${stat.count} (${stat.percentage}%)`);
-    });
+  console.log('=== Practice Area Usage Statistics ===');
+  sorted.forEach((stat, idx): void => {
+    console.log(`${idx + 1}. ${stat.name}: ${stat.count} (${stat.percentage}%)`);
+  });
 
-    return sorted;
+  return sorted;
 }
 
 // ============================================================================
@@ -390,37 +427,39 @@ export function exampleStatistics(conversations: Array<{ practiceAreaId: string 
 // ============================================================================
 
 export async function exampleChatIntegration(
-    userMessage: string,
-    sendMessageToAI: (message: string, systemPrompt: string) => Promise<string>
+  userMessage: string,
+  sendMessageToAI: (message: string, systemPrompt: string) => Promise<string>
 ) {
-    // Step 1: Detect practice area
-    const result = detectPracticeAreaWithConfidence(userMessage, {
-        includeAlternatives: true
-    });
+  // Step 1: Detect practice area
+  const result = detectPracticeAreaWithConfidence(userMessage, {
+    includeAlternatives: true,
+  });
 
-    console.log(`Detected: ${result.area.name} (${(result.confidence * 100).toFixed(1)}% confidence)`);
+  console.log(
+    `Detected: ${result.area.name} (${(result.confidence * 100).toFixed(1)}% confidence)`
+  );
 
-    // Step 2: Get system prompt
-    const systemPrompt = practiceAreaManager.getSystemPrompt(result.area.id);
+  // Step 2: Get system prompt
+  const systemPrompt = practiceAreaManager.getSystemPrompt(result.area.id);
 
-    if (!systemPrompt) {
-        throw new Error('System prompt not found');
-    }
+  if (!systemPrompt) {
+    throw new Error('System prompt not found');
+  }
 
-    // Step 3: Send to AI with specialized prompt
-    const aiResponse = await sendMessageToAI(userMessage, systemPrompt);
+  // Step 3: Send to AI with specialized prompt
+  const aiResponse = await sendMessageToAI(userMessage, systemPrompt);
 
-    // Step 4: Return response with metadata
-    return {
-        response: aiResponse,
-        practiceArea: {
-            id: result.area.id,
-            name: result.area.name,
-            color: result.area.color
-        },
-        detectionConfidence: result.confidence,
-        matchedKeywords: result.matchedKeywords
-    };
+  // Step 4: Return response with metadata
+  return {
+    response: aiResponse,
+    practiceArea: {
+      id: result.area.id,
+      name: result.area.name,
+      color: result.area.color,
+    },
+    detectionConfidence: result.confidence,
+    matchedKeywords: result.matchedKeywords,
+  };
 }
 
 // ============================================================================
@@ -428,18 +467,18 @@ export async function exampleChatIntegration(
 // ============================================================================
 
 export const examples = {
-    basicDetection: exampleBasicDetection,
-    advancedDetection: exampleAdvancedDetection,
-    createCustomArea: exampleCreateCustomArea,
-    customizeArea: exampleCustomizeArea,
-    manageAreas: exampleManageAreas,
-    exportImport: exampleExportImport,
-    uiIntegration: exampleUIIntegration,
-    smartDetection: exampleSmartDetection,
-    batchDetection: exampleBatchDetection,
-    realTimeDetection: exampleRealTimeDetection,
-    statistics: exampleStatistics,
-    chatIntegration: exampleChatIntegration
+  basicDetection: exampleBasicDetection,
+  advancedDetection: exampleAdvancedDetection,
+  createCustomArea: exampleCreateCustomArea,
+  customizeArea: exampleCustomizeArea,
+  manageAreas: exampleManageAreas,
+  exportImport: exampleExportImport,
+  uiIntegration: exampleUIIntegration,
+  smartDetection: exampleSmartDetection,
+  batchDetection: exampleBatchDetection,
+  realTimeDetection: exampleRealTimeDetection,
+  statistics: exampleStatistics,
+  chatIntegration: exampleChatIntegration,
 };
 
 /**

@@ -1,5 +1,5 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { APITrace } from "../../types";
+import type { Dispatch, SetStateAction } from 'react';
+import type { APITrace } from '../../types';
 
 interface UseChatWindowUiHandlersParams {
   readonly setShowAuditLog: Dispatch<SetStateAction<boolean>>;
@@ -80,7 +80,7 @@ export function useChatWindowUiHandlers({
 
   const closeTagDialog = (): void => {
     setShowTagDialog(false);
-    setNewTagInput("");
+    setNewTagInput('');
     restoreTextareaFocus();
   };
 

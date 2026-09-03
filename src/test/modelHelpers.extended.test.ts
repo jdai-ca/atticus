@@ -9,12 +9,17 @@ describe('modelHelpers (edge/extended)', () => {
 
   it('getAllAvailableModels filters by domain', () => {
     const providers = [
-      { id: 'prov', provider: 'openai' as AIProvider, name: 'Prov', model: 'm1', enabled: true, modelDomains: [{ modelId: 'm1', domains: 'practice' }] }
+      {
+        id: 'prov',
+        provider: 'openai' as AIProvider,
+        name: 'Prov',
+        model: 'm1',
+        enabled: true,
+        modelDomains: [{ modelId: 'm1', domains: 'practice' }],
+      },
     ];
     const templates = [
-      { id: 'openai', models: [
-        { id: 'm1', name: 'M1', description: '', maxContextWindow: 1000 }
-      ] }
+      { id: 'openai', models: [{ id: 'm1', name: 'M1', description: '', maxContextWindow: 1000 }] },
     ];
     const result = getAllAvailableModels(providers as any, templates as any, 'practice');
     expect(result.length).toBe(1);
@@ -23,7 +28,14 @@ describe('modelHelpers (edge/extended)', () => {
 
   it('getAllAvailableModels skips providers with no template', () => {
     const providers = [
-      { id: 'prov', provider: 'openai', name: 'Prov', model: 'm1', enabled: true, modelDomains: [{ modelId: 'm1', domains: 'practice' }] }
+      {
+        id: 'prov',
+        provider: 'openai',
+        name: 'Prov',
+        model: 'm1',
+        enabled: true,
+        modelDomains: [{ modelId: 'm1', domains: 'practice' }],
+      },
     ];
     const templates: any[] = [];
     expect(getAllAvailableModels(providers as any, templates as any)).toEqual([]);

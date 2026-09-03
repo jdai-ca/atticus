@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { ChatInputSection } from "../ChatInputSection";
+import { useMemo } from 'react';
+import { ChatInputSection } from '../ChatInputSection';
 
 type ChatInputSectionProps = React.ComponentProps<typeof ChatInputSection>;
 
@@ -8,7 +8,7 @@ interface UseChatInputSectionPropsResult {
 }
 
 export function useChatInputSectionProps(
-  params: ChatInputSectionProps,
+  params: ChatInputSectionProps
 ): UseChatInputSectionPropsResult {
   const chatInputSectionProps = useMemo(
     (): ChatInputSectionProps => ({ ...params }),
@@ -23,7 +23,7 @@ export function useChatInputSectionProps(
       params.isLoading,
       params.attachmentDataRef,
       params.textareaRef,
-    ],
+    ]
   );
 
   return {

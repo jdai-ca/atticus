@@ -1,5 +1,5 @@
-import { AlertCircle, Check, X } from "lucide-react";
-import { useTranslation } from "../i18n/LanguageContext";
+import { AlertCircle, Check, X } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface FileProcessingDialogHeaderProps {
   readonly isProcessingFile: boolean;
@@ -50,12 +50,7 @@ export function FileProcessingDialogHeader({
           className="text-gray-400 hover:text-white transition-colors"
           title="Close"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

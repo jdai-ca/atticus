@@ -20,8 +20,8 @@ export function registerFileHandlers(): void {
         filters: [
           { name: 'Documents', extensions: toDialogExtensions(DOCUMENT_EXTENSIONS) },
           { name: 'Images', extensions: toDialogExtensions(IMAGE_EXTENSIONS) },
-          { name: 'All Files', extensions: ['*'] }
-        ]
+          { name: 'All Files', extensions: ['*'] },
+        ],
       });
 
       if (result.canceled || result.filePaths.length === 0) {
@@ -39,8 +39,8 @@ export function registerFileHandlers(): void {
           success: false,
           error: {
             code: 'INVALID_FILE_TYPE',
-            message: `File type ${ext} not allowed. Allowed types: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}`
-          }
+            message: `File type ${ext} not allowed. Allowed types: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}`,
+          },
         };
       }
 
@@ -53,8 +53,8 @@ export function registerFileHandlers(): void {
           success: false,
           error: {
             code: 'FILE_TOO_LARGE',
-            message: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB. File size: ${(stats.size / (1024 * 1024)).toFixed(2)}MB`
-          }
+            message: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB. File size: ${(stats.size / (1024 * 1024)).toFixed(2)}MB`,
+          },
         };
       }
 
@@ -69,8 +69,8 @@ export function registerFileHandlers(): void {
           success: false,
           error: {
             code: 'ENCODING_FAILED',
-            message: 'Failed to encode file data'
-          }
+            message: 'Failed to encode file data',
+          },
         };
       }
 
@@ -78,7 +78,7 @@ export function registerFileHandlers(): void {
         filename,
         extension: ext,
         size: fileBuffer.length,
-        base64Length: base64.length
+        base64Length: base64.length,
       });
 
       return {
@@ -89,7 +89,7 @@ export function registerFileHandlers(): void {
           extension: ext,
           size: fileBuffer.length,
           data: base64,
-        }
+        },
       };
     } catch (error) {
       logger.error('Failed to upload file', { error });
@@ -97,8 +97,8 @@ export function registerFileHandlers(): void {
         success: false,
         error: {
           code: 'FILE_UPLOAD_FAILED',
-          message: 'Failed to upload file. Check logs for details.'
-        }
+          message: 'Failed to upload file. Check logs for details.',
+        },
       };
     }
   });
@@ -108,7 +108,7 @@ export function registerFileHandlers(): void {
     try {
       const result = await dialog.showSaveDialog({
         defaultPath: filename,
-        filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
       });
 
       if (result.canceled || !result.filePath) {
@@ -125,8 +125,8 @@ export function registerFileHandlers(): void {
         success: false,
         error: {
           code: 'PDF_SAVE_FAILED',
-          message: 'Failed to save PDF. Check logs for details.'
-        }
+          message: 'Failed to save PDF. Check logs for details.',
+        },
       };
     }
   });

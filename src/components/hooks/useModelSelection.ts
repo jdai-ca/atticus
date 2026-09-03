@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react";
-import type { Conversation, Jurisdiction, ProviderConfig, SelectedModel } from "../../types";
+import { useEffect, useState } from 'react';
+import type { Conversation, Jurisdiction, ProviderConfig, SelectedModel } from '../../types';
 
 interface UseModelSelectionParams {
   readonly currentConversation: Conversation | null;
   readonly providers: readonly ProviderConfig[];
-  readonly setConversationSelectedModels: (
-    conversationId: string,
-    models: SelectedModel[],
-  ) => void;
+  readonly setConversationSelectedModels: (conversationId: string, models: SelectedModel[]) => void;
   readonly setConversationJurisdictions: (
     conversationId: string,
-    jurisdictions: Jurisdiction[],
+    jurisdictions: Jurisdiction[]
   ) => void;
 }
 
@@ -29,15 +26,9 @@ export function useModelSelection({
   setConversationSelectedModels,
   setConversationJurisdictions,
 }: UseModelSelectionParams): UseModelSelectionResult {
-  const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(
-    new Set(),
-  );
-  const [selectedJurisdictions, setSelectedJurisdictions] = useState<
-    Set<Jurisdiction>
-  >(new Set());
-  const [maxTokensOverride, setMaxTokensOverride] = useState<
-    number | undefined
-  >(undefined);
+  const [selectedModelKeys, setSelectedModelKeys] = useState<Set<string>>(new Set());
+  const [selectedJurisdictions, setSelectedJurisdictions] = useState<Set<Jurisdiction>>(new Set());
+  const [maxTokensOverride, setMaxTokensOverride] = useState<number | undefined>(undefined);
 
   const isModelEnabled = (providerId: string, modelId: string): boolean => {
     const provider = providers.find((p): boolean => p.id === providerId);
@@ -47,25 +38,16 @@ export function useModelSelection({
     return enabledModelIds.length === 0 || enabledModelIds.includes(modelId);
   };
 
-  const getValidSelectedModels = (
-    selectedModels: SelectedModel[],
-  ): SelectedModel[] => {
-    return selectedModels.filter((sm): boolean =>
-      isModelEnabled(sm.providerId, sm.modelId),
-    );
+  const getValidSelectedModels = (selectedModels: SelectedModel[]): SelectedModel[] => {
+    return selectedModels.filter((sm): boolean => isModelEnabled(sm.providerId, sm.modelId));
   };
 
-  const getDefaultModelForProvider = (
-    providerId: string,
-  ): string | null => {
+  const getDefaultModelForProvider = (providerId: string): string | null => {
     const provider = providers.find((p): boolean => p.id === providerId);
     if (!provider) return null;
 
     const enabledModelIds = provider.enabledModels || [];
-    if (
-      enabledModelIds.length === 0 ||
-      enabledModelIds.includes(provider.model)
-    ) {
+    if (enabledModelIds.length === 0 || enabledModelIds.includes(provider.model)) {
       return provider.model;
     }
     return enabledModelIds[0] || provider.model;
@@ -74,9 +56,7 @@ export function useModelSelection({
   const initializeDefaultModelSelection = (): void => {
     if (!currentConversation) return;
 
-    const provider = providers.find(
-      (p): boolean => p.id === currentConversation.provider,
-    );
+    const provider = providers.find((p): boolean => p.id === currentConversation.provider);
     if (provider) {
       const modelId = getDefaultModelForProvider(provider.id);
       if (modelId) {
@@ -95,9 +75,7 @@ export function useModelSelection({
       const validModels = getValidSelectedModels(savedModels);
 
       if (validModels.length > 0) {
-        const keys = validModels.map(
-          (sm): string => `${sm.providerId}:${sm.modelId}`,
-        );
+        const keys = validModels.map((sm): string => `${sm.providerId}:${sm.modelId}`);
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedModelKeys(new Set(keys));
 
@@ -132,10 +110,7 @@ export function useModelSelection({
     setMaxTokensOverride(currentConversation.maxTokensOverride);
   }, [currentConversation?.id]);
 
-  const toggleModelSelection = (
-    providerId: string,
-    modelId: string,
-  ): void => {
+  const toggleModelSelection = (providerId: string, modelId: string): void => {
     const key = `${providerId}:${modelId}`;
     const newSelection = new Set(selectedModelKeys);
 
@@ -151,7 +126,7 @@ export function useModelSelection({
 
     if (currentConversation) {
       const selectedModels = Array.from(newSelection).map((k): SelectedModel => {
-        const [pId, mId] = k.split(":");
+        const [pId, mId] = k.split(':');
         return { providerId: pId, modelId: mId } satisfies SelectedModel;
       });
       setConversationSelectedModels(currentConversation.id, selectedModels);

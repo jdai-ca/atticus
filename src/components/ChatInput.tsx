@@ -1,5 +1,5 @@
-import { Paperclip, Send } from "lucide-react";
-import type { AttachmentMeta } from "../types";
+import { Paperclip, Send } from 'lucide-react';
+import type { AttachmentMeta } from '../types';
 
 interface ChatInputProps {
   input: string;
@@ -30,24 +30,26 @@ export default function ChatInput({
     <div className="border-t border-gray-700 bg-gray-800 p-4 relative z-10">
       {attachments.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
-          {attachments.map((att): JSX.Element => (
-            <div
-              key={att.id || att.name}
-              className="bg-gray-700 px-3 py-1 rounded-full text-xs flex items-center gap-2"
-            >
-              <Paperclip className="w-3 h-3" />
-              <span>{att.name}</span>
-              <button
-                onClick={() => {
-                  attachmentDataRef.current.delete(att.id);
-                  onAttachmentRemove(att.id);
-                }}
-                className="text-red-400 hover:text-red-300"
+          {attachments.map(
+            (att): JSX.Element => (
+              <div
+                key={att.id || att.name}
+                className="bg-gray-700 px-3 py-1 rounded-full text-xs flex items-center gap-2"
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <Paperclip className="w-3 h-3" />
+                <span>{att.name}</span>
+                <button
+                  onClick={() => {
+                    attachmentDataRef.current.delete(att.id);
+                    onAttachmentRemove(att.id);
+                  }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  ×
+                </button>
+              </div>
+            )
+          )}
         </div>
       )}
 
@@ -64,9 +66,9 @@ export default function ChatInput({
         <textarea
           ref={textareaRef}
           value={input}
-          onChange={(e) => onInputChange(e.target.value)}
+          onChange={e => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
-          onMouseDown={(e) => {
+          onMouseDown={e => {
             // Ensure focus happens on mouse down
             e.currentTarget.focus();
           }}

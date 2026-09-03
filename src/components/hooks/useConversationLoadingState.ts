@@ -11,7 +11,7 @@ export function useConversationLoadingState({
   loadingConversations,
   currentConversationId,
 }: UseConversationLoadingStateParams): UseConversationLoadingStateResult {
-  const isLoading = loadingConversations.has(currentConversationId ?? "");
+  const isLoading = loadingConversations.has(currentConversationId ?? '');
 
   return {
     isLoading,

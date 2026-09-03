@@ -1,4 +1,4 @@
-import type { ModelDomain, ModelDomainConfig, ProviderConfig, ProviderTemplate } from "../types";
+import type { ModelDomain, ModelDomainConfig, ProviderConfig, ProviderTemplate } from '../types';
 
 export interface AvailableModel {
   providerId: string;
@@ -11,32 +11,28 @@ export interface AvailableModel {
   maxContextWindow: number;
 }
 
-export function getModelDomain(
-  provider: ProviderConfig,
-  modelId: string,
-): ModelDomain {
+export function getModelDomain(provider: ProviderConfig, modelId: string): ModelDomain {
   const modelDomainConfig = provider.modelDomains?.find(
-    (d: ModelDomainConfig) => d.modelId === modelId,
+    (d: ModelDomainConfig) => d.modelId === modelId
   );
-  return modelDomainConfig?.domains || "both";
+  return modelDomainConfig?.domains || 'both';
 }
 
 export function modelMatchesDomain(
   modelDomain: ModelDomain,
-  filterDomain?: "practice" | "advisory",
+  filterDomain?: 'practice' | 'advisory'
 ): boolean {
   if (!filterDomain) return true;
-  return modelDomain === filterDomain || modelDomain === "both";
+  return modelDomain === filterDomain || modelDomain === 'both';
 }
 
 export function getModelsForProvider(
   provider: ProviderConfig,
   template: ProviderTemplate,
-  filterDomain?: "practice" | "advisory",
+  filterDomain?: 'practice' | 'advisory'
 ): AvailableModel[] {
   const models: AvailableModel[] = [];
-  const enabledModelIds =
-    provider.enabledModels || template.models.map((m): string => m.id);
+  const enabledModelIds = provider.enabledModels || template.models.map((m): string => m.id);
 
   for (const model of template.models) {
     if (!enabledModelIds.includes(model.id)) continue;
@@ -62,14 +58,12 @@ export function getModelsForProvider(
 export function getAllAvailableModels(
   providers: ProviderConfig[],
   providerTemplates: ProviderTemplate[],
-  filterDomain?: "practice" | "advisory",
+  filterDomain?: 'practice' | 'advisory'
 ): AvailableModel[] {
   const allModels: AvailableModel[] = [];
 
   for (const provider of providers) {
-    const template = providerTemplates.find(
-      (t): boolean => t.id === provider.provider,
-    );
+    const template = providerTemplates.find((t): boolean => t.id === provider.provider);
     if (template) {
       allModels.push(...getModelsForProvider(provider, template, filterDomain));
     }

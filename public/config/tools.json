@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "Atticus MCP Server Tools Specification",
+  "version": "0.9.21",
+  "description": "JSON specification defining the available tools, parameters, and return shapes supported by the Atticus Model Context Protocol (MCP) server.",
+  "tools": [
+    {
+      "name": "list_providers",
+      "description": "Lists all configured AI providers and models in Atticus, showing which instances are enabled and currently have active API keys configured. No raw apiKeys are returned.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "send_chat_message",
+      "description": "Provides secure AI chat completions using Atticus configured credentials and audit compliance logs. No raw API keys are exposed to the calling environment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "description": "The custom provider ID from list_providers to route this chat message through."
+          },
+          "messages": {
+            "type": "array",
+            "description": "The conversation message history list.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": ["system", "user", "assistant"],
+                  "description": "The sender's role."
+                },
+                "content": {
+                  "type": "string",
+                  "description": "The text content of the message."
+                }
+              },
+              "required": ["role", "content"],
+              "additionalProperties": true
+            }
+          },
+          "systemPrompt": {
+            "type": "string",
+            "description": "Optional system prompt/guideline rules override."
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Creative diversity level of response (e.g., 0.0 to 1.0)."
+          },
+          "maxTokens": {
+            "type": "number",
+            "description": "Maximum tokens to generate."
+          }
+        },
+        "required": ["providerId", "messages"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "srais_scan",
+      "description": "Performs a multilingual SRAIS scan on target document text or message content to identify potential legal, regulatory, breach of contract, or financial misconduct risks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The narrative text or draft document to scan for risk."
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "pii_scan",
+      "description": "Runs local pattern-matching for Personally Identifiable Information (PII) including SSNs, financial IDs, and general credentials.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The message or document text to scan."
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_conversations",
+      "description": "Lists all stored local conversations in Atticus directory, returning metadata including message counts and final timestamp.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "load_conversation",
+      "description": "Loads details and chat history of a specific saved conversation by its ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The conversation UUID."
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "save_conversation",
+      "description": "Saves or updates a conversation record locally in the Atticus data footprint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "type": "object",
+            "description": "The complete conversation object structure to be written.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The conversation UUID."
+              },
+              "title": {
+                "type": "string",
+                "description": "The conversation title."
+              },
+              "messages": {
+                "type": "array",
+                "description": "The list of conversation message objects."
+              }
+            },
+            "required": ["id", "messages"],
+            "additionalProperties": true
+          }
+        },
+        "required": ["conversation"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "extract_document_text",
+      "description": "Extracts raw text content from local PDF, DOCX, or Excel files utilizing Atticus' internal secure extraction engines.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string",
+            "description": "The absolute local file path to the target document."
+          }
+        },
+        "required": ["filePath"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_audit_logs",
+      "description": "Retrieves internal Atticus compliance and privacy audit logs for analyzing historical actions or security events.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "number",
+            "description": "The maximum number of recent audit events to return.",
+            "default": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

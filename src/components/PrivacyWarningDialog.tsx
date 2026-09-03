@@ -5,9 +5,9 @@
  * Helps users make informed decisions about data sharing.
  */
 
-import { AlertTriangle, X, Shield, Info, Circle } from "lucide-react";
-import { useTranslation } from "../i18n/LanguageContext";
-import { PIIScanResult, RiskLevel } from "../services/piiScanner";
+import { AlertTriangle, X, Shield, Info, Circle } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
+import { PIIScanResult, RiskLevel } from '../services/piiScanner';
 
 interface PrivacyWarningDialogProps {
   readonly scanResult: PIIScanResult;
@@ -25,26 +25,20 @@ export default function PrivacyWarningDialog({
   showAnonymizeOption = false,
 }: PrivacyWarningDialogProps) {
   const { t } = useTranslation();
-  const critical = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.CRITICAL,
-  );
-  const high = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.HIGH,
-  );
-  const moderate = scanResult.findings.filter(
-    (f) => f.riskLevel === RiskLevel.MODERATE,
-  );
+  const critical = scanResult.findings.filter(f => f.riskLevel === RiskLevel.CRITICAL);
+  const high = scanResult.findings.filter(f => f.riskLevel === RiskLevel.HIGH);
+  const moderate = scanResult.findings.filter(f => f.riskLevel === RiskLevel.MODERATE);
 
   const getRiskColor = (level: RiskLevel): string => {
     switch (level) {
       case RiskLevel.CRITICAL:
-        return "text-red-400 bg-red-900/20 border-red-700";
+        return 'text-red-400 bg-red-900/20 border-red-700';
       case RiskLevel.HIGH:
-        return "text-orange-400 bg-orange-900/20 border-orange-700";
+        return 'text-orange-400 bg-orange-900/20 border-orange-700';
       case RiskLevel.MODERATE:
-        return "text-yellow-400 bg-yellow-900/20 border-yellow-700";
+        return 'text-yellow-400 bg-yellow-900/20 border-yellow-700';
       default:
-        return "text-gray-400 bg-gray-800 border-gray-700";
+        return 'text-gray-400 bg-gray-800 border-gray-700';
     }
   };
 
@@ -53,17 +47,11 @@ export default function PrivacyWarningDialog({
       case RiskLevel.CRITICAL:
         return <Circle className="inline w-3 h-3 fill-red-500 text-red-500" />;
       case RiskLevel.HIGH:
-        return (
-          <Circle className="inline w-3 h-3 fill-orange-500 text-orange-500" />
-        );
+        return <Circle className="inline w-3 h-3 fill-orange-500 text-orange-500" />;
       case RiskLevel.MODERATE:
-        return (
-          <Circle className="inline w-3 h-3 fill-yellow-500 text-yellow-500" />
-        );
+        return <Circle className="inline w-3 h-3 fill-yellow-500 text-yellow-500" />;
       default:
-        return (
-          <Circle className="inline w-3 h-3 fill-blue-500 text-blue-500" />
-        );
+        return <Circle className="inline w-3 h-3 fill-blue-500 text-blue-500" />;
     }
   };
 
@@ -77,12 +65,8 @@ export default function PrivacyWarningDialog({
               <AlertTriangle className="w-6 h-6 text-red-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">
-                {t.privacyDialog.title}
-              </h2>
-              <p className="text-sm text-red-300">
-                {t.privacyDialog.sensitiveInfoDetected}
-              </p>
+              <h2 className="text-xl font-bold text-white">{t.privacyDialog.title}</h2>
+              <p className="text-sm text-red-300">{t.privacyDialog.sensitiveInfoDetected}</p>
             </div>
           </div>
           <button
@@ -97,18 +81,14 @@ export default function PrivacyWarningDialog({
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
           {/* Summary */}
-          <div
-            className={`p-4 rounded-lg border-2 mb-6 ${getRiskColor(
-              scanResult.riskLevel,
-            )}`}
-          >
+          <div className={`p-4 rounded-lg border-2 mb-6 ${getRiskColor(scanResult.riskLevel)}`}>
             <div className="flex items-start gap-3">
               <Shield className="w-5 h-5 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-semibold mb-1">{scanResult.summary}</p>
                 <p className="text-sm opacity-90">
-                  Your message will be sent to your selected AI provider(s).
-                  They may store this data according to their privacy policies.
+                  Your message will be sent to your selected AI provider(s). They may store this
+                  data according to their privacy policies.
                 </p>
               </div>
             </div>
@@ -120,37 +100,35 @@ export default function PrivacyWarningDialog({
             {critical.length > 0 && (
               <div className="bg-red-900/20 border-2 border-red-700 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">
-                    {getRiskIcon(RiskLevel.CRITICAL)}
-                  </span>
+                  <span className="text-2xl">{getRiskIcon(RiskLevel.CRITICAL)}</span>
                   <h3 className="text-lg font-bold text-red-400">
                     Critical Risk ({critical.length})
                   </h3>
                 </div>
                 <div className="space-y-2">
-                  {critical.map((finding): JSX.Element => (
-                    <div
-                      key={`critical-${finding.type}-${finding.value}`}
-                      className="bg-gray-900/50 rounded p-3"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <p className="font-semibold text-red-300 mb-1">
-                            {finding.description}
-                          </p>
-                          <p className="text-sm text-gray-400 mb-2">
-                            Detected:{" "}
-                            <code className="bg-gray-800 px-2 py-0.5 rounded text-red-400">
-                              {finding.value}
-                            </code>
-                          </p>
-                          <p className="text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-800">
-                            ⚠️ {finding.recommendation}
-                          </p>
+                  {critical.map(
+                    (finding): JSX.Element => (
+                      <div
+                        key={`critical-${finding.type}-${finding.value}`}
+                        className="bg-gray-900/50 rounded p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-red-300 mb-1">{finding.description}</p>
+                            <p className="text-sm text-gray-400 mb-2">
+                              Detected:{' '}
+                              <code className="bg-gray-800 px-2 py-0.5 rounded text-red-400">
+                                {finding.value}
+                              </code>
+                            </p>
+                            <p className="text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-800">
+                              ⚠️ {finding.recommendation}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -159,31 +137,29 @@ export default function PrivacyWarningDialog({
             {high.length > 0 && (
               <div className="bg-orange-900/20 border-2 border-orange-700 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">
-                    {getRiskIcon(RiskLevel.HIGH)}
-                  </span>
-                  <h3 className="text-lg font-bold text-orange-400">
-                    High Risk ({high.length})
-                  </h3>
+                  <span className="text-2xl">{getRiskIcon(RiskLevel.HIGH)}</span>
+                  <h3 className="text-lg font-bold text-orange-400">High Risk ({high.length})</h3>
                 </div>
                 <div className="space-y-2">
-                  {high.map((finding): JSX.Element => (
-                    <div
-                      key={`high-${finding.type}-${finding.value}`}
-                      className="bg-gray-900/50 rounded p-3"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <p className="font-semibold text-orange-300 mb-1">
-                            {finding.description}
-                          </p>
-                          <p className="text-xs text-orange-300 opacity-80">
-                            {finding.recommendation}
-                          </p>
+                  {high.map(
+                    (finding): JSX.Element => (
+                      <div
+                        key={`high-${finding.type}-${finding.value}`}
+                        className="bg-gray-900/50 rounded p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-orange-300 mb-1">
+                              {finding.description}
+                            </p>
+                            <p className="text-xs text-orange-300 opacity-80">
+                              {finding.recommendation}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -192,24 +168,22 @@ export default function PrivacyWarningDialog({
             {moderate.length > 0 && (
               <div className="bg-yellow-900/20 border-2 border-yellow-700 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">
-                    {getRiskIcon(RiskLevel.MODERATE)}
-                  </span>
+                  <span className="text-2xl">{getRiskIcon(RiskLevel.MODERATE)}</span>
                   <h3 className="text-lg font-bold text-yellow-400">
                     Moderate Risk ({moderate.length})
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {moderate.map((finding): JSX.Element => (
-                    <div
-                      key={`moderate-${finding.type}-${finding.value}`}
-                      className="bg-gray-900/50 rounded p-2 text-sm"
-                    >
-                      <p className="font-semibold text-yellow-300">
-                        {finding.description}
-                      </p>
-                    </div>
-                  ))}
+                  {moderate.map(
+                    (finding): JSX.Element => (
+                      <div
+                        key={`moderate-${finding.type}-${finding.value}`}
+                        className="bg-gray-900/50 rounded p-2 text-sm"
+                      >
+                        <p className="font-semibold text-yellow-300">{finding.description}</p>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -223,14 +197,9 @@ export default function PrivacyWarningDialog({
                 <p className="font-semibold">What you should know:</p>
                 <ul className="list-disc list-inside space-y-1 text-blue-300">
                   <li>Data is sent directly to your selected AI provider(s)</li>
-                  <li>
-                    Each provider has their own privacy policy and data
-                    retention
-                  </li>
+                  <li>Each provider has their own privacy policy and data retention</li>
                   <li>Atticus does not collect, store, or see this data</li>
-                  <li>
-                    You are responsible for protecting confidential information
-                  </li>
+                  <li>You are responsible for protecting confidential information</li>
                   <li>Consider using example data or anonymizing details</li>
                 </ul>
               </div>
@@ -278,12 +247,12 @@ export default function PrivacyWarningDialog({
                 onClick={onProceed}
                 className={`flex-1 sm:flex-initial px-6 py-2 rounded-lg transition-colors font-medium border-2 ${(() => {
                   if (scanResult.riskLevel === RiskLevel.CRITICAL) {
-                    return "bg-red-600 hover:bg-red-700 text-white border-red-500";
+                    return 'bg-red-600 hover:bg-red-700 text-white border-red-500';
                   }
                   if (scanResult.riskLevel === RiskLevel.HIGH) {
-                    return "bg-orange-600 hover:bg-orange-700 text-white border-orange-500";
+                    return 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500';
                   }
-                  return "bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500";
+                  return 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500';
                 })()}`}
               >
                 Send Anyway

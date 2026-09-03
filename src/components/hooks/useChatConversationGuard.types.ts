@@ -1,4 +1,4 @@
-import type { Conversation } from "../../types";
+import type { Conversation } from '../../types';
 
 export interface UseChatConversationGuardParams {
   readonly currentConversation: Conversation | null;

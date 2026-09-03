@@ -1,9 +1,9 @@
-import { Message } from "../types/index";
-import { useTranslation } from "../i18n/LanguageContext";
-import { createLogger } from "../services/debugLogger";
-import { downloadClusterPDF } from "../utils/pdfExport";
+import { Message } from '../types/index';
+import { useTranslation } from '../i18n/LanguageContext';
+import { createLogger } from '../services/debugLogger';
+import { downloadClusterPDF } from '../utils/pdfExport';
 
-const logger = createLogger("ClusterActionBar");
+const logger = createLogger('ClusterActionBar');
 
 interface ClusterActionBarProps {
   messageId: string;
@@ -35,10 +35,7 @@ export default function ClusterActionBar({
   const { t } = useTranslation();
 
   return (
-    <div
-      key={`action-bar-${messageId}`}
-      className="flex justify-center my-6"
-    >
+    <div key={`action-bar-${messageId}`} className="flex justify-center my-6">
       <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800 to-gray-750 rounded-xl px-6 py-3 shadow-lg border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300">
         {/* Show contextual label for analysis clusters */}
         {isAnalysisCluster && (
@@ -55,18 +52,16 @@ export default function ClusterActionBar({
             if (isAnalysisCluster) {
               startIdx = originalClusterStart;
               endIdx = originalClusterEnd;
-              exportType = "cluster";
+              exportType = 'cluster';
             } else {
               const clusterMsgs = [];
               for (let i = clusterStartIndex; i <= index; i++) {
                 clusterMsgs.push(messages[i]);
               }
-              const hasAnalysisContent = clusterMsgs.some(
-                (msg) => msg.metadata?.isAnalysis === true,
-              );
+              const hasAnalysisContent = clusterMsgs.some(msg => msg.metadata?.isAnalysis === true);
               startIdx = clusterStartIndex;
               endIdx = index;
-              exportType = hasAnalysisContent ? "analysis" : "cluster";
+              exportType = hasAnalysisContent ? 'analysis' : 'cluster';
             }
 
             const clusterMessages = [];
@@ -79,29 +74,24 @@ export default function ClusterActionBar({
                 clusterMessages,
                 conversationTitle,
                 conversationId,
-                exportType as "cluster" | "analysis",
+                exportType as 'cluster' | 'analysis'
               );
-              logger.info("Cluster exported to PDF", {
+              logger.info('Cluster exported to PDF', {
                 messageCount: clusterMessages.length,
                 exportType,
               });
             } catch (error) {
-              logger.error("Failed to export cluster to PDF", { error });
+              logger.error('Failed to export cluster to PDF', { error });
             }
           }}
           className="text-sm text-gray-300 hover:text-white transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700/70 font-medium"
           title={
             isAnalysisCluster
-              ? "Export the original query/response cluster to PDF"
-              : "Export this query/response cluster to PDF"
+              ? 'Export the original query/response cluster to PDF'
+              : 'Export this query/response cluster to PDF'
           }
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -117,17 +107,15 @@ export default function ClusterActionBar({
         {/* Add Tag Button */}
         <button
           onClick={() => {
-            const startIdx = isAnalysisCluster
-              ? originalClusterStart
-              : clusterStartIndex;
+            const startIdx = isAnalysisCluster ? originalClusterStart : clusterStartIndex;
             const endIdx = isAnalysisCluster ? originalClusterEnd : index;
             onShowTagDialog(startIdx, endIdx);
           }}
           className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
           title={
             isAnalysisCluster
-              ? "Add or manage tags for the original cluster"
-              : "Add or manage tags for this cluster"
+              ? 'Add or manage tags for the original cluster'
+              : 'Add or manage tags for this cluster'
           }
         >
           <span className="text-base">🏷️</span>
@@ -139,21 +127,19 @@ export default function ClusterActionBar({
         {/* Analysis Button */}
         <button
           onClick={() => {
-            const startIdx = isAnalysisCluster
-              ? originalClusterStart
-              : clusterStartIndex;
+            const startIdx = isAnalysisCluster ? originalClusterStart : clusterStartIndex;
             const endIdx = isAnalysisCluster ? originalClusterEnd : index;
             onShowAnalysisDialog(startIdx, endIdx);
           }}
           className="text-sm transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700/70"
           title={
             isAnalysisCluster
-              ? "Run another analysis on the original cluster"
-              : "Analyze this cluster for accuracy and consistency"
+              ? 'Run another analysis on the original cluster'
+              : 'Analyze this cluster for accuracy and consistency'
           }
         >
           <span className="text-base">🔍</span>
-          <span>{isAnalysisCluster ? "Re-Analyze" : "Analysis"}</span>
+          <span>{isAnalysisCluster ? 'Re-Analyze' : 'Analysis'}</span>
         </button>
       </div>
     </div>

@@ -246,6 +246,7 @@ export interface Translations {
     deobfuscationHeuristicDescription: string;
     sraisGuardrailsLabel: string;
     sraisGuardrailsDescription: string;
+    safetyLegalProtection: string;
     safetyClassificationsLabel: string;
     criticalRiskDescription: string;
     highRiskDescription: string;
@@ -1138,6 +1139,8 @@ export const translations: Record<Language, Translations> = {
       sraisGuardrailsLabel: 'SRAIS Guardrails',
       sraisGuardrailsDescription:
         'Integrated real-time lookaround engine checks queries against ethical, financial, intellectual property, and reputational risk markers locally before transmission.',
+      safetyLegalProtection:
+        'Legal Protection: SRAIS governance limits cannot be disabled. This mandatory compliance framework protects organizational liability by intercepting explicitly harmful parameters.',
       safetyClassificationsLabel: 'Corporate & AI Safety Classifications',
       criticalRiskDescription:
         'Assesses severe safety vulnerabilities, evidence manipulation, bribes, data leaks, or violent markers. Direct advice: Immediately restrict or alert.',
@@ -1599,6 +1602,8 @@ export const translations: Record<Language, Translations> = {
       sraisGuardrailsLabel: 'Garde-fous SRAIS',
       sraisGuardrailsDescription:
         'Le moteur de recherche en temps réel intégré compare localement les requêtes avec les marqueurs de risque éthique, financier, intellectuel et de réputation avant la transmission.',
+      safetyLegalProtection: 
+        'Protection Juridique : Les limites de gouvernance de SRAIS ne peuvent pas être désactivées. Ce cadre de conformité obligatoire protège la responsabilité organisationnelle.',
       safetyClassificationsLabel: 'Classifications de sécurité de l’IA et de l’entreprise',
       criticalRiskDescription:
         'Évalue les vulnérabilités graves en matière de sécurité, la falsification des preuves, la corruption, les fuites de données ou les marqueurs de violence. Conseil : Restreindre ou avertir immédiatement.',
@@ -2289,6 +2294,8 @@ export const translations: Record<Language, Translations> = {
       sraisGuardrailsLabel: 'Garde-fous SRAIS',
       sraisGuardrailsDescription:
         'El motor integrado de búsqueda en tiempo real analiza localmente las consultas contra marcas de riesgo ético, financiero, propiedad intelectual y reputación antes de transmitirlas.',
+      safetyLegalProtection:
+        'Protección Legal: Los límites de gobernanza de SRAIS no se pueden desactivar. Este marco de cumplimiento obligatorio protege la responsabilidad organizacional.',
       safetyClassificationsLabel: 'Clasificaciones de seguridad corporativa y de IA',
       criticalRiskDescription:
         'Evalúa vulnerabilidades de seguridad severas, manipulación de evidencias, sobornos, fugas de datos o marcadores de violencia. Consejo: Restringir o alertar inmediatamente.',

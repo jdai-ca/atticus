@@ -1,13 +1,8 @@
-import { useState } from "react";
-import { ChevronDown, ChevronUp, DollarSign } from "lucide-react";
-import { APITrace } from "../types";
-import {
-  formatCost,
-  formatTokens,
-  getCostTier,
-  getCostTierClasses,
-} from "../utils/costCalculator";
-import { useTranslation } from "../i18n/LanguageContext";
+import { useState } from 'react';
+import { ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
+import { APITrace } from '../types';
+import { formatCost, formatTokens, getCostTier, getCostTierClasses } from '../utils/costCalculator';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface CostReportProps {
   apiTrace: APITrace;
@@ -27,9 +22,7 @@ export default function CostReport({ apiTrace }: CostReportProps) {
   const tierClasses = getCostTierClasses(tier);
 
   return (
-    <div
-      className={`mt-2 text-xs border rounded ${tierClasses.bg} ${tierClasses.border}`}
-    >
+    <div className={`mt-2 text-xs border rounded ${tierClasses.bg} ${tierClasses.border}`}>
       {/* Compact summary - always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -38,8 +31,7 @@ export default function CostReport({ apiTrace }: CostReportProps) {
         <div className="flex items-center gap-2">
           <DollarSign className={`h-3 w-3 ${tierClasses.text}`} />
           <span className={tierClasses.text}>
-            {formatCost(cost.totalCost)} • {formatTokens(usage.totalTokens)}{" "}
-            {t.costReport.tokens}
+            {formatCost(cost.totalCost)} • {formatTokens(usage.totalTokens)} {t.costReport.tokens}
           </span>
           <span className="text-gray-400">
             ({apiTrace.durationMs}
@@ -68,15 +60,15 @@ export default function CostReport({ apiTrace }: CostReportProps) {
             <div className="flex justify-between">
               <span className="text-gray-400">{t.inputTokens}:</span>
               <span className={tierClasses.text}>
-                {formatTokens(usage.promptTokens)} × ${cost.inputTokenPrice}/1M
-                = {formatCost(cost.inputCost)}
+                {formatTokens(usage.promptTokens)} × ${cost.inputTokenPrice}/1M ={' '}
+                {formatCost(cost.inputCost)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">{t.outputTokens}:</span>
               <span className={tierClasses.text}>
-                {formatTokens(usage.completionTokens)} × $
-                {cost.outputTokenPrice}/1M = {formatCost(cost.outputCost)}
+                {formatTokens(usage.completionTokens)} × ${cost.outputTokenPrice}/1M ={' '}
+                {formatCost(cost.outputCost)}
               </span>
             </div>
             <div className="flex justify-between pt-1 border-t border-gray-700">
@@ -89,9 +81,8 @@ export default function CostReport({ apiTrace }: CostReportProps) {
 
           {/* Performance info */}
           <div className="pt-1 text-gray-500 text-xs">
-            Response time: {apiTrace.durationMs}ms •{" "}
-            {(usage.completionTokens / (apiTrace.durationMs / 1000)).toFixed(0)}{" "}
-            tokens/sec
+            Response time: {apiTrace.durationMs}ms •{' '}
+            {(usage.completionTokens / (apiTrace.durationMs / 1000)).toFixed(0)} tokens/sec
           </div>
         </div>
       )}

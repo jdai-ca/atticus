@@ -1,4 +1,9 @@
-import { sanitizeTextForPDF, stripMarkdown, parseMarkdownToPDFSegments, formatFileSize } from '../utils/pdfExport';
+import {
+  sanitizeTextForPDF,
+  stripMarkdown,
+  parseMarkdownToPDFSegments,
+  formatFileSize,
+} from '../utils/pdfExport';
 import { describe, it, expect } from 'vitest';
 
 describe('pdfExport helpers', () => {
@@ -25,7 +30,9 @@ describe('pdfExport helpers', () => {
     expect(segments.some(s => s.isBullet)).toBe(true);
     expect(segments.some(s => s.isNumbered)).toBe(true);
     expect(segments.some(s => s.isCode)).toBe(true);
-    expect(segments.some(s => !s.isHeading && !s.isBullet && !s.isNumbered && !s.isCode)).toBe(true);
+    expect(segments.some(s => !s.isHeading && !s.isBullet && !s.isNumbered && !s.isCode)).toBe(
+      true
+    );
   });
 
   it('formatFileSize formats bytes, KB, MB', () => {

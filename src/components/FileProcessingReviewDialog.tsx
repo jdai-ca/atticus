@@ -1,10 +1,10 @@
-import { FileUploadResult } from "../types";
-import type { SecurityAnalysisResult } from "../services/fileSecurityPipeline";
-import FileSecurityDialog from "./FileSecurityDialog";
-import { FileProcessingDialogHeader } from "./FileProcessingDialogHeader";
-import { FileProcessingOutcomePanel } from "./FileProcessingOutcomePanel";
-import { FileProcessingProgressPanel } from "./FileProcessingProgressPanel";
-import type { FileProcessingDialogResult } from "./hooks/useFileProcessingDialog";
+import { FileUploadResult } from '../types';
+import type { SecurityAnalysisResult } from '../services/fileSecurityPipeline';
+import FileSecurityDialog from './FileSecurityDialog';
+import { FileProcessingDialogHeader } from './FileProcessingDialogHeader';
+import { FileProcessingOutcomePanel } from './FileProcessingOutcomePanel';
+import { FileProcessingProgressPanel } from './FileProcessingProgressPanel';
+import type { FileProcessingDialogResult } from './hooks/useFileProcessingDialog';
 
 interface FileProcessingReviewDialogProps {
   readonly isProcessingFile: boolean;
@@ -36,10 +36,7 @@ export function FileProcessingReviewDialog({
   onFileSecurityProceed,
 }: FileProcessingReviewDialogProps) {
   const isVisible =
-    isProcessingFile ||
-    showFileSecurityWarning ||
-    fileProcessingComplete ||
-    fileProcessingError;
+    isProcessingFile || showFileSecurityWarning || fileProcessingComplete || fileProcessingError;
 
   if (!isVisible) {
     return null;

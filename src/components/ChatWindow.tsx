@@ -1,35 +1,33 @@
-import { useTranslation } from "../i18n/LanguageContext";
+import { useTranslation } from '../i18n/LanguageContext';
 // Removed direct API import - now using secure IPC
-import { useModelSelection } from "./hooks/useModelSelection";
-import {
-  useFileProcessingDialog,
-} from "./hooks/useFileProcessingDialog";
-import { useDocumentConversion } from "./hooks/useDocumentConversion";
-import { usePiiDecisionHandlers } from "./hooks/usePiiDecisionHandlers";
-import { useFileUpload } from "./hooks/useFileUpload";
-import { useSendMessage } from "./hooks/useSendMessage";
-import { useTagHandlers } from "./hooks/useTagHandlers";
-import { useFileSecurityHandlers } from "./hooks/useFileSecurityHandlers";
-import { useMessageActionHandlers } from "./hooks/useMessageActionHandlers";
-import { useSendHandler } from "./hooks/useSendHandler";
-import { useChatWindowUiHandlers } from "./hooks/useChatWindowUiHandlers";
-import { useAutoScrollToBottom } from "./hooks/useAutoScrollToBottom";
-import { useAttachmentRegistry } from "./hooks/useAttachmentRegistry";
-import { useAnalysisConfigLoader } from "./hooks/useAnalysisConfigLoader";
-import { useTextareaFocusRecovery } from "./hooks/useTextareaFocusRecovery";
-import { useChatWindowState } from "./hooks/useChatWindowState";
-import { useChatWindowStoreData } from "./hooks/useChatWindowStoreData";
-import { useConversationLoadingState } from "./hooks/useConversationLoadingState";
-import { useChatWindowInitializationEffects } from "./hooks/useChatWindowInitializationEffects";
-import { useAnalysisDialogLabels } from "./hooks/useAnalysisDialogLabels";
-import { useChatAnalysisAdapter } from "./hooks/useChatAnalysisAdapter";
-import { useChatConversationGuard } from "./hooks/useChatConversationGuard";
-import { useChatWindowSectionProps } from "./hooks/useChatWindowSectionProps";
-import { useNoConversationFallbackNode } from "./hooks/useNoConversationFallbackNode";
-import { ChatInputSection } from "./ChatInputSection";
-import { ChatMessagesArea } from "./ChatMessagesArea";
-import { ChatDialogsSection } from "./ChatDialogsSection";
-import { ChatThreadConfigSection } from "./ChatThreadConfigSection";
+import { useModelSelection } from './hooks/useModelSelection';
+import { useFileProcessingDialog } from './hooks/useFileProcessingDialog';
+import { useDocumentConversion } from './hooks/useDocumentConversion';
+import { usePiiDecisionHandlers } from './hooks/usePiiDecisionHandlers';
+import { useFileUpload } from './hooks/useFileUpload';
+import { useSendMessage } from './hooks/useSendMessage';
+import { useTagHandlers } from './hooks/useTagHandlers';
+import { useFileSecurityHandlers } from './hooks/useFileSecurityHandlers';
+import { useMessageActionHandlers } from './hooks/useMessageActionHandlers';
+import { useSendHandler } from './hooks/useSendHandler';
+import { useChatWindowUiHandlers } from './hooks/useChatWindowUiHandlers';
+import { useAutoScrollToBottom } from './hooks/useAutoScrollToBottom';
+import { useAttachmentRegistry } from './hooks/useAttachmentRegistry';
+import { useAnalysisConfigLoader } from './hooks/useAnalysisConfigLoader';
+import { useTextareaFocusRecovery } from './hooks/useTextareaFocusRecovery';
+import { useChatWindowState } from './hooks/useChatWindowState';
+import { useChatWindowStoreData } from './hooks/useChatWindowStoreData';
+import { useConversationLoadingState } from './hooks/useConversationLoadingState';
+import { useChatWindowInitializationEffects } from './hooks/useChatWindowInitializationEffects';
+import { useAnalysisDialogLabels } from './hooks/useAnalysisDialogLabels';
+import { useChatAnalysisAdapter } from './hooks/useChatAnalysisAdapter';
+import { useChatConversationGuard } from './hooks/useChatConversationGuard';
+import { useChatWindowSectionProps } from './hooks/useChatWindowSectionProps';
+import { useNoConversationFallbackNode } from './hooks/useNoConversationFallbackNode';
+import { ChatInputSection } from './ChatInputSection';
+import { ChatMessagesArea } from './ChatMessagesArea';
+import { ChatDialogsSection } from './ChatDialogsSection';
+import { ChatThreadConfigSection } from './ChatThreadConfigSection';
 
 interface ChatWindowProps {
   openConfigDialog?: boolean;
@@ -162,14 +160,11 @@ export default function ChatWindow({
     closeFileProcessingDialog,
   } = useFileProcessingDialog(restoreTextareaFocus);
 
-  const {
-    convertPDFToImagesForVision,
-    convertWordToImagesForVision,
-    convertDocumentToImages,
-  } = useDocumentConversion({
-    setFileProcessingStage,
-    electronAPI: window.electronAPI,
-  });
+  const { convertPDFToImagesForVision, convertWordToImagesForVision, convertDocumentToImages } =
+    useDocumentConversion({
+      setFileProcessingStage,
+      electronAPI: window.electronAPI,
+    });
 
   const { registerAttachments } = useAttachmentRegistry({
     attachmentDataRef,
@@ -193,11 +188,7 @@ export default function ChatWindow({
     restoreTextareaFocus,
   });
 
-  const {
-    handleRunAnalysis,
-    availableModels,
-    modelsUsedInCluster,
-  } = useChatAnalysisAdapter({
+  const { handleRunAnalysis, availableModels, modelsUsedInCluster } = useChatAnalysisAdapter({
     currentConversation,
     selectedAnalysisModel,
     analysisClusterStart,
@@ -213,10 +204,7 @@ export default function ChatWindow({
     setSelectedAnalysisModel,
   });
 
-  const {
-    selectModelLabel,
-    runAnalysisLabel,
-  } = useAnalysisDialogLabels({
+  const { selectModelLabel, runAnalysisLabel } = useAnalysisDialogLabels({
     selectModelLabel: t.chatWindow.selectModel,
     runAnalysisLabel: t.chatWindow.runAnalysis,
   });
@@ -258,22 +246,19 @@ export default function ChatWindow({
   });
 
   // PII decision handlers
-  const {
-    handlePrivacyProceed,
-    handlePrivacyCancel,
-    handlePrivacyAnonymize,
-  } = usePiiDecisionHandlers({
-    currentConversation,
-    piiScanResult,
-    selectedJurisdictions,
-    pendingMessage,
-    textareaRef,
-    setShowPrivacyWarning,
-    setPendingMessage,
-    setPiiScanResult,
-    setInput,
-    sendMessage,
-  });
+  const { handlePrivacyProceed, handlePrivacyCancel, handlePrivacyAnonymize } =
+    usePiiDecisionHandlers({
+      currentConversation,
+      piiScanResult,
+      selectedJurisdictions,
+      pendingMessage,
+      textareaRef,
+      setShowPrivacyWarning,
+      setPendingMessage,
+      setPiiScanResult,
+      setInput,
+      sendMessage,
+    });
 
   const handleHarmProceed = () => {
     setShowHarmWarning(false);
@@ -286,7 +271,7 @@ export default function ChatWindow({
   const handleHarmCancel = () => {
     setShowHarmWarning(false);
     setSraisScanResult(null);
-    setPendingMessage("");
+    setPendingMessage('');
   };
 
   const { handleSend, handleKeyDown } = useSendHandler({
@@ -308,19 +293,18 @@ export default function ChatWindow({
     sendMessage,
   });
 
-  const { handleFileSecurityProceed, handleFileSecurityCancel } =
-    useFileSecurityHandlers({
-      pendingFile,
-      fileSecurityReports,
-      setAttachments,
-      registerAttachments,
-      setShowFileSecurityWarning,
-      setPendingFile,
-      setIsProcessingFile,
-      setFileProcessingProgress,
-      setFileProcessingStage,
-      restoreTextareaFocus,
-    });
+  const { handleFileSecurityProceed, handleFileSecurityCancel } = useFileSecurityHandlers({
+    pendingFile,
+    fileSecurityReports,
+    setAttachments,
+    registerAttachments,
+    setShowFileSecurityWarning,
+    setPendingFile,
+    setIsProcessingFile,
+    setFileProcessingProgress,
+    setFileProcessingStage,
+    restoreTextareaFocus,
+  });
 
   const {
     openAuditLog,
@@ -350,10 +334,7 @@ export default function ChatWindow({
     restoreTextareaFocus,
   });
 
-  const {
-    conversation,
-    shouldShowNoConversationState,
-  } = useChatConversationGuard({
+  const { conversation, shouldShowNoConversationState } = useChatConversationGuard({
     currentConversation,
   });
 
@@ -466,12 +447,12 @@ export default function ChatWindow({
 
   const noConversationFallbackNode = useNoConversationFallbackNode({
     shouldShowNoConversationState:
-      shouldShowNoConversationState || !conversation || sectionState === "fallback",
+      shouldShowNoConversationState || !conversation || sectionState === 'fallback',
     welcomeTitle: t.chatWindow.welcomeTitle,
     welcomeSubtitle: t.chatWindow.welcomeSubtitle,
   });
 
-  if (sectionState !== "ready") {
+  if (sectionState !== 'ready') {
     return noConversationFallbackNode;
   }
 

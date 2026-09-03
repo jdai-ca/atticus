@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 interface UseAutoScrollToBottomParams {
   readonly messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -10,6 +10,6 @@ export function useAutoScrollToBottom({
   dependency,
 }: UseAutoScrollToBottomParams): void {
   useEffect((): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messagesEndRef, dependency]);
 }

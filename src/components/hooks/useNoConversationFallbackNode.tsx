@@ -1,5 +1,5 @@
-import { type ReactNode, useMemo } from "react";
-import { ChatNoConversationState } from "../ChatNoConversationState";
+import { type ReactNode, useMemo } from 'react';
+import { ChatNoConversationState } from '../ChatNoConversationState';
 
 interface UseNoConversationFallbackNodeParams {
   readonly shouldShowNoConversationState: boolean;
@@ -18,10 +18,7 @@ export function useNoConversationFallbackNode({
     }
 
     return (
-      <ChatNoConversationState
-        welcomeTitle={welcomeTitle}
-        welcomeSubtitle={welcomeSubtitle}
-      />
+      <ChatNoConversationState welcomeTitle={welcomeTitle} welcomeSubtitle={welcomeSubtitle} />
     );
   }, [shouldShowNoConversationState, welcomeTitle, welcomeSubtitle]);
 

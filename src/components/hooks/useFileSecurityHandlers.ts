@@ -1,8 +1,8 @@
-import type { Attachment, AttachmentMeta, FileUploadResult } from "../../types";
-import type { SecurityAnalysisResult } from "../../services/fileSecurityPipeline";
-import { createLogger } from "../../services/debugLogger";
+import type { Attachment, AttachmentMeta, FileUploadResult } from '../../types';
+import type { SecurityAnalysisResult } from '../../services/fileSecurityPipeline';
+import { createLogger } from '../../services/debugLogger';
 
-const logger = createLogger("useFileSecurityHandlers");
+const logger = createLogger('useFileSecurityHandlers');
 
 interface UseFileSecurityHandlersProps {
   readonly pendingFile: FileUploadResult | null;
@@ -39,7 +39,7 @@ export function useFileSecurityHandlers({
 
     const securityReport = fileSecurityReports.get(pendingFile.name);
 
-    logger.warn("[File Security] User chose to proceed with high-risk file", {
+    logger.warn('[File Security] User chose to proceed with high-risk file', {
       fileName: pendingFile.name,
       riskScore: securityReport?.riskScore,
       findingsCounts: securityReport
@@ -69,13 +69,13 @@ export function useFileSecurityHandlers({
     setPendingFile(null);
     setIsProcessingFile(false);
     setFileProcessingProgress(0);
-    setFileProcessingStage("");
+    setFileProcessingStage('');
     restoreTextareaFocus();
   };
 
   const handleFileSecurityCancel = (): void => {
     if (pendingFile) {
-      logger.info("[File Security] User cancelled high-risk file upload", {
+      logger.info('[File Security] User cancelled high-risk file upload', {
         fileName: pendingFile.name,
       });
     }
@@ -84,7 +84,7 @@ export function useFileSecurityHandlers({
     setPendingFile(null);
     setIsProcessingFile(false);
     setFileProcessingProgress(0);
-    setFileProcessingStage("");
+    setFileProcessingStage('');
     restoreTextareaFocus();
   };
 

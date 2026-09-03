@@ -13,9 +13,7 @@ describe('debugLogger', () => {
     logger.warn('warn');
     logger.error('error');
     expect(logger.getLogs().length).toBe(4);
-    expect(logger.getLogs().map(e => e.level)).toEqual([
-      'debug', 'info', 'warn', 'error',
-    ]);
+    expect(logger.getLogs().map(e => e.level)).toEqual(['debug', 'info', 'warn', 'error']);
   });
 
   it('redacts sensitive keys', () => {

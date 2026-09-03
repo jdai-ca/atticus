@@ -1,4 +1,10 @@
-import { SecureProviderConfig, ChatRequest, SecureChatRequestInternal, ChatResponse, Message } from '../types';
+import {
+  SecureProviderConfig,
+  ChatRequest,
+  SecureChatRequestInternal,
+  ChatResponse,
+  Message,
+} from '../types';
 import {
   fetchWithTimeout,
   validateOpenAIResponse,
@@ -14,7 +20,12 @@ import {
   xAIParser,
   getEndpointOrDefault,
 } from './apiRequest';
-import { formatForAnthropic, augmentMessageWithDocuments, formatForGemini, GeminiContent } from './multimodalFormatter';
+import {
+  formatForAnthropic,
+  augmentMessageWithDocuments,
+  formatForGemini,
+  GeminiContent,
+} from './multimodalFormatter';
 import { logger } from './debugLogger';
 import { GoogleGenAI } from '@google/genai/node';
 import { Mistral } from '@mistralai/mistralai';
@@ -23,18 +34,23 @@ import { CohereClient } from 'cohere-ai';
 
 /** Augment all non-system messages in a thread with extracted document text. */
 async function augmentMessages(messages: Message[]): Promise<Message[]> {
-  return Promise.all(messages.map((msg): Promise<Message> =>
-    msg.role !== 'system' ? augmentMessageWithDocuments(msg) : Promise.resolve(msg)
-  ));
+  return Promise.all(
+    messages.map(
+      (msg): Promise<Message> =>
+        msg.role !== 'system' ? augmentMessageWithDocuments(msg) : Promise.resolve(msg)
+    )
+  );
 }
 
-export async function sendChatMessage(request: ChatRequest | SecureChatRequestInternal): Promise<ChatResponse> {
+export async function sendChatMessage(
+  request: ChatRequest | SecureChatRequestInternal
+): Promise<ChatResponse> {
   const { provider, messages, systemPrompt, temperature = 0.7, maxTokens = 4000 } = request;
 
   logger.debug('Chat message request received', {
     providerId: provider.provider,
     providerInstanceId: provider.id,
-    messageCount: messages.length
+    messageCount: messages.length,
   });
 
   // Ensure provider has API key (this service should only be used in main process)
@@ -52,27 +68,93 @@ export async function sendChatMessage(request: ChatRequest | SecureChatRequestIn
 
   switch (secureProvider.provider) {
     case 'openai':
-      return sendOpenAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendOpenAIMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'anthropic':
-      return sendAnthropicMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendAnthropicMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'google':
-      return sendGoogleMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendGoogleMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'azure-openai':
-      return sendAzureOpenAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendAzureOpenAIMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'xai':
-      return sendXAIMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendXAIMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'mistral':
-      return sendMistralMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendMistralMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'groq':
-      return sendGroqMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendGroqMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'perplexity':
-      return sendPerplexityMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendPerplexityMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'cohere':
-      return sendCohereMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendCohereMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'cerebras':
-      return sendCerebrasMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendCerebrasMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     case 'custom':
-      return sendCustomMessage(secureProvider, augmentedMessages, systemPrompt, temperature, maxTokens);
+      return sendCustomMessage(
+        secureProvider,
+        augmentedMessages,
+        systemPrompt,
+        temperature,
+        maxTokens
+      );
     default:
       throw new Error(`Unsupported provider: ${secureProvider.provider}`);
   }
@@ -85,23 +167,29 @@ async function sendOpenAIMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = getEndpointOrDefault(
+  const endpoint = getEndpointOrDefault(provider, 'https://api.openai.com/v1/chat/completions');
+
+  const { body } = await buildOpenAIRequestBody(
     provider,
-    'https://api.openai.com/v1/chat/completions'
+    messages,
+    systemPrompt,
+    temperature,
+    maxTokens
   );
 
-  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
-
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+  return sendAPIRequest(
+    {
+      endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body,
+      provider: 'openai',
+      timeout: 3600000, // 60 minute timeout for extended thinking (GPT-5)
     },
-    body,
-    provider: 'openai',
-    timeout: 3600000, // 60 minute timeout for extended thinking (GPT-5)
-  }, openAIParser);
+    openAIParser
+  );
 }
 
 async function sendAnthropicMessage(
@@ -122,25 +210,24 @@ async function sendAnthropicMessage(
   });
 
   try {
-    const message = await client.messages.create({
-      model: provider.model,
-      messages: formattedMessages as Anthropic.MessageParam[],
-      system: systemPrompt,
-      ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
-      max_tokens: maxTokens || 4000,
-    }, {
-      timeout: 3600000 // 60 minute timeout for extended thinking
-    });
-
-    const textContent = message.content.find(
-      (block): boolean => block.type === 'text',
+    const message = await client.messages.create(
+      {
+        model: provider.model,
+        messages: formattedMessages as Anthropic.MessageParam[],
+        system: systemPrompt,
+        ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
+        max_tokens: maxTokens || 4000,
+      },
+      {
+        timeout: 3600000, // 60 minute timeout for extended thinking
+      }
     );
+
+    const textContent = message.content.find((block): boolean => block.type === 'text');
     if (textContent?.type !== 'text') {
-      throw createApiError(
-        'INVALID_RESPONSE',
-        'Anthropic API returned no text content',
-        { provider: 'anthropic' }
-      );
+      throw createApiError('INVALID_RESPONSE', 'Anthropic API returned no text content', {
+        provider: 'anthropic',
+      });
     }
 
     return {
@@ -155,7 +242,9 @@ async function sendAnthropicMessage(
         return {
           promptTokens: usage.input_tokens,
           completionTokens: usage.output_tokens,
-          totalTokens: usage.input_tokens + usage.output_tokens +
+          totalTokens:
+            usage.input_tokens +
+            usage.output_tokens +
             (usage.cache_creation_input_tokens ?? 0) +
             (usage.cache_read_input_tokens ?? 0),
           cacheCreationInputTokens: usage.cache_creation_input_tokens,
@@ -200,9 +289,7 @@ async function sendGoogleMessage(
     // Converts to Gemini's {role, parts} format with proper role mapping
     // Handles both text content and image attachments (inlineData)
     // Converts PDFs to images for vision analysis
-    const nonSystemMessages = messages.filter(
-      (m): boolean => m.role !== 'system',
-    );
+    const nonSystemMessages = messages.filter((m): boolean => m.role !== 'system');
     formattedMessages = await formatForGemini(nonSystemMessages);
 
     // CRITICAL: Deep validation before sending to Google API
@@ -214,7 +301,8 @@ async function sendGoogleMessage(
 
         // Check for inlineData with missing or empty data field
         if (part.inlineData) {
-          const hasValidData = part.inlineData.data &&
+          const hasValidData =
+            part.inlineData.data &&
             typeof part.inlineData.data === 'string' &&
             part.inlineData.data.length > 0;
 
@@ -225,10 +313,11 @@ async function sendGoogleMessage(
               mimeType: part.inlineData.mimeType,
               dataType: typeof part.inlineData.data,
               dataLength: part.inlineData.data?.length || 0,
-              hasData: !!part.inlineData.data
+              hasData: !!part.inlineData.data,
             });
 
-            throw createApiError('INVALID_REQUEST',
+            throw createApiError(
+              'INVALID_REQUEST',
               `Invalid image data at message ${i}, part ${j}. Image data is empty or invalid.`,
               { provider: 'google', model: provider.model }
             );
@@ -238,7 +327,7 @@ async function sendGoogleMessage(
             messageIndex: i,
             partIndex: j,
             mimeType: part.inlineData.mimeType,
-            dataSizeKB: Math.round(part.inlineData.data.length * 0.75 / 1024)
+            dataSizeKB: Math.round((part.inlineData.data.length * 0.75) / 1024),
           });
         }
       }
@@ -250,36 +339,65 @@ async function sendGoogleMessage(
       hasSystemPrompt: !!systemPrompt,
       totalParts: formattedMessages.reduce(
         (sum: number, m: GeminiContent): number => sum + m.parts.length,
-        0,
+        0
       ),
-      imageParts: formattedMessages.reduce((sum: number, m: GeminiContent): number =>
-        sum + m.parts.filter((p): boolean => Boolean(p.inlineData)).length, 0
-      )
+      imageParts: formattedMessages.reduce(
+        (sum: number, m: GeminiContent): number =>
+          sum + m.parts.filter((p): boolean => Boolean(p.inlineData)).length,
+        0
+      ),
     });
 
     // DEBUG: Log the actual structure being sent (without full image data)
     logger.debug('Gemini request structure', '[Gemini API]', {
-      contents: formattedMessages.map((msg: GeminiContent, i: number): { messageIndex: number; role: GeminiContent['role']; parts: Array<{ partIndex: number; hasText: boolean; textLength: number; hasInlineData: boolean; inlineDataStructure: { hasMimeType: boolean; mimeType: string | undefined; hasDataField: boolean; dataType: string; dataLength: number; dataIsNull: boolean; dataIsUndefined: boolean; dataIsEmptyString: boolean; dataFirstChars: string } | null }> } => ({
-        messageIndex: i,
-        role: msg.role,
-        parts: msg.parts.map((part: (typeof msg.parts)[number], j: number) => ({
-          partIndex: j,
-          hasText: 'text' in part,
-          textLength: part.text?.length || 0,
-          hasInlineData: 'inlineData' in part,
-          inlineDataStructure: part.inlineData ? {
-            hasMimeType: !!part.inlineData.mimeType,
-            mimeType: part.inlineData.mimeType,
-            hasDataField: 'data' in part.inlineData,
-            dataType: typeof part.inlineData.data,
-            dataLength: part.inlineData.data?.length || 0,
-            dataIsNull: part.inlineData.data === null,
-            dataIsUndefined: part.inlineData.data === undefined,
-            dataIsEmptyString: part.inlineData.data === '',
-            dataFirstChars: part.inlineData.data?.substring(0, 20) || 'N/A'
-          } : null
-        }))
-      }))
+      contents: formattedMessages.map(
+        (
+          msg: GeminiContent,
+          i: number
+        ): {
+          messageIndex: number;
+          role: GeminiContent['role'];
+          parts: Array<{
+            partIndex: number;
+            hasText: boolean;
+            textLength: number;
+            hasInlineData: boolean;
+            inlineDataStructure: {
+              hasMimeType: boolean;
+              mimeType: string | undefined;
+              hasDataField: boolean;
+              dataType: string;
+              dataLength: number;
+              dataIsNull: boolean;
+              dataIsUndefined: boolean;
+              dataIsEmptyString: boolean;
+              dataFirstChars: string;
+            } | null;
+          }>;
+        } => ({
+          messageIndex: i,
+          role: msg.role,
+          parts: msg.parts.map((part: (typeof msg.parts)[number], j: number) => ({
+            partIndex: j,
+            hasText: 'text' in part,
+            textLength: part.text?.length || 0,
+            hasInlineData: 'inlineData' in part,
+            inlineDataStructure: part.inlineData
+              ? {
+                  hasMimeType: !!part.inlineData.mimeType,
+                  mimeType: part.inlineData.mimeType,
+                  hasDataField: 'data' in part.inlineData,
+                  dataType: typeof part.inlineData.data,
+                  dataLength: part.inlineData.data?.length || 0,
+                  dataIsNull: part.inlineData.data === null,
+                  dataIsUndefined: part.inlineData.data === undefined,
+                  dataIsEmptyString: part.inlineData.data === '',
+                  dataFirstChars: part.inlineData.data?.substring(0, 20) || 'N/A',
+                }
+              : null,
+          })),
+        })
+      ),
     });
 
     // Step 3: Call Gemini API
@@ -304,10 +422,10 @@ async function sendGoogleMessage(
     // Extract token usage metadata
     const usage = result.usageMetadata
       ? {
-        promptTokens: result.usageMetadata.promptTokenCount || 0,
-        completionTokens: result.usageMetadata.candidatesTokenCount || 0,
-        totalTokens: result.usageMetadata.totalTokenCount || 0,
-      }
+          promptTokens: result.usageMetadata.promptTokenCount || 0,
+          completionTokens: result.usageMetadata.candidatesTokenCount || 0,
+          totalTokens: result.usageMetadata.totalTokenCount || 0,
+        }
       : undefined;
 
     logger.info('Gemini response received', '[Gemini API]', {
@@ -325,19 +443,21 @@ async function sendGoogleMessage(
     const googleErrorAny = error as Record<string, unknown> | null;
     logger.error('Gemini API request failed', '[Gemini API]', {
       errorMessage: googleError?.message ?? String(error),
-      errorType: googleErrorAny?.['constructor'] && typeof googleErrorAny['constructor'] === 'function'
-        ? (googleErrorAny['constructor'] as { name?: string }).name
-        : undefined,
+      errorType:
+        googleErrorAny?.['constructor'] && typeof googleErrorAny['constructor'] === 'function'
+          ? (googleErrorAny['constructor'] as { name?: string }).name
+          : undefined,
       errorStack: googleError?.stack?.split('\n').slice(0, 3).join('\n'),
       model: provider.model,
       messageCount: formattedMessages.length || 0,
-      hasImages: formattedMessages.length > 0
-        ? formattedMessages.some(
-          (m): boolean => Boolean(
-            m.parts?.some((p): boolean => Boolean(p.inlineData?.mimeType?.startsWith('image/'))),
-          ),
-        )
-        : false
+      hasImages:
+        formattedMessages.length > 0
+          ? formattedMessages.some((m): boolean =>
+              Boolean(
+                m.parts?.some((p): boolean => Boolean(p.inlineData?.mimeType?.startsWith('image/')))
+              )
+            )
+          : false,
     });
 
     // Extract more specific error information from Google SDK
@@ -358,7 +478,10 @@ async function sendGoogleMessage(
       errorDetails['code'] = googleErrorAny['code'];
     }
 
-    const errorMessage = googleError?.message || (googleErrorAny?.['message'] as string | undefined) || 'Google Gemini API request failed';
+    const errorMessage =
+      googleError?.message ||
+      (googleErrorAny?.['message'] as string | undefined) ||
+      'Google Gemini API request failed';
 
     throw createApiError('API_ERROR', errorMessage, errorDetails);
   }
@@ -391,7 +514,7 @@ async function sendAzureOpenAIMessage(
     (m): { role: string; content: string } => ({
       role: m.role,
       content: m.content,
-    }),
+    })
   );
   if (systemPrompt) {
     apiMessages.unshift({ role: 'system', content: systemPrompt });
@@ -457,7 +580,9 @@ async function sendCustomMessage(
     }
   } catch (error) {
     if (error instanceof TypeError) {
-      throw createApiError('INVALID_ENDPOINT', 'Malformed endpoint URL', { endpoint: provider.endpoint });
+      throw createApiError('INVALID_ENDPOINT', 'Malformed endpoint URL', {
+        endpoint: provider.endpoint,
+      });
     }
     throw error;
   }
@@ -470,13 +595,11 @@ async function sendCustomMessage(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+      Authorization: `Bearer ${provider.apiKey}`,
     },
     body: JSON.stringify({
       model: provider.model,
-      messages: systemPrompt
-        ? [{ role: 'system', content: systemPrompt }, ...messages]
-        : messages,
+      messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
       ...(provider.supportsTemperature && temperature !== undefined ? { temperature } : {}),
       max_completion_tokens: maxTokens,
     }),
@@ -498,11 +621,9 @@ async function sendCustomMessage(
   const content = data.choices?.[0]?.message?.content || data.content || '';
 
   if (!content) {
-    throw createApiError(
-      'INVALID_RESPONSE',
-      'Custom API returned empty or invalid response',
-      { response: data }
-    );
+    throw createApiError('INVALID_RESPONSE', 'Custom API returned empty or invalid response', {
+      response: data,
+    });
   }
 
   return {
@@ -520,18 +641,27 @@ async function sendXAIMessage(
 ): Promise<ChatResponse> {
   const endpoint = getEndpointOrDefault(provider, '', true);
 
-  const { body } = await buildXAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildXAIRequestBody(
+    provider,
+    messages,
+    systemPrompt,
+    temperature,
+    maxTokens
+  );
 
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+  return sendAPIRequest(
+    {
+      endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body,
+      provider: 'xai',
+      timeout: 3600000, // xAI recommends 3600 seconds (60 minutes) for reasoning models
     },
-    body,
-    provider: 'xai',
-    timeout: 3600000, // xAI recommends 3600 seconds (60 minutes) for reasoning models
-  }, xAIParser);
+    xAIParser
+  );
 }
 
 async function sendMistralMessage(
@@ -565,11 +695,9 @@ async function sendMistralMessage(
 
     const choice = chatResponse.choices?.[0];
     if (!choice?.message?.content) {
-      throw createApiError(
-        'INVALID_RESPONSE',
-        'Mistral API returned no content',
-        { provider: 'mistral' }
-      );
+      throw createApiError('INVALID_RESPONSE', 'Mistral API returned no content', {
+        provider: 'mistral',
+      });
     }
 
     return {
@@ -601,17 +729,26 @@ async function sendGroqMessage(
     'https://api.groq.com/openai/v1/chat/completions'
   );
 
-  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
+  const { body } = await buildOpenAIRequestBody(
+    provider,
+    messages,
+    systemPrompt,
+    temperature,
+    maxTokens
+  );
 
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+  return sendAPIRequest(
+    {
+      endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body,
+      provider: 'groq',
     },
-    body,
-    provider: 'groq',
-  }, openAIParser);
+    openAIParser
+  );
 }
 
 async function sendPerplexityMessage(
@@ -621,22 +758,28 @@ async function sendPerplexityMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = getEndpointOrDefault(
+  const endpoint = getEndpointOrDefault(provider, 'https://api.perplexity.ai/chat/completions');
+
+  const { body } = await buildOpenAIRequestBody(
     provider,
-    'https://api.perplexity.ai/chat/completions'
+    messages,
+    systemPrompt,
+    temperature,
+    maxTokens
   );
 
-  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
-
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+  return sendAPIRequest(
+    {
+      endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body,
+      provider: 'perplexity',
     },
-    body,
-    provider: 'perplexity',
-  }, openAIParser);
+    openAIParser
+  );
 }
 
 async function sendCohereMessage(
@@ -655,12 +798,12 @@ async function sendCohereMessage(
   });
 
   // Cohere uses a different message format
-  const chatHistory = messages.slice(0, -1).map(
-    (m): { role: 'CHATBOT' | 'USER'; message: string } => ({
+  const chatHistory = messages
+    .slice(0, -1)
+    .map((m): { role: 'CHATBOT' | 'USER'; message: string } => ({
       role: m.role === 'assistant' ? ('CHATBOT' as const) : ('USER' as const),
       message: m.content,
-    }),
-  );
+    }));
 
   const lastMessage = messages[messages.length - 1];
 
@@ -679,7 +822,8 @@ async function sendCohereMessage(
       usage: {
         promptTokens: response.meta?.tokens?.inputTokens || 0,
         completionTokens: response.meta?.tokens?.outputTokens || 0,
-        totalTokens: (response.meta?.tokens?.inputTokens || 0) + (response.meta?.tokens?.outputTokens || 0),
+        totalTokens:
+          (response.meta?.tokens?.inputTokens || 0) + (response.meta?.tokens?.outputTokens || 0),
       },
     };
   } catch (error: unknown) {
@@ -698,21 +842,26 @@ async function sendCerebrasMessage(
   temperature?: number,
   maxTokens?: number
 ): Promise<ChatResponse> {
-  const endpoint = getEndpointOrDefault(
+  const endpoint = getEndpointOrDefault(provider, 'https://api.cerebras.ai/v1/chat/completions');
+
+  const { body } = await buildOpenAIRequestBody(
     provider,
-    'https://api.cerebras.ai/v1/chat/completions'
+    messages,
+    systemPrompt,
+    temperature,
+    maxTokens
   );
 
-  const { body } = await buildOpenAIRequestBody(provider, messages, systemPrompt, temperature, maxTokens);
-
-  return sendAPIRequest({
-    endpoint,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${provider.apiKey}`,
+  return sendAPIRequest(
+    {
+      endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body,
+      provider: 'cerebras',
     },
-    body,
-    provider: 'cerebras',
-  }, openAIParser);
+    openAIParser
+  );
 }
-

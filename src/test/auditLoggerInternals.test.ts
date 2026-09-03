@@ -16,11 +16,7 @@ vi.mock('../services/debugLogger', () => ({
   }),
 }));
 
-import {
-  AuditEventType,
-  AuditLogger,
-  AuditSeverity,
-} from '../services/auditLogger';
+import { AuditEventType, AuditLogger, AuditSeverity } from '../services/auditLogger';
 
 type InternalAuditLogger = {
   initialize: () => Promise<void>;
@@ -31,7 +27,7 @@ type InternalAuditLogger = {
     action: string,
     details: Record<string, unknown>,
     conversationId?: string,
-    messageId?: string,
+    messageId?: string
   ) => Promise<string>;
   logPIIScan: (
     conversationId: string,
@@ -44,7 +40,7 @@ type InternalAuditLogger = {
       jurisdictions?: string[];
     },
     messagePreview: string,
-    userDecision?: 'proceed' | 'cancel' | 'anonymize',
+    userDecision?: 'proceed' | 'cancel' | 'anonymize'
   ) => Promise<string>;
   logAPIRequest: (
     conversationId: string,
@@ -57,7 +53,7 @@ type InternalAuditLogger = {
       messageCount: number;
       systemPromptPresent: boolean;
       initiatedAt: string;
-    },
+    }
   ) => Promise<string>;
   logAPIResponse: (
     conversationId: string,
@@ -73,9 +69,11 @@ type InternalAuditLogger = {
         isUserError: boolean;
         isNetworkError: boolean;
       };
-    },
+    }
   ) => Promise<string>;
-  getConversationAuditLog: (conversationId: string) => Promise<Array<{ id: string; timestamp: string }>>;
+  getConversationAuditLog: (
+    conversationId: string
+  ) => Promise<Array<{ id: string; timestamp: string }>>;
   getAllAuditLogs: () => Promise<Map<string, Array<{ id: string; timestamp: string }>>>;
   exportForEDiscovery: (conversationId?: string) => Promise<string>;
   clearAuditLog: (conversationId: string, reason: string) => Promise<void>;
@@ -83,15 +81,18 @@ type InternalAuditLogger = {
   shouldAttemptRepair: (conversationId: string, now: number) => boolean;
   resetRepairStateForConversation: (conversationId: string) => void;
   readEntriesFromFile: (conversationId: string) => Promise<Array<{ id: string }>>;
-  storeEvent: (entry: {
-    id: string;
-    timestamp: string;
-    eventType: AuditEventType;
-    severity: AuditSeverity;
-    actor: 'USER' | 'SYSTEM' | 'API_PROVIDER';
-    action: string;
-    details: Record<string, unknown>;
-  }, conversationId?: string) => Promise<void>;
+  storeEvent: (
+    entry: {
+      id: string;
+      timestamp: string;
+      eventType: AuditEventType;
+      severity: AuditSeverity;
+      actor: 'USER' | 'SYSTEM' | 'API_PROVIDER';
+      action: string;
+      details: Record<string, unknown>;
+    },
+    conversationId?: string
+  ) => Promise<void>;
   chainCache: Map<string, { lastEventId?: string; lastHash?: string; sequenceNumber: number }>;
   cacheLoaded: Set<string>;
   repairInProgress: Set<string>;
@@ -115,7 +116,7 @@ type SingleMalformedFixture = {
 };
 
 const flushAsync = async (): Promise<void> => {
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise(resolve => setTimeout(resolve, 0));
 };
 
 const flushAuditRepair = async (): Promise<void> => {
@@ -178,17 +179,15 @@ const createSuccessfulAuditRead = (lines: string[]) =>
 
 const createSuccessfulAuditReadSequence = (readLineSets: string[][]) => {
   const auditReadMock = vi.fn();
-  readLineSets.forEach((lines) => {
+  readLineSets.forEach(lines => {
     auditReadMock.mockResolvedValueOnce({ success: true, lines });
   });
   return auditReadMock;
 };
 
-const createFailedAuditRead = () =>
-  vi.fn().mockResolvedValue({ success: false, lines: [] });
+const createFailedAuditRead = () => vi.fn().mockResolvedValue({ success: false, lines: [] });
 
-const createSuccessfulAuditReplace = () =>
-  vi.fn().mockResolvedValue({ success: true });
+const createSuccessfulAuditReplace = () => vi.fn().mockResolvedValue({ success: true });
 
 const createFailedAuditReplace = () =>
   vi.fn().mockResolvedValue({
@@ -198,10 +197,12 @@ const createFailedAuditReplace = () =>
 
 const createSingleReadScenario = (
   lines: string[],
-  options: { replaceShouldFail?: boolean } = {},
+  options: { replaceShouldFail?: boolean } = {}
 ): AuditStorageScenario => ({
   auditLogRead: createSuccessfulAuditRead(lines),
-  auditLogReplace: options.replaceShouldFail ? createFailedAuditReplace() : createSuccessfulAuditReplace(),
+  auditLogReplace: options.replaceShouldFail
+    ? createFailedAuditReplace()
+    : createSuccessfulAuditReplace(),
 });
 
 const createDoubleReadScenario = (readLineSets: string[][]): AuditStorageScenario => ({
@@ -224,12 +225,15 @@ const getMalformedSummaryWarnings = (): unknown[] =>
     .filter(([message]) => message === '[AppLogger] Malformed audit log lines were skipped')
     .map(([, payload]) => payload);
 
-const expectMalformedSummaryPayload = (payload: unknown, summary: {
-  conversationId: string;
-  skippedLines: number;
-  totalLines: number;
-  suppressedMalformedWarnings: number;
-}): void => {
+const expectMalformedSummaryPayload = (
+  payload: unknown,
+  summary: {
+    conversationId: string;
+    skippedLines: number;
+    totalLines: number;
+    suppressedMalformedWarnings: number;
+  }
+): void => {
   expect(payload).toEqual(
     expect.objectContaining({
       conversationId: summary.conversationId,
@@ -237,7 +241,7 @@ const expectMalformedSummaryPayload = (payload: unknown, summary: {
       totalLines: summary.totalLines,
       warningLimit: MALFORMED_WARNING_LIMIT,
       suppressedMalformedWarnings: summary.suppressedMalformedWarnings,
-    }),
+    })
   );
 };
 
@@ -253,7 +257,7 @@ const expectSingleMalformedSummary = (summary: {
 };
 
 const expectEntryIds = (entries: Array<{ id: string }>, expectedIds: string[]): void => {
-  expect(entries.map((entry) => entry.id)).toEqual(expectedIds);
+  expect(entries.map(entry => entry.id)).toEqual(expectedIds);
 };
 
 const expectNoEntries = (entries: Array<{ id: string }>): void => {
@@ -262,7 +266,7 @@ const expectNoEntries = (entries: Array<{ id: string }>): void => {
 
 const expectSingleReplaceCall = (
   auditLogReplace: unknown,
-  expectedCall?: [string, string],
+  expectedCall?: [string, string]
 ): void => {
   const replaceMock = auditLogReplace as ReturnType<typeof vi.fn>;
   expect(replaceMock).toHaveBeenCalledTimes(1);
@@ -277,7 +281,7 @@ const expectNoReplaceCalls = (auditLogReplace: unknown): void => {
 
 const expectSequentialMalformedLineWarnings = (
   conversationId: string,
-  malformedLineWarnings: unknown[],
+  malformedLineWarnings: unknown[]
 ): void => {
   expect(malformedLineWarnings).toHaveLength(MALFORMED_WARNING_LIMIT);
   malformedLineWarnings.forEach((payload, index) => {
@@ -286,7 +290,7 @@ const expectSequentialMalformedLineWarnings = (
         conversationId,
         lineIndex: index,
         error: expect.any(String),
-      }),
+      })
     );
   });
 };
@@ -297,7 +301,7 @@ const expectRepairCompletedLog = (conversationId: string, retainedEntries: numbe
     expect.objectContaining({
       conversationId,
       retainedEntries,
-    }),
+    })
   );
 };
 
@@ -307,7 +311,7 @@ const expectRepairFailedLog = (conversationId: string): void => {
     expect.objectContaining({
       conversationId,
       error: expect.anything(),
-    }),
+    })
   );
 };
 
@@ -317,7 +321,7 @@ const expectRepairThrewLog = (conversationId: string, errorMessage: string): voi
     expect.objectContaining({
       conversationId,
       error: errorMessage,
-    }),
+    })
   );
 };
 
@@ -332,18 +336,20 @@ const expectLatestInitializedMaxEntries = (expectedMaxEntries: number): void => 
   expect(initializedPayloads[initializedPayloads.length - 1]).toEqual(
     expect.objectContaining({
       maxEntriesPerConversation: expectedMaxEntries,
-    }),
+    })
   );
 };
 
 const withRuntimeAuditMaxEntries = async <T>(
   runtimeMaxEntries: number | undefined,
-  run: () => Promise<T> | T,
+  run: () => Promise<T> | T
 ): Promise<T> => {
-  const runtimeConfig = globalThis as typeof globalThis & { __ATTICUS_AUDIT_MAX_ENTRIES__?: number };
+  const runtimeConfig = globalThis as typeof globalThis & {
+    __ATTICUS_AUDIT_MAX_ENTRIES__?: number;
+  };
   const hadPreviousValue = Object.prototype.hasOwnProperty.call(
     runtimeConfig,
-    '__ATTICUS_AUDIT_MAX_ENTRIES__',
+    '__ATTICUS_AUDIT_MAX_ENTRIES__'
   );
   const previousValue = runtimeConfig.__ATTICUS_AUDIT_MAX_ENTRIES__;
 
@@ -366,19 +372,18 @@ const withRuntimeAuditMaxEntries = async <T>(
 
 const expectNoCooldownSkipWarnings = (): void => {
   const cooldownWarnings = loggerSpies.warn.mock.calls.filter(
-    ([message]) => message === '[AppLogger] Audit log self-repair skipped due to cooldown',
+    ([message]) => message === '[AppLogger] Audit log self-repair skipped due to cooldown'
   );
   expect(cooldownWarnings).toHaveLength(0);
 };
 
 const createInternalAuditLogger = (
-  options: { maxEntriesPerConversation?: number } = {},
-): InternalAuditLogger =>
-  new AuditLogger(options) as unknown as InternalAuditLogger;
+  options: { maxEntriesPerConversation?: number } = {}
+): InternalAuditLogger => new AuditLogger(options) as unknown as InternalAuditLogger;
 
 const withMockElectronAPI = async <T>(
   api: Partial<typeof window.electronAPI>,
-  run: () => Promise<T>,
+  run: () => Promise<T>
 ): Promise<T> => {
   const previousElectronAPI = window.electronAPI;
   (window as Window & { electronAPI: unknown }).electronAPI = {
@@ -395,14 +400,14 @@ const withMockElectronAPI = async <T>(
 const withMockAuditStorage = async <T>(
   auditLogRead: unknown,
   auditLogReplace: unknown,
-  run: () => Promise<T>,
+  run: () => Promise<T>
 ): Promise<T> =>
   withMockElectronAPI(
     {
       auditLogRead: auditLogRead as typeof window.electronAPI.auditLogRead,
       auditLogReplace: auditLogReplace as typeof window.electronAPI.auditLogReplace,
     },
-    run,
+    run
   );
 
 const withMockStoreEventStorage = async <T>(
@@ -411,7 +416,7 @@ const withMockStoreEventStorage = async <T>(
     auditLogReplace: unknown;
     auditLogAppend: unknown;
   },
-  run: () => Promise<T>,
+  run: () => Promise<T>
 ): Promise<T> =>
   withMockElectronAPI(
     {
@@ -419,7 +424,7 @@ const withMockStoreEventStorage = async <T>(
       auditLogReplace: api.auditLogReplace as typeof window.electronAPI.auditLogReplace,
       auditLogAppend: api.auditLogAppend as typeof window.electronAPI.auditLogAppend,
     },
-    run,
+    run
   );
 
 const createValidPersistedEntry = (id: string, timestamp: string) => ({
@@ -448,7 +453,7 @@ const readEntriesWithMockAuditStorage = async (
   conversationId: string,
   auditLogRead: unknown,
   auditLogReplace: unknown,
-  options: { flushRepair?: boolean } = {},
+  options: { flushRepair?: boolean } = {}
 ): Promise<Array<{ id: string }>> => {
   let entries: Array<{ id: string }> = [];
 
@@ -466,7 +471,7 @@ const readEntriesTwiceWithMockAuditStorage = async (
   internal: InternalAuditLogger,
   conversationId: string,
   auditLogRead: unknown,
-  auditLogReplace: unknown,
+  auditLogReplace: unknown
 ): Promise<void> => {
   await withMockAuditStorage(auditLogRead, auditLogReplace, async (): Promise<void> => {
     await internal.readEntriesFromFile(conversationId);
@@ -479,7 +484,7 @@ const readEntriesTwiceWithMockAuditStorage = async (
 const executeSingleReadScenario = async (
   conversationId: string,
   scenario: AuditStorageScenario,
-  options: { flushRepair?: boolean } = {},
+  options: { flushRepair?: boolean } = {}
 ): Promise<{ entries: Array<{ id: string }>; auditLogReplace: unknown }> => {
   const internal = createInternalAuditLogger();
   const entries = await readEntriesWithMockAuditStorage(
@@ -487,7 +492,7 @@ const executeSingleReadScenario = async (
     conversationId,
     scenario.auditLogRead,
     scenario.auditLogReplace,
-    options,
+    options
   );
 
   return {
@@ -498,14 +503,14 @@ const executeSingleReadScenario = async (
 
 const executeDoubleReadScenario = async (
   conversationId: string,
-  scenario: AuditStorageScenario,
+  scenario: AuditStorageScenario
 ): Promise<{ auditLogReplace: unknown }> => {
   const internal = createInternalAuditLogger();
   await readEntriesTwiceWithMockAuditStorage(
     internal,
     conversationId,
     scenario.auditLogRead,
-    scenario.auditLogReplace,
+    scenario.auditLogReplace
   );
 
   return {
@@ -581,9 +586,9 @@ describe('AuditLogger internals', () => {
   });
 
   it('logs initialization failure when key generation rejects', async () => {
-    const generateKeySpy = vi.spyOn(crypto.subtle, 'generateKey').mockRejectedValueOnce(
-      new Error('keygen failed'),
-    );
+    const generateKeySpy = vi
+      .spyOn(crypto.subtle, 'generateKey')
+      .mockRejectedValueOnce(new Error('keygen failed'));
 
     try {
       const internal = createInternalAuditLogger();
@@ -593,7 +598,7 @@ describe('AuditLogger internals', () => {
         '[AppLogger] Failed to initialize signing keys',
         expect.objectContaining({
           error: expect.any(Error),
-        }),
+        })
       );
     } finally {
       generateKeySpy.mockRestore();
@@ -612,7 +617,7 @@ describe('AuditLogger internals', () => {
         AuditSeverity.INFO,
         'SYSTEM',
         'runtime-failure-test',
-        {},
+        {}
       );
 
       expect(eventId).toMatch(/^AUDIT_FAILED_/);
@@ -621,7 +626,7 @@ describe('AuditLogger internals', () => {
         expect.objectContaining({
           error: expect.any(Error),
           eventType: AuditEventType.API_REQUEST_SENT,
-        }),
+        })
       );
     } finally {
       randomUuidSpy.mockRestore();
@@ -629,12 +634,12 @@ describe('AuditLogger internals', () => {
   });
 
   it('continues logEvent in degraded mode when key generation fails', async () => {
-    const generateKeySpy = vi.spyOn(crypto.subtle, 'generateKey').mockRejectedValueOnce(
-      new Error('keygen failed'),
-    );
-    const randomUuidSpy = vi.spyOn(crypto, 'randomUUID').mockReturnValue(
-      '00000000-0000-4000-8000-000000000000',
-    );
+    const generateKeySpy = vi
+      .spyOn(crypto.subtle, 'generateKey')
+      .mockRejectedValueOnce(new Error('keygen failed'));
+    const randomUuidSpy = vi
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValue('00000000-0000-4000-8000-000000000000');
 
     try {
       const internal = createInternalAuditLogger();
@@ -643,7 +648,7 @@ describe('AuditLogger internals', () => {
         AuditSeverity.INFO,
         'SYSTEM',
         'degraded-mode-test',
-        {},
+        {}
       );
 
       expect(eventId).toBe('00000000-0000-4000-8000-000000000000');
@@ -683,7 +688,7 @@ describe('AuditLogger internals', () => {
       expect(signature).toBeUndefined();
       expect(loggerSpies.error).toHaveBeenCalledWith(
         '[AppLogger] Signature generation failed',
-        expect.objectContaining({ error: expect.any(Error) }),
+        expect.objectContaining({ error: expect.any(Error) })
       );
       expect(generateKeySpy).toHaveBeenCalled();
     } finally {
@@ -717,7 +722,7 @@ describe('AuditLogger internals', () => {
     expect(isValid).toBe(false);
     expect(loggerSpies.error).toHaveBeenCalledWith(
       '[AppLogger] Signature verification failed',
-      expect.objectContaining({ error: expect.any(Error) }),
+      expect.objectContaining({ error: expect.any(Error) })
     );
   });
 
@@ -725,7 +730,9 @@ describe('AuditLogger internals', () => {
     const internal = createInternalAuditLogger() as unknown as {
       computeHash: (entry: Record<string, unknown>) => Promise<string>;
     };
-    const digestSpy = vi.spyOn(crypto.subtle, 'digest').mockRejectedValueOnce(new Error('digest failed'));
+    const digestSpy = vi
+      .spyOn(crypto.subtle, 'digest')
+      .mockRejectedValueOnce(new Error('digest failed'));
 
     try {
       const hash = await internal.computeHash({ id: 'hash-failure-entry' });
@@ -733,7 +740,7 @@ describe('AuditLogger internals', () => {
       expect(hash).toMatch(/^HASH_FAILED_/);
       expect(loggerSpies.error).toHaveBeenCalledWith(
         '[AppLogger] Hash computation failed',
-        expect.objectContaining({ error: expect.any(Error) }),
+        expect.objectContaining({ error: expect.any(Error) })
       );
     } finally {
       digestSpy.mockRestore();
@@ -745,39 +752,39 @@ describe('AuditLogger internals', () => {
     { userDecision: 'proceed' as const, expectedEventType: AuditEventType.PII_USER_PROCEEDED },
     { userDecision: 'cancel' as const, expectedEventType: AuditEventType.PII_USER_CANCELLED },
     { userDecision: 'anonymize' as const, expectedEventType: AuditEventType.PII_USER_ANONYMIZED },
-  ])('maps logPIIScan decision to event type: $expectedEventType', async ({
-    userDecision,
-    expectedEventType,
-  }) => {
-    const internal = createInternalAuditLogger();
-    const logEventSpy = vi.spyOn(internal, 'logEvent').mockResolvedValue('evt-pii-map');
+  ])(
+    'maps logPIIScan decision to event type: $expectedEventType',
+    async ({ userDecision, expectedEventType }) => {
+      const internal = createInternalAuditLogger();
+      const logEventSpy = vi.spyOn(internal, 'logEvent').mockResolvedValue('evt-pii-map');
 
-    await internal.logPIIScan(
-      PRIMARY_CONVERSATION_ID,
-      'msg-1',
-      {
-        hasFindings: false,
-        findingsCount: 0,
-        riskLevel: 'low',
-        detectedTypes: [],
-      },
-      'preview',
-      userDecision,
-    );
+      await internal.logPIIScan(
+        PRIMARY_CONVERSATION_ID,
+        'msg-1',
+        {
+          hasFindings: false,
+          findingsCount: 0,
+          riskLevel: 'low',
+          detectedTypes: [],
+        },
+        'preview',
+        userDecision
+      );
 
-    expect(logEventSpy).toHaveBeenCalledWith(
-      expectedEventType,
-      AuditSeverity.INFO,
-      'USER',
-      expect.any(String),
-      expect.objectContaining({
-        messagePreview: 'preview',
-        userDecision,
-      }),
-      PRIMARY_CONVERSATION_ID,
-      'msg-1',
-    );
-  });
+      expect(logEventSpy).toHaveBeenCalledWith(
+        expectedEventType,
+        AuditSeverity.INFO,
+        'USER',
+        expect.any(String),
+        expect.objectContaining({
+          messagePreview: 'preview',
+          userDecision,
+        }),
+        PRIMARY_CONVERSATION_ID,
+        'msg-1'
+      );
+    }
+  );
 
   it('uses CRITICAL severity for logPIIScan when findings are present', async () => {
     const internal = createInternalAuditLogger();
@@ -793,7 +800,7 @@ describe('AuditLogger internals', () => {
         detectedTypes: ['ssn'],
       },
       'critical preview',
-      undefined,
+      undefined
     );
 
     expect(logEventSpy).toHaveBeenCalledWith(
@@ -803,7 +810,7 @@ describe('AuditLogger internals', () => {
       expect.any(String),
       expect.any(Object),
       PRIMARY_CONVERSATION_ID,
-      'msg-critical',
+      'msg-critical'
     );
   });
 
@@ -811,19 +818,15 @@ describe('AuditLogger internals', () => {
     const internal = createInternalAuditLogger();
     const logEventSpy = vi.spyOn(internal, 'logEvent').mockResolvedValue('evt-api-request');
 
-    await internal.logAPIRequest(
-      PRIMARY_CONVERSATION_ID,
-      'msg-api',
-      {
-        provider: 'openai',
-        providerDisplayName: 'OpenAI',
-        model: 'gpt-test',
-        endpoint: '/chat/completions',
-        messageCount: 1,
-        systemPromptPresent: false,
-        initiatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    );
+    await internal.logAPIRequest(PRIMARY_CONVERSATION_ID, 'msg-api', {
+      provider: 'openai',
+      providerDisplayName: 'OpenAI',
+      model: 'gpt-test',
+      endpoint: '/chat/completions',
+      messageCount: 1,
+      systemPromptPresent: false,
+      initiatedAt: '2026-01-01T00:00:00.000Z',
+    });
 
     expect(logEventSpy).toHaveBeenCalledWith(
       AuditEventType.API_REQUEST_SENT,
@@ -835,7 +838,7 @@ describe('AuditLogger internals', () => {
         model: 'gpt-test',
       }),
       PRIMARY_CONVERSATION_ID,
-      'msg-api',
+      'msg-api'
     );
   });
 
@@ -884,32 +887,37 @@ describe('AuditLogger internals', () => {
       expectedSeverity: AuditSeverity.INFO,
       expectedAction: 'API response from openai',
     },
-  ])('maps logAPIResponse severity/event correctly', async ({
-    details,
-    expectedEventType,
-    expectedSeverity,
-    expectedAction,
-  }) => {
-    const internal = createInternalAuditLogger();
-    const logEventSpy = vi.spyOn(internal, 'logEvent').mockResolvedValue('evt-api-response');
+  ])(
+    'maps logAPIResponse severity/event correctly',
+    async ({ details, expectedEventType, expectedSeverity, expectedAction }) => {
+      const internal = createInternalAuditLogger();
+      const logEventSpy = vi.spyOn(internal, 'logEvent').mockResolvedValue('evt-api-response');
 
-    await internal.logAPIResponse(PRIMARY_CONVERSATION_ID, 'msg-api-resp', details);
+      await internal.logAPIResponse(PRIMARY_CONVERSATION_ID, 'msg-api-resp', details);
 
-    expect(logEventSpy).toHaveBeenCalledWith(
-      expectedEventType,
-      expectedSeverity,
-      'API_PROVIDER',
-      expectedAction,
-      expect.objectContaining({ provider: 'openai', model: 'gpt-test' }),
-      PRIMARY_CONVERSATION_ID,
-      'msg-api-resp',
-    );
-  });
+      expect(logEventSpy).toHaveBeenCalledWith(
+        expectedEventType,
+        expectedSeverity,
+        'API_PROVIDER',
+        expectedAction,
+        expect.objectContaining({ provider: 'openai', model: 'gpt-test' }),
+        PRIMARY_CONVERSATION_ID,
+        'msg-api-resp'
+      );
+    }
+  );
 
   it('sorts conversation audit log entries by timestamp ascending', async () => {
     const internal = createInternalAuditLogger();
     const verifyChainSpy = vi
-      .spyOn(internal as unknown as { verifyChainIntegrity: (entries: unknown[]) => Promise<{ valid: boolean; errors: string[] }> }, 'verifyChainIntegrity')
+      .spyOn(
+        internal as unknown as {
+          verifyChainIntegrity: (
+            entries: unknown[]
+          ) => Promise<{ valid: boolean; errors: string[] }>;
+        },
+        'verifyChainIntegrity'
+      )
       .mockResolvedValue({ valid: true, errors: [] });
 
     const first = createValidPersistedEntry('a', '2026-01-01T00:00:02.000Z');
@@ -922,10 +930,10 @@ describe('AuditLogger internals', () => {
           auditLogRead: auditLogRead as typeof window.electronAPI.auditLogRead,
         },
         async (): Promise<Array<{ id: string; timestamp: string }>> =>
-          internal.getConversationAuditLog(PRIMARY_CONVERSATION_ID),
+          internal.getConversationAuditLog(PRIMARY_CONVERSATION_ID)
       );
 
-      expect(entries.map((entry) => entry.id)).toEqual(['b', 'a']);
+      expect(entries.map(entry => entry.id)).toEqual(['b', 'a']);
     } finally {
       verifyChainSpy.mockRestore();
     }
@@ -934,7 +942,14 @@ describe('AuditLogger internals', () => {
   it('logs tampering diagnostics when chain verification fails', async () => {
     const internal = createInternalAuditLogger();
     const verifyChainSpy = vi
-      .spyOn(internal as unknown as { verifyChainIntegrity: (entries: unknown[]) => Promise<{ valid: boolean; errors: string[] }> }, 'verifyChainIntegrity')
+      .spyOn(
+        internal as unknown as {
+          verifyChainIntegrity: (
+            entries: unknown[]
+          ) => Promise<{ valid: boolean; errors: string[] }>;
+        },
+        'verifyChainIntegrity'
+      )
       .mockResolvedValue({ valid: false, errors: ['hash mismatch'] });
     const auditLogRead = createSuccessfulAuditRead([
       JSON.stringify(createValidPersistedEntry('tampered', '2026-01-01T00:00:00.000Z')),
@@ -947,12 +962,12 @@ describe('AuditLogger internals', () => {
         },
         async (): Promise<void> => {
           await internal.getConversationAuditLog(PRIMARY_CONVERSATION_ID);
-        },
+        }
       );
 
       expect(loggerSpies.error).toHaveBeenCalledWith(
         '[AppLogger] TAMPERING DETECTED!',
-        expect.objectContaining({ errors: ['hash mismatch'] }),
+        expect.objectContaining({ errors: ['hash mismatch'] })
       );
     } finally {
       verifyChainSpy.mockRestore();
@@ -968,7 +983,7 @@ describe('AuditLogger internals', () => {
         auditLogRead: auditLogRead as typeof window.electronAPI.auditLogRead,
       },
       async (): Promise<Array<{ id: string; timestamp: string }>> =>
-        internal.getConversationAuditLog(PRIMARY_CONVERSATION_ID),
+        internal.getConversationAuditLog(PRIMARY_CONVERSATION_ID)
     );
 
     expect(entries).toEqual([]);
@@ -977,7 +992,7 @@ describe('AuditLogger internals', () => {
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         error: expect.any(Error),
-      }),
+      })
     );
   });
 
@@ -992,7 +1007,8 @@ describe('AuditLogger internals', () => {
           error: { code: 'AUDIT_LIST_FAILED', message: 'list failed' },
         }) as typeof window.electronAPI.auditLogList,
       },
-      async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> => internal.getAllAuditLogs(),
+      async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> =>
+        internal.getAllAuditLogs()
     );
 
     expect(logs.size).toBe(0);
@@ -1000,14 +1016,14 @@ describe('AuditLogger internals', () => {
 
   it('aggregates logs for all conversation ids returned by list', async () => {
     const internal = createInternalAuditLogger();
-    const getConversationSpy = vi
-      .spyOn(internal, 'getConversationAuditLog')
-      .mockImplementation(async (conversationId: string): Promise<Array<{ id: string; timestamp: string }>> => [
+    const getConversationSpy = vi.spyOn(internal, 'getConversationAuditLog').mockImplementation(
+      async (conversationId: string): Promise<Array<{ id: string; timestamp: string }>> => [
         {
           id: `id-${conversationId}`,
           timestamp: '2026-01-01T00:00:00.000Z',
         },
-      ]);
+      ]
+    );
 
     try {
       const logs = await withMockElectronAPI(
@@ -1017,7 +1033,8 @@ describe('AuditLogger internals', () => {
             conversationIds: ['conv-a', 'conv-b'],
           }) as typeof window.electronAPI.auditLogList,
         },
-        async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> => internal.getAllAuditLogs(),
+        async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> =>
+          internal.getAllAuditLogs()
       );
 
       expect(logs.get('conv-a')?.[0].id).toBe('id-conv-a');
@@ -1033,25 +1050,30 @@ describe('AuditLogger internals', () => {
 
     const logs = await withMockElectronAPI(
       {
-        auditLogList: vi.fn().mockRejectedValueOnce(new Error('list exploded')) as typeof window.electronAPI.auditLogList,
+        auditLogList: vi
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('list exploded')
+          ) as typeof window.electronAPI.auditLogList,
       },
-      async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> => internal.getAllAuditLogs(),
+      async (): Promise<Map<string, Array<{ id: string; timestamp: string }>>> =>
+        internal.getAllAuditLogs()
     );
 
     expect(logs.size).toBe(0);
     expect(loggerSpies.error).toHaveBeenCalledWith(
       '[AppLogger] Failed to retrieve all audit logs',
-      expect.objectContaining({ error: expect.any(Error) }),
+      expect.objectContaining({ error: expect.any(Error) })
     );
   });
 
   it('formats exportForEDiscovery with production numbers and export metadata', async () => {
     const internal = createInternalAuditLogger();
-    const getAllSpy = vi.spyOn(internal, 'getAllAuditLogs').mockResolvedValue(
-      new Map([
-        ['conv-ed', [{ id: 'entry-1', timestamp: '2026-01-01T00:00:00.000Z' }]],
-      ]),
-    );
+    const getAllSpy = vi
+      .spyOn(internal, 'getAllAuditLogs')
+      .mockResolvedValue(
+        new Map([['conv-ed', [{ id: 'entry-1', timestamp: '2026-01-01T00:00:00.000Z' }]]])
+      );
 
     try {
       const exportPayload = await internal.exportForEDiscovery();
@@ -1065,9 +1087,9 @@ describe('AuditLogger internals', () => {
 
   it('exports only requested conversation when conversationId is provided', async () => {
     const internal = createInternalAuditLogger();
-    const getConversationSpy = vi.spyOn(internal, 'getConversationAuditLog').mockResolvedValue([
-      { id: 'entry-scoped', timestamp: '2026-01-01T00:00:00.000Z' },
-    ]);
+    const getConversationSpy = vi
+      .spyOn(internal, 'getConversationAuditLog')
+      .mockResolvedValue([{ id: 'entry-scoped', timestamp: '2026-01-01T00:00:00.000Z' }]);
     const getAllSpy = vi.spyOn(internal, 'getAllAuditLogs');
 
     try {
@@ -1083,14 +1105,16 @@ describe('AuditLogger internals', () => {
 
   it('returns empty export payload and logs error when export aggregation throws', async () => {
     const internal = createInternalAuditLogger();
-    const getAllSpy = vi.spyOn(internal, 'getAllAuditLogs').mockRejectedValueOnce(new Error('export exploded'));
+    const getAllSpy = vi
+      .spyOn(internal, 'getAllAuditLogs')
+      .mockRejectedValueOnce(new Error('export exploded'));
 
     try {
       const exportPayload = await internal.exportForEDiscovery();
       expect(exportPayload).toBe('');
       expect(loggerSpies.error).toHaveBeenCalledWith(
         '[AppLogger] Failed to export for eDiscovery',
-        expect.objectContaining({ error: expect.any(Error) }),
+        expect.objectContaining({ error: expect.any(Error) })
       );
     } finally {
       getAllSpy.mockRestore();
@@ -1113,11 +1137,13 @@ describe('AuditLogger internals', () => {
     try {
       await withMockElectronAPI(
         {
-          auditLogDelete: vi.fn().mockResolvedValue({ success: true }) as typeof window.electronAPI.auditLogDelete,
+          auditLogDelete: vi
+            .fn()
+            .mockResolvedValue({ success: true }) as typeof window.electronAPI.auditLogDelete,
         },
         async (): Promise<void> => {
           await internal.clearAuditLog(PRIMARY_CONVERSATION_ID, 'user-request');
-        },
+        }
       );
 
       expect(logEventSpy).toHaveBeenCalledWith(
@@ -1126,7 +1152,7 @@ describe('AuditLogger internals', () => {
         'USER',
         'Audit log cleared',
         expect.objectContaining({ reason: 'user-request' }),
-        PRIMARY_CONVERSATION_ID,
+        PRIMARY_CONVERSATION_ID
       );
       expect(internal.chainCache.has(PRIMARY_CONVERSATION_ID)).toBe(false);
       expect(internal.cacheLoaded.has(PRIMARY_CONVERSATION_ID)).toBe(false);
@@ -1151,7 +1177,7 @@ describe('AuditLogger internals', () => {
         },
         async (): Promise<void> => {
           await internal.clearAuditLog(PRIMARY_CONVERSATION_ID, 'user-request');
-        },
+        }
       );
 
       expect(loggerSpies.error).toHaveBeenCalledWith(
@@ -1159,7 +1185,7 @@ describe('AuditLogger internals', () => {
         expect.objectContaining({
           conversationId: PRIMARY_CONVERSATION_ID,
           error: expect.any(Error),
-        }),
+        })
       );
     } finally {
       logEventSpy.mockRestore();
@@ -1214,7 +1240,7 @@ describe('AuditLogger internals', () => {
         conversationId: PRIMARY_CONVERSATION_ID,
         cooldownMs: 60_000,
         elapsedMs,
-      }),
+      })
     );
   });
 
@@ -1245,11 +1271,14 @@ describe('AuditLogger internals', () => {
     const fixture = createMixedRewriteFixture('primary');
     const { entries, auditLogReplace } = await executeSingleReadScenario(
       PRIMARY_CONVERSATION_ID,
-      createSingleReadScenario(fixture.lines),
+      createSingleReadScenario(fixture.lines)
     );
     expectEntryIds(entries, fixture.expectedIds);
 
-    expectSingleReplaceCall(auditLogReplace, [PRIMARY_CONVERSATION_ID, fixture.expectedRewriteJsonl]);
+    expectSingleReplaceCall(auditLogReplace, [
+      PRIMARY_CONVERSATION_ID,
+      fixture.expectedRewriteJsonl,
+    ]);
 
     expectSingleMalformedSummary({
       conversationId: PRIMARY_CONVERSATION_ID,
@@ -1263,7 +1292,7 @@ describe('AuditLogger internals', () => {
     const fixture = createSingleMalformedFixture('cooldown');
     const { auditLogReplace } = await executeDoubleReadScenario(
       COOLDOWN_CONVERSATION_ID,
-      createDoubleReadScenario([fixture.lines, fixture.lines]),
+      createDoubleReadScenario([fixture.lines, fixture.lines])
     );
 
     expectSingleReplaceCall(auditLogReplace);
@@ -1273,7 +1302,7 @@ describe('AuditLogger internals', () => {
     const fixture = createSingleMalformedFixture('replace-fail');
     const { entries, auditLogReplace } = await executeSingleReadScenario(
       REPLACE_FAILURE_CONVERSATION_ID,
-      createSingleReadScenario(fixture.lines, { replaceShouldFail: true }),
+      createSingleReadScenario(fixture.lines, { replaceShouldFail: true })
     );
     expectEntryIds(entries, fixture.expectedIds);
 
@@ -1289,7 +1318,7 @@ describe('AuditLogger internals', () => {
       internal,
       PRIMARY_CONVERSATION_ID,
       auditLogRead,
-      auditLogReplace,
+      auditLogReplace
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1301,7 +1330,7 @@ describe('AuditLogger internals', () => {
     const fixture = createMixedRewriteFixture('repair-success-log');
     const { entries } = await executeSingleReadScenario(
       PRIMARY_CONVERSATION_ID,
-      createSingleReadScenario(fixture.lines),
+      createSingleReadScenario(fixture.lines)
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1312,7 +1341,7 @@ describe('AuditLogger internals', () => {
     const fixture = createSingleMalformedFixture('repair-failed-log');
     const { entries } = await executeSingleReadScenario(
       REPLACE_FAILURE_CONVERSATION_ID,
-      createSingleReadScenario(fixture.lines, { replaceShouldFail: true }),
+      createSingleReadScenario(fixture.lines, { replaceShouldFail: true })
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1329,7 +1358,7 @@ describe('AuditLogger internals', () => {
       createInternalAuditLogger(),
       PRIMARY_CONVERSATION_ID,
       auditLogRead,
-      auditLogReplace,
+      auditLogReplace
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1339,16 +1368,15 @@ describe('AuditLogger internals', () => {
   it('clears repair-in-progress state after unsuccessful replace result', async () => {
     const internal = createInternalAuditLogger();
     const fixture = createSingleMalformedFixture('repair-state-fail-result');
-    const { auditLogRead, auditLogReplace } = createSingleReadScenario(
-      fixture.lines,
-      { replaceShouldFail: true },
-    );
+    const { auditLogRead, auditLogReplace } = createSingleReadScenario(fixture.lines, {
+      replaceShouldFail: true,
+    });
 
     const entries = await readEntriesWithMockAuditStorage(
       internal,
       REPLACE_FAILURE_CONVERSATION_ID,
       auditLogRead,
-      auditLogReplace,
+      auditLogReplace
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1365,7 +1393,7 @@ describe('AuditLogger internals', () => {
       internal,
       PRIMARY_CONVERSATION_ID,
       auditLogRead,
-      auditLogReplace,
+      auditLogReplace
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1377,7 +1405,7 @@ describe('AuditLogger internals', () => {
     const suppressedMalformedWarnings = malformedLines.length - MALFORMED_WARNING_LIMIT;
     const { entries, auditLogReplace } = await executeSingleReadScenario(
       WARN_CAP_CONVERSATION_ID,
-      createSingleReadScenario(malformedLines),
+      createSingleReadScenario(malformedLines)
     );
     expectNoEntries(entries);
     expectSingleReplaceCall(auditLogReplace, [WARN_CAP_CONVERSATION_ID, '']);
@@ -1399,7 +1427,7 @@ describe('AuditLogger internals', () => {
     const suppressedMalformedWarnings = skippedLines - MALFORMED_WARNING_LIMIT;
     const { entries } = await executeSingleReadScenario(
       WARN_CAP_CONVERSATION_ID,
-      createSingleReadScenario(fixture.lines),
+      createSingleReadScenario(fixture.lines)
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1413,16 +1441,11 @@ describe('AuditLogger internals', () => {
 
   it('preserves original line indexes in malformed-line warning payloads for interleaved input', async () => {
     const { goodLineA, goodLineB } = createStandardValidAuditLines();
-    const interleavedLines = [
-      goodLineA,
-      malformedLine('x1'),
-      goodLineB,
-      malformedLine('x2'),
-    ];
+    const interleavedLines = [goodLineA, malformedLine('x1'), goodLineB, malformedLine('x2')];
 
     const { entries } = await executeSingleReadScenario(
       PRIMARY_CONVERSATION_ID,
-      createSingleReadScenario(interleavedLines),
+      createSingleReadScenario(interleavedLines)
     );
 
     expectEntryIds(entries, ['a', 'b']);
@@ -1432,20 +1455,20 @@ describe('AuditLogger internals', () => {
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         lineIndex: 1,
-      }),
+      })
     );
     expect(malformedLineWarnings[1]).toEqual(
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         lineIndex: 3,
-      }),
+      })
     );
   });
 
   it('does not attempt repair when audit log read fails', async () => {
     const { entries, auditLogReplace } = await executeSingleReadScenario(
       READ_FAILURE_CONVERSATION_ID,
-      createFailedReadScenario(),
+      createFailedReadScenario()
     );
     expectNoEntries(entries);
     expectNoReplaceCalls(auditLogReplace);
@@ -1463,7 +1486,7 @@ describe('AuditLogger internals', () => {
       internal,
       PRIMARY_CONVERSATION_ID,
       auditLogRead,
-      auditLogReplace,
+      auditLogReplace
     );
 
     expectEntryIds(entries, fixture.expectedIds);
@@ -1475,7 +1498,7 @@ describe('AuditLogger internals', () => {
       EMPTY_CONVERSATION_ID,
       createSingleReadScenario([], {
         replaceShouldFail: true,
-      }),
+      })
     );
     expectNoEntries(entries);
 
@@ -1493,13 +1516,13 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(createStoredAuditEntry('append-entry'), PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(auditLogAppend).toHaveBeenCalledTimes(1);
     expect(auditLogAppend).toHaveBeenCalledWith(
       PRIMARY_CONVERSATION_ID,
-      JSON.stringify(createStoredAuditEntry('append-entry')),
+      JSON.stringify(createStoredAuditEntry('append-entry'))
     );
     expectNoReplaceCalls(auditLogReplace);
   });
@@ -1527,7 +1550,7 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(newEntry, PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(auditLogAppend).not.toHaveBeenCalled();
@@ -1550,7 +1573,7 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(createStoredAuditEntry('append-fail'), PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(auditLogAppend).toHaveBeenCalledTimes(1);
@@ -1559,7 +1582,7 @@ describe('AuditLogger internals', () => {
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         error: expect.any(Error),
-      }),
+      })
     );
   });
 
@@ -1573,7 +1596,7 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(createStoredAuditEntry('no-conversation'));
-      },
+      }
     );
 
     expectNoReplaceCalls(auditLogReplace);
@@ -1590,7 +1613,7 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(createStoredAuditEntry('append-throw'), PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(loggerSpies.error).toHaveBeenCalledWith(
@@ -1598,7 +1621,7 @@ describe('AuditLogger internals', () => {
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         error: expect.any(Error),
-      }),
+      })
     );
   });
 
@@ -1623,7 +1646,7 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(newEntry, PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(auditLogAppend).not.toHaveBeenCalled();
@@ -1632,7 +1655,7 @@ describe('AuditLogger internals', () => {
       expect.objectContaining({
         conversationId: PRIMARY_CONVERSATION_ID,
         error: expect.any(Error),
-      }),
+      })
     );
   });
 
@@ -1653,13 +1676,10 @@ describe('AuditLogger internals', () => {
       { auditLogRead, auditLogReplace, auditLogAppend },
       async (): Promise<void> => {
         await internal.storeEvent(newEntry, PRIMARY_CONVERSATION_ID);
-      },
+      }
     );
 
     expect(auditLogAppend).not.toHaveBeenCalled();
-    expectSingleReplaceCall(auditLogReplace, [
-      PRIMARY_CONVERSATION_ID,
-      JSON.stringify(newEntry),
-    ]);
+    expectSingleReplaceCall(auditLogReplace, [PRIMARY_CONVERSATION_ID, JSON.stringify(newEntry)]);
   });
 });

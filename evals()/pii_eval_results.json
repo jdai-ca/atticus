@@ -1,0 +1,729 @@
+{
+  "metadata": {
+    "suite": "PII Enterprise Multijurisdictional Evaluation Suite",
+    "version": "2.0.0",
+    "timestamp": "2026-09-03T14:49:51.471874+00:00",
+    "total_cases": 30,
+    "passed": 21,
+    "failed": 9,
+    "errors": 0,
+    "pass_rate": 70.0
+  },
+  "results": [
+    {
+      "id": "PII-ENT-001",
+      "category": "M&A Diligence & VDR \u2013 Unredacted C-Suite Executive Census",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "usSsn",
+        "email",
+        "phoneNumber",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "email",
+        "phoneNumber",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "email",
+          "phoneNumber",
+          "STREET_ADDRESS",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-002",
+      "category": "M&A Diligence & VDR \u2013 Canadian Cross-Border Subsidiary Payroll",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "SIN",
+        "HEALTH_CARD",
+        "email"
+      ],
+      "actual_categories": [
+        "SIN",
+        "email"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "SIN",
+          "email"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-003",
+      "category": "M&A Diligence & VDR \u2013 Mexican Subsidiary Shareholder Register",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "CURP",
+        "RFC",
+        "CLABE"
+      ],
+      "actual_categories": [
+        "CURP",
+        "RFC",
+        "CLABE",
+        "phoneNumber"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "CURP",
+          "RFC",
+          "CLABE",
+          "phoneNumber"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-004",
+      "category": "M&A Diligence & VDR \u2013 European Subsidiary Key Personnel Register",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "NATIONAL_ID",
+        "IBAN",
+        "email"
+      ],
+      "actual_categories": [
+        "IBAN",
+        "email",
+        "phoneNumber"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "IBAN",
+          "email",
+          "phoneNumber"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-005",
+      "category": "M&A Diligence & VDR \u2013 UK Operations Director Expatriate Passport",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "PASSPORT",
+        "email",
+        "phoneNumber"
+      ],
+      "actual_categories": [
+        "SIN",
+        "email",
+        "phoneNumber",
+        "TAX_ID"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "SIN",
+          "email",
+          "phoneNumber",
+          "TAX_ID"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-006",
+      "category": "Banking & Payments \u2013 Commercial Chargeback Rebuttal Pack (Visa)",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "creditCard",
+        "email",
+        "POSTAL_CODE"
+      ],
+      "actual_categories": [
+        "creditCard",
+        "email",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "creditCard",
+          "email",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-007",
+      "category": "Banking & Payments \u2013 High-Net-Worth Retainer Payment (Amex)",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "creditCard",
+        "STREET_ADDRESS"
+      ],
+      "actual_categories": [
+        "creditCard",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "creditCard",
+          "STREET_ADDRESS",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-008",
+      "category": "Banking & Payments \u2013 International Corporate Wire Settlement (IBAN/SWIFT)",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "IBAN",
+        "SWIFT_BIC"
+      ],
+      "actual_categories": [
+        "IBAN",
+        "SWIFT_BIC",
+        "phoneNumber"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "IBAN",
+          "SWIFT_BIC",
+          "phoneNumber"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-009",
+      "category": "Banking & Payments \u2013 US Automated Clearing House (ACH) Vendor Setup",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "ROUTING_NUMBER",
+        "BANK_ACCOUNT"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "SIN",
+        "BANK_ACCOUNT",
+        "ROUTING_NUMBER",
+        "phoneNumber",
+        "TAX_ID"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "SIN",
+          "BANK_ACCOUNT",
+          "ROUTING_NUMBER",
+          "phoneNumber",
+          "TAX_ID"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-010",
+      "category": "Banking & Payments \u2013 Canadian Payroll Direct Deposit Transit",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "TRANSIT_NUMBER",
+        "BANK_ACCOUNT"
+      ],
+      "actual_categories": [
+        "BANK_ACCOUNT",
+        "TRANSIT_NUMBER",
+        "phoneNumber",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "BANK_ACCOUNT",
+          "TRANSIT_NUMBER",
+          "phoneNumber",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-011",
+      "category": "Healthcare PHI \u2013 Clinical Medical Malpractice Trial Exhibit",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "MEDICAL_RECORD",
+        "phoneNumber"
+      ],
+      "actual_categories": [
+        "TRANSIT_NUMBER",
+        "phoneNumber",
+        "MEDICAL_RECORD"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "TRANSIT_NUMBER",
+          "phoneNumber",
+          "MEDICAL_RECORD"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-012",
+      "category": "Healthcare PHI \u2013 Workers' Compensation Injury Claim Package",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "usSsn",
+        "MEDICAL_RECORD",
+        "DRIVERS_LICENSE"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "PASSPORT",
+        "DRIVERS_LICENSE",
+        "TRANSIT_NUMBER",
+        "MEDICAL_RECORD"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "PASSPORT",
+          "DRIVERS_LICENSE",
+          "TRANSIT_NUMBER",
+          "MEDICAL_RECORD"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-013",
+      "category": "Healthcare PHI \u2013 Health Plan Subrogation Lien Summary",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "usSsn",
+        "email",
+        "CASE_NUMBER"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "email",
+        "CASE_NUMBER",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "email",
+          "CASE_NUMBER",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-014",
+      "category": "Healthcare PHI \u2013 Pharmaceutical Adverse Event Report",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "phoneNumber",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "actual_categories": [
+        "phoneNumber",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "phoneNumber",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-015",
+      "category": "Healthcare PHI \u2013 Provincial Health Insurance Coverage Verification",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "HEALTH_CARD",
+        "email"
+      ],
+      "actual_categories": [
+        "email",
+        "phoneNumber",
+        "HEALTH_CARD"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "email",
+          "phoneNumber",
+          "HEALTH_CARD"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-016",
+      "category": "DevOps & Security \u2013 Leaked Production AWS Cloud Key",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "apiKeyTokens"
+      ],
+      "actual_categories": [
+        "apiKeyTokens"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "apiKeyTokens"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-017",
+      "category": "DevOps & Security \u2013 Production Database Connection String",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "PASSWORD_PATTERN",
+        "ipAddress"
+      ],
+      "actual_categories": [
+        "PASSWORD_PATTERN",
+        "ipAddress"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "PASSWORD_PATTERN",
+          "ipAddress"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-018",
+      "category": "DevOps & Security \u2013 Network Penetration Internal Subnet Report",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "ipAddress"
+      ],
+      "actual_categories": [
+        "NATIONAL_ID",
+        "ipAddress"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "NATIONAL_ID",
+          "ipAddress"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-019",
+      "category": "DevOps & Security \u2013 Stripe Live Secret Key Leakage",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "apiKeyTokens"
+      ],
+      "actual_categories": [
+        "apiKeyTokens"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "apiKeyTokens"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-020",
+      "category": "DevOps & Security \u2013 Corporate VPN User Gateway Credentials",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "PASSWORD_PATTERN",
+        "email"
+      ],
+      "actual_categories": [
+        "email",
+        "PASSWORD_PATTERN"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "email",
+          "PASSWORD_PATTERN"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-021",
+      "category": "HR & Whistleblower \u2013 Title VII Workplace Harassment Complaint",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "email",
+        "phoneNumber"
+      ],
+      "actual_categories": [
+        "email",
+        "phoneNumber"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "email",
+          "phoneNumber"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-022",
+      "category": "HR & Whistleblower \u2013 Executive Separation & Golden Parachute Memo",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "usSsn",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "STREET_ADDRESS",
+        "POSTAL_CODE"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "STREET_ADDRESS",
+          "POSTAL_CODE"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-023",
+      "category": "HR & Whistleblower \u2013 Expatriate Visa Sponsorship Dossier (H-1B)",
+      "passed": true,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "PASSPORT",
+        "DRIVERS_LICENSE",
+        "TAX_ID"
+      ],
+      "actual_categories": [
+        "PASSPORT",
+        "DRIVERS_LICENSE",
+        "TAX_ID"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "PASSPORT",
+          "DRIVERS_LICENSE",
+          "TAX_ID"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-024",
+      "category": "HR & Whistleblower \u2013 Cross-Border Dual-Citizen FATCA Tax Declaration",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "usSsn",
+        "VAT_NUMBER",
+        "email"
+      ],
+      "actual_categories": [
+        "usSsn",
+        "PASSPORT",
+        "email"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "usSsn",
+          "PASSPORT",
+          "email"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-025",
+      "category": "HR & Whistleblower \u2013 Board Audit Committee Hotline Alert",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": true,
+      "expected_categories": [
+        "phoneNumber",
+        "email",
+        "CASE_NUMBER"
+      ],
+      "actual_categories": [
+        "email",
+        "phoneNumber"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "email",
+          "phoneNumber"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-026",
+      "category": "Boundary & Controls \u2013 Negative Control: 16-Digit Hardware Serial Number",
+      "passed": false,
+      "expected_findings": false,
+      "actual_findings": true,
+      "expected_categories": [],
+      "actual_categories": [
+        "creditCard"
+      ],
+      "error": null,
+      "data": {
+        "hasFindings": true,
+        "detectedCategories": [
+          "creditCard"
+        ]
+      }
+    },
+    {
+      "id": "PII-ENT-027",
+      "category": "Boundary & Controls \u2013 Negative Control: Federal Case Docket & Statutory Citations",
+      "passed": true,
+      "expected_findings": false,
+      "actual_findings": false,
+      "expected_categories": [],
+      "actual_categories": [],
+      "error": null,
+      "data": {
+        "hasFindings": false,
+        "detectedCategories": []
+      }
+    },
+    {
+      "id": "PII-ENT-028",
+      "category": "Boundary & Controls \u2013 Negative Control: Patent Numbers & Standardized ISBN Barcode",
+      "passed": true,
+      "expected_findings": false,
+      "actual_findings": false,
+      "expected_categories": [],
+      "actual_categories": [],
+      "error": null,
+      "data": {
+        "hasFindings": false,
+        "detectedCategories": []
+      }
+    },
+    {
+      "id": "PII-ENT-029",
+      "category": "Boundary & Controls \u2013 Adversarial Obfuscation: Spaced SSN Evasion",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": false,
+      "expected_categories": [
+        "usSsn"
+      ],
+      "actual_categories": [],
+      "error": null,
+      "data": {
+        "hasFindings": false,
+        "detectedCategories": []
+      }
+    },
+    {
+      "id": "PII-ENT-030",
+      "category": "Boundary & Controls \u2013 Adversarial Obfuscation: Concealed Payment Card in Code Comment",
+      "passed": false,
+      "expected_findings": true,
+      "actual_findings": false,
+      "expected_categories": [
+        "creditCard"
+      ],
+      "actual_categories": [],
+      "error": null,
+      "data": {
+        "hasFindings": false,
+        "detectedCategories": []
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
-import { FileUploadResult } from "../types";
-import type { SecurityAnalysisResult } from "../services/fileSecurityPipeline";
-import { FileProcessingReviewDialog } from "./FileProcessingReviewDialog";
-import type { FileProcessingDialogResult } from "./hooks/useFileProcessingDialog";
+import { FileUploadResult } from '../types';
+import type { SecurityAnalysisResult } from '../services/fileSecurityPipeline';
+import { FileProcessingReviewDialog } from './FileProcessingReviewDialog';
+import type { FileProcessingDialogResult } from './hooks/useFileProcessingDialog';
 
 interface ChatFileProcessingDialogProps {
   readonly isProcessingFile: boolean;

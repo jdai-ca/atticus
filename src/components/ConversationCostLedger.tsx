@@ -1,13 +1,13 @@
-import { Conversation } from "../types";
-import { createLogger } from "../services/debugLogger";
-import { CostLedgerSummaryCards } from "./CostLedgerSummaryCards";
-import { CostLedgerHeader } from "./CostLedgerHeader";
-import { CostLedgerTable } from "./CostLedgerTable";
-import { CostLedgerFooter } from "./CostLedgerFooter";
-import { exportConversationCostLedgerPdf } from "../utils/exportConversationCostLedgerPdf";
-import { buildCostLedgerData } from "../utils/costLedgerData";
+import { Conversation } from '../types';
+import { createLogger } from '../services/debugLogger';
+import { CostLedgerSummaryCards } from './CostLedgerSummaryCards';
+import { CostLedgerHeader } from './CostLedgerHeader';
+import { CostLedgerTable } from './CostLedgerTable';
+import { CostLedgerFooter } from './CostLedgerFooter';
+import { exportConversationCostLedgerPdf } from '../utils/exportConversationCostLedgerPdf';
+import { buildCostLedgerData } from '../utils/costLedgerData';
 
-const logger = createLogger("ConversationCostLedger");
+const logger = createLogger('ConversationCostLedger');
 
 interface ConversationCostLedgerProps {
   conversation: Conversation;
@@ -18,17 +18,14 @@ export default function ConversationCostLedger({
   conversation,
   onClose,
 }: Readonly<ConversationCostLedgerProps>) {
-  const { costEntries, totals, totalTier, tierColors } = buildCostLedgerData(
-    conversation,
-    {
-      onCostValidationFailed: (payload) => {
-        logger.warn("Cost validation failed", payload);
-      },
-      onTotalCostMismatch: (payload) => {
-        logger.warn("Total cost mismatch detected", payload);
-      },
+  const { costEntries, totals, totalTier, tierColors } = buildCostLedgerData(conversation, {
+    onCostValidationFailed: payload => {
+      logger.warn('Cost validation failed', payload);
     },
-  );
+    onTotalCostMismatch: payload => {
+      logger.warn('Total cost mismatch detected', payload);
+    },
+  });
 
   // Export cost ledger as PDF
   const exportToPDF = async () => {
@@ -41,7 +38,7 @@ export default function ConversationCostLedger({
         totalTier,
       });
     } catch (error) {
-      logger.error("Failed to export cost ledger to PDF", {
+      logger.error('Failed to export cost ledger to PDF', {
         error,
         conversationId: conversation.id,
       });
@@ -57,11 +54,7 @@ export default function ConversationCostLedger({
           onClose={onClose}
         />
 
-        <CostLedgerSummaryCards
-          totals={totals}
-          totalTier={totalTier}
-          tierColors={tierColors}
-        />
+        <CostLedgerSummaryCards totals={totals} totalTier={totalTier} tierColors={tierColors} />
 
         <CostLedgerTable
           costEntries={costEntries}

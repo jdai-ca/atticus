@@ -1,5 +1,5 @@
-import { Conversation } from "../types";
-import TagDialog from "./TagDialog";
+import { Conversation } from '../types';
+import TagDialog from './TagDialog';
 
 interface ChatTagDialogProps {
   readonly showTagDialog: boolean;

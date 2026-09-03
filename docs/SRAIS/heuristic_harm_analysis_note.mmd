@@ -1,0 +1,40 @@
+flowchart TD
+    A[Raw Input Text] --> B{Length > 20k chars?}
+    B -- Yes --> C[Truncate to 20,000 chars]
+    B -- No --> D
+    C --> D[Normalize NFC]
+    
+    D --> E[Deobfuscation Layer]
+    E -->|Base64 / Hex| E1[Decode]
+    E -->|URL Encoding| E2[Decode]
+    E -->|ROT13 / Caesar| E3[Decode]
+    E -->|Spaced Strings| E4[Remove Spaces]
+    E1 & E2 & E3 & E4 --> F[Processed Text]
+    
+    F --> G[Evaluate Exemptions]
+    G -->|Template/Educational Match| H(Is Exempt = True)
+    G -->|No Match| I(Is Exempt = False)
+    
+    F --> J[Regex Harms Scanning]
+    J -->|Privacy, Financial, Legal, Hate...| K[Detected Harms List]
+    
+    F --> L[Consequences Scanning]
+    L -->|Financial Loss, Liability...| M[Detected Consequences]
+    
+    K --> N{Has Critical Indicator?}
+    N -- Corruption / Evidence Tampering / Violence / Hate --> O(Critical = True)
+    N -- Otherwise --> P(Critical = False)
+    
+    O --> Q[Ignore Exemption]
+    H -->|If Critical = False| R[Suppress Non-Critical Harms]
+    
+    F --> S[Target Framing Extraction]
+    S -->|Entity, Role, Situation, Pronouns| T[Target Type]
+    
+    K & M & O & R & T --> U[Risk Level Estimation]
+    U -->|Critical| V[Critical Risk]
+    U -->|High-Stakes Harms| W[High-Stakes Risk]
+    U -->|Other Harms| X[Compliance Risk]
+    U -->|No Harms| Y[Low Risk]
+    
+    V & W & X & Y --> Z[Final SRAIS Result]

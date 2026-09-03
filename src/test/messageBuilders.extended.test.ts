@@ -1,8 +1,16 @@
-import { buildSystemPrompt, createUserMessage, createAssistantMessages } from '../utils/messageBuilders';
+import {
+  buildSystemPrompt,
+  createUserMessage,
+  createAssistantMessages,
+} from '../utils/messageBuilders';
 import { describe, it, expect } from 'vitest';
 
 const minimalAdvisory = { id: 'general-advisory', name: 'General Advisory', systemPrompt: '' };
-const minimalAdvisoryNonGeneral = { id: 'advisory-1', name: 'Advisory', systemPrompt: 'Advisory prompt.' };
+const minimalAdvisoryNonGeneral = {
+  id: 'advisory-1',
+  name: 'Advisory',
+  systemPrompt: 'Advisory prompt.',
+};
 
 describe('messageBuilders (edge/extended)', () => {
   it('buildSystemPrompt handles empty and minimal advisory', () => {
@@ -19,7 +27,11 @@ describe('messageBuilders (edge/extended)', () => {
   });
 
   it('createAssistantMessages handles null/undefined responses', () => {
-    const msgs = createAssistantMessages([null, { content: 'A', modelInfo: undefined }], 'Practice', minimalAdvisory);
+    const msgs = createAssistantMessages(
+      [null, { content: 'A', modelInfo: undefined }],
+      'Practice',
+      minimalAdvisory
+    );
     expect(Array.isArray(msgs)).toBe(true);
     expect(msgs.length).toBe(1);
     expect(msgs[0].role).toBe('assistant');

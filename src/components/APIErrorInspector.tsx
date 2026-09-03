@@ -1,16 +1,13 @@
-import { X } from "lucide-react";
-import { useTranslation } from "../i18n/LanguageContext";
-import { APITrace } from "../types";
+import { X } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
+import { APITrace } from '../types';
 
 interface APIErrorInspectorProps {
   readonly apiTrace: APITrace;
   readonly onClose: () => void;
 }
 
-export default function APIErrorInspector({
-  apiTrace,
-  onClose,
-}: APIErrorInspectorProps) {
+export default function APIErrorInspector({ apiTrace, onClose }: APIErrorInspectorProps) {
   const { t } = useTranslation();
   const copyToClipboard = () => {
     const text = JSON.stringify(apiTrace, null, 2);
@@ -39,9 +36,7 @@ export default function APIErrorInspector({
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">
-                {t.apiInspector.title}
-              </h2>
+              <h2 className="text-xl font-semibold text-white">{t.apiInspector.title}</h2>
               <p className="text-sm text-gray-400">
                 {t.apiInspector.requestId}: {apiTrace.requestId}
               </p>
@@ -67,9 +62,7 @@ export default function APIErrorInspector({
                 Request Status
               </h3>
             </div>
-            <p className="text-2xl font-bold text-red-300">
-              {apiTrace.status.toUpperCase()}
-            </p>
+            <p className="text-2xl font-bold text-red-300">{apiTrace.status.toUpperCase()}</p>
           </div>
 
           {/* Error Details */}
@@ -117,9 +110,7 @@ export default function APIErrorInspector({
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="text-xs text-gray-400">Model:</div>
-                <div className="col-span-2 font-mono text-sm text-gray-200">
-                  {apiTrace.model}
-                </div>
+                <div className="col-span-2 font-mono text-sm text-gray-200">{apiTrace.model}</div>
               </div>
               {apiTrace.endpoint && (
                 <div className="grid grid-cols-3 gap-2">
@@ -158,9 +149,7 @@ export default function APIErrorInspector({
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-xs text-gray-400">
-                    Completion Tokens:
-                  </div>
+                  <div className="text-xs text-gray-400">Completion Tokens:</div>
                   <div className="col-span-2 font-mono text-sm text-gray-200">
                     {apiTrace.usage.completionTokens.toLocaleString()}
                   </div>
@@ -197,8 +186,7 @@ export default function APIErrorInspector({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-700 flex justify-between items-center bg-gray-900/50">
           <div className="text-xs text-gray-400">
-            Use this information to debug API configuration and connectivity
-            issues
+            Use this information to debug API configuration and connectivity issues
           </div>
           <button
             onClick={onClose}

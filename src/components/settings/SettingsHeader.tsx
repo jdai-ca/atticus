@@ -1,5 +1,5 @@
-import { X } from "lucide-react";
-import { useTranslation } from "../../i18n/LanguageContext";
+import { X } from 'lucide-react';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 interface SettingsHeaderProps {
   readonly onClose: () => void;

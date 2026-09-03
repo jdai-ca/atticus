@@ -123,9 +123,7 @@ export async function loadProviderWithApiKey(providerId: string): Promise<unknow
     const configData = await fs.promises.readFile(configPath, 'utf-8');
     const config = JSON.parse(configData);
 
-    const provider = config.providers?.find(
-      (p: ConfigProvider): boolean => p.id === providerId,
-    );
+    const provider = config.providers?.find((p: ConfigProvider): boolean => p.id === providerId);
     if (!provider) {
       throw new Error(`Provider ${providerId} not found in configuration`);
     }

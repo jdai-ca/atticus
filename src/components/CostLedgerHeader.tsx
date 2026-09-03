@@ -1,5 +1,5 @@
-import { DollarSign, X } from "lucide-react";
-import { useTranslation } from "../i18n/LanguageContext";
+import { DollarSign, X } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface CostLedgerHeaderProps {
   readonly conversationTitle: string;
@@ -24,7 +24,7 @@ export function CostLedgerHeader({
           </h2>
           <p className="text-sm text-gray-400">Conversation: {conversationTitle}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {apiCallCount === 1 ? "1 API call" : `${apiCallCount} API calls`}
+            {apiCallCount === 1 ? '1 API call' : `${apiCallCount} API calls`}
           </p>
         </div>
         <button

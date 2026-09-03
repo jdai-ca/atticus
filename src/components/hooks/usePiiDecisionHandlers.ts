@@ -1,10 +1,10 @@
-import { useCallback } from "react";
-import type { Jurisdiction, Conversation } from "../../types";
-import { piiScanner, PIIScanResult } from "../../services/piiScanner";
-import { auditLogger } from "../../services/auditLogger";
-import { createLogger } from "../../services/debugLogger";
+import { useCallback } from 'react';
+import type { Jurisdiction, Conversation } from '../../types';
+import { piiScanner, PIIScanResult } from '../../services/piiScanner';
+import { auditLogger } from '../../services/auditLogger';
+import { createLogger } from '../../services/debugLogger';
 
-const logger = createLogger("usePiiDecisionHandlers");
+const logger = createLogger('usePiiDecisionHandlers');
 
 interface UsePiiDecisionHandlersProps {
   readonly currentConversation: Conversation | null;
@@ -19,7 +19,7 @@ interface UsePiiDecisionHandlersProps {
   readonly sendMessage: (message: string) => Promise<void>;
 }
 
-type PiiDecision = "proceed" | "cancel" | "anonymize";
+type PiiDecision = 'proceed' | 'cancel' | 'anonymize';
 
 interface PiiDecisionHandlers {
   readonly handlePrivacyProceed: () => Promise<void>;
@@ -44,10 +44,11 @@ export function usePiiDecisionHandlers({
       if (!currentConversation || !piiScanResult) return;
 
       const activeJurisdictions: Jurisdiction[] = Array.from(
-        selectedJurisdictions,
+        selectedJurisdictions
       ) as Jurisdiction[];
 
-      const messageIdSuffix = decision === "cancel" ? "_cancelled" : decision === "anonymize" ? "_anonymized" : "";
+      const messageIdSuffix =
+        decision === 'cancel' ? '_cancelled' : decision === 'anonymize' ? '_anonymized' : '';
       const messageId = `msg_${crypto.randomUUID()}${messageIdSuffix}`;
 
       // Log to PII scanner
@@ -74,27 +75,27 @@ export function usePiiDecisionHandlers({
           jurisdictions: activeJurisdictions,
         },
         pendingMessage.substring(0, 100),
-        decision,
+        decision
       );
 
       setShowPrivacyWarning(false);
 
       // Handle decision-specific actions
-      if (decision === "proceed") {
-        logger.info("User chose to proceed despite PII warning");
+      if (decision === 'proceed') {
+        logger.info('User chose to proceed despite PII warning');
         await sendMessage(pendingMessage);
-        setPendingMessage("");
-      } else if (decision === "cancel") {
-        logger.info("User cancelled message due to PII warning");
-        setPendingMessage("");
+        setPendingMessage('');
+      } else if (decision === 'cancel') {
+        logger.info('User cancelled message due to PII warning');
+        setPendingMessage('');
         setTimeout((): void => {
           textareaRef.current?.focus();
         }, 100);
-      } else if (decision === "anonymize") {
-        logger.info("User chose to anonymize PII");
+      } else if (decision === 'anonymize') {
+        logger.info('User chose to anonymize PII');
         const anonymized = piiScanner.anonymize(pendingMessage, piiScanResult);
         setInput(anonymized);
-        setPendingMessage("");
+        setPendingMessage('');
         setTimeout((): void => {
           textareaRef.current?.focus();
         }, 100);
@@ -113,21 +114,21 @@ export function usePiiDecisionHandlers({
       setPiiScanResult,
       setInput,
       sendMessage,
-    ],
+    ]
   );
 
   return {
     handlePrivacyProceed: useCallback(
-      (): Promise<void> => handlePiiDecision("proceed"),
-      [handlePiiDecision],
+      (): Promise<void> => handlePiiDecision('proceed'),
+      [handlePiiDecision]
     ),
     handlePrivacyCancel: useCallback(
-      (): Promise<void> => handlePiiDecision("cancel"),
-      [handlePiiDecision],
+      (): Promise<void> => handlePiiDecision('cancel'),
+      [handlePiiDecision]
     ),
     handlePrivacyAnonymize: useCallback(
-      (): Promise<void> => handlePiiDecision("anonymize"),
-      [handlePiiDecision],
+      (): Promise<void> => handlePiiDecision('anonymize'),
+      [handlePiiDecision]
     ),
   } satisfies PiiDecisionHandlers;
 }

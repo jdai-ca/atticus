@@ -1,11 +1,4 @@
-export const IMAGE_EXTENSIONS = [
-  '.jpg',
-  '.jpeg',
-  '.png',
-  '.gif',
-  '.webp',
-  '.bmp',
-] as const;
+export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'] as const;
 
 export const DOCUMENT_EXTENSIONS = [
   '.pdf',
@@ -27,12 +20,7 @@ export const DOCUMENT_EXTENSIONS = [
   '.msg',
 ] as const;
 
-export const CONVERSION_IMAGE_EXTENSIONS = [
-  '.tif',
-  '.tiff',
-  '.heic',
-  '.heif',
-] as const;
+export const CONVERSION_IMAGE_EXTENSIONS = ['.tif', '.tiff', '.heic', '.heif'] as const;
 
 export const CODE_TEXT_EXTENSIONS = [
   '.log',
@@ -105,8 +93,10 @@ export function isCsvExtension(ext: string): boolean {
 }
 
 export function isCodeOrTextExtension(ext: string): boolean {
-  return (CODE_TEXT_EXTENSIONS as readonly string[]).includes(ext.toLowerCase()) ||
-         (TEXT_DOCUMENT_EXTENSIONS as readonly string[]).includes(ext.toLowerCase());
+  return (
+    (CODE_TEXT_EXTENSIONS as readonly string[]).includes(ext.toLowerCase()) ||
+    (TEXT_DOCUMENT_EXTENSIONS as readonly string[]).includes(ext.toLowerCase())
+  );
 }
 
 export function isPowerPointExtension(ext: string): boolean {

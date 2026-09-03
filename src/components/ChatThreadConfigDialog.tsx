@@ -1,27 +1,21 @@
-import ThreadConfigDialog from "./ThreadConfigDialog";
+import ThreadConfigDialog from './ThreadConfigDialog';
 
 interface ChatThreadConfigDialogProps {
   readonly showConfigDialog: boolean;
   readonly hasCurrentConversation: boolean;
-  readonly selectedModelKeys: React.ComponentProps<
-    typeof ThreadConfigDialog
-  >["selectedModelKeys"];
-  readonly config: React.ComponentProps<typeof ThreadConfigDialog>["config"];
-  readonly providerTemplates: React.ComponentProps<
-    typeof ThreadConfigDialog
-  >["providerTemplates"];
-  readonly currentDomain: React.ComponentProps<
-    typeof ThreadConfigDialog
-  >["currentDomain"];
+  readonly selectedModelKeys: React.ComponentProps<typeof ThreadConfigDialog>['selectedModelKeys'];
+  readonly config: React.ComponentProps<typeof ThreadConfigDialog>['config'];
+  readonly providerTemplates: React.ComponentProps<typeof ThreadConfigDialog>['providerTemplates'];
+  readonly currentDomain: React.ComponentProps<typeof ThreadConfigDialog>['currentDomain'];
   readonly toggleModelSelection: React.ComponentProps<
     typeof ThreadConfigDialog
-  >["toggleModelSelection"];
+  >['toggleModelSelection'];
   readonly selectedJurisdictions: React.ComponentProps<
     typeof ThreadConfigDialog
-  >["selectedJurisdictions"];
+  >['selectedJurisdictions'];
   readonly toggleJurisdiction: React.ComponentProps<
     typeof ThreadConfigDialog
-  >["toggleJurisdiction"];
+  >['toggleJurisdiction'];
   readonly onClose: () => void;
 }
 

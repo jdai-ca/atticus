@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
-import { APITrace, AttachmentMeta, FileUploadResult } from "../../types";
-import { PIIScanResult } from "../../services/piiScanner";
-import { SRAISScanResult } from "../../services/sraisScanner";
-import type { SecurityAnalysisResult } from "../../services/fileSecurityPipeline";
+import { useRef, useState } from 'react';
+import { APITrace, AttachmentMeta, FileUploadResult } from '../../types';
+import { PIIScanResult } from '../../services/piiScanner';
+import { SRAISScanResult } from '../../services/sraisScanner';
+import type { SecurityAnalysisResult } from '../../services/fileSecurityPipeline';
 
 export function useChatWindowState() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const attachmentDataRef = useRef(new Map<string, string>());
   const [attachments, setAttachments] = useState<AttachmentMeta[]>([]);
   const [fileSecurityReports, setFileSecurityReports] = useState<
@@ -14,39 +14,31 @@ export function useChatWindowState() {
   const [showFileSecurityWarning, setShowFileSecurityWarning] = useState(false);
   const [pendingFile, setPendingFile] = useState<FileUploadResult | null>(null);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
-  const [currentDomain, setCurrentDomain] = useState<
-    "practice" | "advisory" | undefined
-  >(undefined);
+  const [currentDomain, setCurrentDomain] = useState<'practice' | 'advisory' | undefined>(
+    undefined
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const lastJumpedMessageId = useRef<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
-  const [piiScanResult, setPiiScanResult] = useState<PIIScanResult | null>(
-    null,
-  );
+  const [piiScanResult, setPiiScanResult] = useState<PIIScanResult | null>(null);
   const [showHarmWarning, setShowHarmWarning] = useState(false);
   const [sraisScanResult, setSraisScanResult] = useState<SRAISScanResult | null>(null);
-  const [pendingMessage, setPendingMessage] = useState<string>("");
+  const [pendingMessage, setPendingMessage] = useState<string>('');
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [showCostLedger, setShowCostLedger] = useState(false);
-  const [inspectedApiTrace, setInspectedApiTrace] = useState<APITrace | null>(
-    null,
-  );
+  const [inspectedApiTrace, setInspectedApiTrace] = useState<APITrace | null>(null);
   const [showTagDialog, setShowTagDialog] = useState(false);
   const [tagDialogClusterStart, setTagDialogClusterStart] = useState<number>(0);
   const [tagDialogClusterEnd, setTagDialogClusterEnd] = useState<number>(0);
-  const [newTagInput, setNewTagInput] = useState<string>("");
-  const [inlineTagMessageId, setInlineTagMessageId] = useState<string | null>(
-    null,
-  );
-  const [inlineTagInput, setInlineTagInput] = useState<string>("");
+  const [newTagInput, setNewTagInput] = useState<string>('');
+  const [inlineTagMessageId, setInlineTagMessageId] = useState<string | null>(null);
+  const [inlineTagInput, setInlineTagInput] = useState<string>('');
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [analysisClusterStart, setAnalysisClusterStart] = useState<number>(0);
   const [analysisClusterEnd, setAnalysisClusterEnd] = useState<number>(0);
-  const [selectedAnalysisModel, setSelectedAnalysisModel] = useState<
-    string | null
-  >(null);
+  const [selectedAnalysisModel, setSelectedAnalysisModel] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   type UseChatWindowStateResult = {

@@ -5,67 +5,67 @@
 
 import { SecureProviderConfig, ChatResponse, Message } from '../types';
 import {
-    fetchWithTimeout,
-    validateEndpoint,
-    extractUsage,
-    createApiError,
-    validateOpenAIResponse,
-    validateAnthropicResponse,
+  fetchWithTimeout,
+  validateEndpoint,
+  extractUsage,
+  createApiError,
+  validateOpenAIResponse,
+  validateAnthropicResponse,
 } from './apiHelpers';
 import { formatForOpenAI, formatForXAI, augmentMessageWithDocuments } from './multimodalFormatter';
 
 export interface APIRequestConfig {
-    endpoint: string;
-    headers: Record<string, string>;
-    body: unknown;
-    provider: string;
-    allowLocalhost?: boolean;
-    timeout?: number;
+  endpoint: string;
+  headers: Record<string, string>;
+  body: unknown;
+  provider: string;
+  allowLocalhost?: boolean;
+  timeout?: number;
 }
 
 export interface ResponseParser {
-    validate: (data: unknown) => void;
-    extractContent: (data: unknown) => string;
-    providerType: string;
+  validate: (data: unknown) => void;
+  extractContent: (data: unknown) => string;
+  providerType: string;
 }
 
 /**
  * Send a standardized API request with common error handling
  */
 export async function sendAPIRequest(
-    config: APIRequestConfig,
-    parser: ResponseParser
+  config: APIRequestConfig,
+  parser: ResponseParser
 ): Promise<ChatResponse> {
-    // Validate endpoint security
-    validateEndpoint(config.endpoint, config.allowLocalhost ?? false);
+  // Validate endpoint security
+  validateEndpoint(config.endpoint, config.allowLocalhost ?? false);
 
-    const response = await fetchWithTimeout(config.endpoint, {
-        method: 'POST',
-        headers: config.headers,
-        body: JSON.stringify(config.body),
-        timeout: config.timeout ?? 60000,
+  const response = await fetchWithTimeout(config.endpoint, {
+    method: 'POST',
+    headers: config.headers,
+    body: JSON.stringify(config.body),
+    timeout: config.timeout ?? 60000,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage =
+      errorData.error?.message ||
+      errorData.message ||
+      `${config.provider} API request failed with status ${response.status}`;
+
+    throw createApiError('API_ERROR', errorMessage, {
+      status: response.status,
+      provider: config.provider,
     });
+  }
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message ||
-            errorData.message ||
-            `${config.provider} API request failed with status ${response.status}`;
+  const data = await response.json();
+  parser.validate(data);
 
-        throw createApiError(
-            'API_ERROR',
-            errorMessage,
-            { status: response.status, provider: config.provider }
-        );
-    }
-
-    const data = await response.json();
-    parser.validate(data);
-
-    return {
-        content: parser.extractContent(data),
-        usage: extractUsage(data, parser.providerType),
-    };
+  return {
+    content: parser.extractContent(data),
+    usage: extractUsage(data, parser.providerType),
+  };
 }
 
 /**
@@ -73,55 +73,57 @@ export async function sendAPIRequest(
  * Supports multimodal messages with image attachments
  */
 export async function buildOpenAIRequestBody(
-    provider: SecureProviderConfig,
-    messages: Message[],
-    systemPrompt?: string,
-    temperature?: number,
-    maxTokens?: number
-): Promise<{ messages: unknown[], body: unknown }> {
-    // First, augment messages with document text (before transformation)
-    const augmentedMessages = await Promise.all(messages.map(async (msg): Promise<Message> => {
-        if (msg.role !== 'system') {
-            return await augmentMessageWithDocuments(msg);
-        }
-        return msg;
-    }));
+  provider: SecureProviderConfig,
+  messages: Message[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<{ messages: unknown[]; body: unknown }> {
+  // First, augment messages with document text (before transformation)
+  const augmentedMessages = await Promise.all(
+    messages.map(async (msg): Promise<Message> => {
+      if (msg.role !== 'system') {
+        return await augmentMessageWithDocuments(msg);
+      }
+      return msg;
+    })
+  );
 
-    // Then format messages for multimodal (handles attachments, converts PDFs to images)
-    const apiMessages = await formatForOpenAI(augmentedMessages);
+  // Then format messages for multimodal (handles attachments, converts PDFs to images)
+  const apiMessages = await formatForOpenAI(augmentedMessages);
 
-    if (systemPrompt) {
-        apiMessages.unshift({ role: 'system', content: systemPrompt });
-    }
+  if (systemPrompt) {
+    apiMessages.unshift({ role: 'system', content: systemPrompt });
+  }
 
-    // Build body
-    const body: Record<string, unknown> = {
-        model: provider.model,
-        messages: apiMessages,
-        max_completion_tokens: maxTokens,
-    };
+  // Build body
+  const body: Record<string, unknown> = {
+    model: provider.model,
+    messages: apiMessages,
+    max_completion_tokens: maxTokens,
+  };
 
-    // Only include temperature if provider supports it
-    if (provider.supportsTemperature && temperature !== undefined) {
-        body['temperature'] = temperature;
-    }
+  // Only include temperature if provider supports it
+  if (provider.supportsTemperature && temperature !== undefined) {
+    body['temperature'] = temperature;
+  }
 
-    return {
-        messages: apiMessages,
-        body,
-    };
+  return {
+    messages: apiMessages,
+    body,
+  };
 }
 
 /**
  * Parser for OpenAI-compatible responses
  */
 export const openAIParser: ResponseParser = {
-    validate: validateOpenAIResponse,
-    extractContent: (data: unknown): string => {
-        const d = data as { choices: Array<{ message: { content: string } }> };
-        return d.choices[0].message.content;
-    },
-    providerType: 'openai',
+  validate: validateOpenAIResponse,
+  extractContent: (data: unknown): string => {
+    const d = data as { choices: Array<{ message: { content: string } }> };
+    return d.choices[0].message.content;
+  },
+  providerType: 'openai',
 };
 
 /**
@@ -129,82 +131,84 @@ export const openAIParser: ResponseParser = {
  * xAI uses OpenAI format with required 'detail' parameter for images
  */
 export async function buildXAIRequestBody(
-    provider: SecureProviderConfig,
-    messages: Message[],
-    systemPrompt?: string,
-    temperature?: number,
-    maxTokens?: number
-): Promise<{ messages: unknown[], body: unknown }> {
-    // First, augment messages with document text (before transformation)
-    const augmentedMessages = await Promise.all(messages.map(async (msg): Promise<Message> => {
-        if (msg.role !== 'system') {
-            return await augmentMessageWithDocuments(msg);
-        }
-        return msg;
-    }));
+  provider: SecureProviderConfig,
+  messages: Message[],
+  systemPrompt?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<{ messages: unknown[]; body: unknown }> {
+  // First, augment messages with document text (before transformation)
+  const augmentedMessages = await Promise.all(
+    messages.map(async (msg): Promise<Message> => {
+      if (msg.role !== 'system') {
+        return await augmentMessageWithDocuments(msg);
+      }
+      return msg;
+    })
+  );
 
-    // Format messages for xAI multimodal (handles attachments, converts PDFs to images)
-    const apiMessages = await formatForXAI(augmentedMessages);
+  // Format messages for xAI multimodal (handles attachments, converts PDFs to images)
+  const apiMessages = await formatForXAI(augmentedMessages);
 
-    if (systemPrompt) {
-        apiMessages.unshift({ role: 'system', content: systemPrompt });
-    }
+  if (systemPrompt) {
+    apiMessages.unshift({ role: 'system', content: systemPrompt });
+  }
 
-    // Build body
-    const body: Record<string, unknown> = {
-        model: provider.model,
-        messages: apiMessages,
-        max_completion_tokens: maxTokens,
-    };
+  // Build body
+  const body: Record<string, unknown> = {
+    model: provider.model,
+    messages: apiMessages,
+    max_completion_tokens: maxTokens,
+  };
 
-    // Only include temperature if provider supports it
-    if (provider.supportsTemperature && temperature !== undefined) {
-        body['temperature'] = temperature;
-    }
+  // Only include temperature if provider supports it
+  if (provider.supportsTemperature && temperature !== undefined) {
+    body['temperature'] = temperature;
+  }
 
-    return {
-        messages: apiMessages,
-        body,
-    };
+  return {
+    messages: apiMessages,
+    body,
+  };
 }
 
 /**
  * Parser for xAI responses (uses OpenAI format)
  */
 export const xAIParser: ResponseParser = {
-    validate: validateOpenAIResponse,
-    extractContent: (data: unknown): string => {
-        const d = data as { choices: Array<{ message: { content: string } }> };
-        return d.choices[0].message.content;
-    },
-    providerType: 'xai',
+  validate: validateOpenAIResponse,
+  extractContent: (data: unknown): string => {
+    const d = data as { choices: Array<{ message: { content: string } }> };
+    return d.choices[0].message.content;
+  },
+  providerType: 'xai',
 };
 
 /**
  * Parser for Anthropic responses
  */
 export const anthropicParser: ResponseParser = {
-    validate: validateAnthropicResponse,
-    extractContent: (data: unknown): string => {
-        const d = data as { content: Array<{ text: string }> };
-        return d.content[0].text;
-    },
-    providerType: 'anthropic',
+  validate: validateAnthropicResponse,
+  extractContent: (data: unknown): string => {
+    const d = data as { content: Array<{ text: string }> };
+    return d.content[0].text;
+  },
+  providerType: 'anthropic',
 };
 
 /**
  * Get default endpoint for a provider, or throw if endpoint is required
  */
 export function getEndpointOrDefault(
-    provider: SecureProviderConfig,
-    defaultEndpoint: string,
-    required: boolean = false
+  provider: SecureProviderConfig,
+  defaultEndpoint: string,
+  required: boolean = false
 ): string {
-    if (required && !provider.endpoint) {
-        throw createApiError(
-            'MISSING_ENDPOINT',
-            `${provider.provider} provider endpoint not configured`
-        );
-    }
-    return provider.endpoint || defaultEndpoint;
+  if (required && !provider.endpoint) {
+    throw createApiError(
+      'MISSING_ENDPOINT',
+      `${provider.provider} provider endpoint not configured`
+    );
+  }
+  return provider.endpoint || defaultEndpoint;
 }

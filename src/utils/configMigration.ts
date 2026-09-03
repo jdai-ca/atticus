@@ -13,40 +13,38 @@ const logger = createLogger('ConfigMigration');
  * Particularly fixes endpoint field that may be missing in older configs
  */
 export function migrateProviderConfig(
-    provider: ProviderConfig,
-    templates: ProviderTemplate[]
+  provider: ProviderConfig,
+  templates: ProviderTemplate[]
 ): ProviderConfig {
-    // Find the matching template
-    const template = templates.find((t): boolean => t.id === provider.provider);
+  // Find the matching template
+  const template = templates.find((t): boolean => t.id === provider.provider);
 
-    if (!template) {
-        logger.warn('No template found for provider', { providerId: provider.provider });
-        return provider;
-    }
-
-    // If endpoint is missing or empty, set it from template
-    if (!provider.endpoint || provider.endpoint.trim() === '') {
-        logger.info('Fixing missing endpoint for provider', {
-            providerId: provider.provider,
-            endpoint: template.endpoint
-        });
-        return {
-            ...provider,
-            endpoint: template.endpoint,
-        };
-    }
-
+  if (!template) {
+    logger.warn('No template found for provider', { providerId: provider.provider });
     return provider;
+  }
+
+  // If endpoint is missing or empty, set it from template
+  if (!provider.endpoint || provider.endpoint.trim() === '') {
+    logger.info('Fixing missing endpoint for provider', {
+      providerId: provider.provider,
+      endpoint: template.endpoint,
+    });
+    return {
+      ...provider,
+      endpoint: template.endpoint,
+    };
+  }
+
+  return provider;
 }
 
 /**
  * Migrate all providers in a config
  */
 export function migrateAllProviders(
-    providers: ProviderConfig[],
-    templates: ProviderTemplate[]
+  providers: ProviderConfig[],
+  templates: ProviderTemplate[]
 ): ProviderConfig[] {
-    return providers.map(
-        (provider): ProviderConfig => migrateProviderConfig(provider, templates),
-    );
+  return providers.map((provider): ProviderConfig => migrateProviderConfig(provider, templates));
 }

@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { ChatDialogsSection } from "../ChatDialogsSection";
+import { useMemo } from 'react';
+import { ChatDialogsSection } from '../ChatDialogsSection';
 
 type ChatDialogsSectionProps = React.ComponentProps<typeof ChatDialogsSection>;
 
@@ -8,7 +8,7 @@ interface UseChatDialogsSectionPropsResult {
 }
 
 export function useChatDialogsSectionProps(
-  params: ChatDialogsSectionProps,
+  params: ChatDialogsSectionProps
 ): UseChatDialogsSectionPropsResult {
   const chatDialogsSectionProps = useMemo(
     (): ChatDialogsSectionProps => ({ ...params }),
@@ -60,7 +60,7 @@ export function useChatDialogsSectionProps(
       params.onSelectedModelChange,
       params.onRunAnalysis,
       params.onCloseAnalysisDialog,
-    ],
+    ]
   );
 
   return {

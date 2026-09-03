@@ -1,6 +1,6 @@
-import { Shield, DollarSign, Settings } from "lucide-react";
-import type { Jurisdiction, ProviderConfig, ProviderTemplate } from "../types";
-import { JURISDICTIONS } from "../config/jurisdictions";
+import { Shield, DollarSign, Settings } from 'lucide-react';
+import type { Jurisdiction, ProviderConfig, ProviderTemplate } from '../types';
+import { JURISDICTIONS } from '../config/jurisdictions';
 
 interface ThreadConfigBarProps {
   selectedModelKeys: Set<string>;
@@ -32,16 +32,12 @@ export default function ThreadConfigBar({
               {Array.from(selectedModelKeys)
                 .slice(0, 2)
                 .map((key): JSX.Element => {
-                  const [providerId, modelId] = key.split(":");
-                  const provider = config.providers.find(
-                    (p): boolean => p.id === providerId,
-                  );
+                  const [providerId, modelId] = key.split(':');
+                  const provider = config.providers.find((p): boolean => p.id === providerId);
                   const template = providerTemplates.find(
-                    (t): boolean => t.id === provider?.provider,
+                    (t): boolean => t.id === provider?.provider
                   );
-                  const model = template?.models.find(
-                    (m): boolean => m.id === modelId,
-                  );
+                  const model = template?.models.find((m): boolean => m.id === modelId);
                   return (
                     <span
                       key={key}
@@ -62,15 +58,11 @@ export default function ThreadConfigBar({
 
           {/* Jurisdiction Display */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 font-medium">
-              Jurisdictions:
-            </span>
+            <span className="text-xs text-gray-400 font-medium">Jurisdictions:</span>
             <div className="flex gap-1">
               {selectedJurisdictions.size > 0 ? (
                 Array.from(selectedJurisdictions).map((code): JSX.Element => {
-                  const info = JURISDICTIONS.find(
-                    (j): boolean => j.code === code,
-                  );
+                  const info = JURISDICTIONS.find((j): boolean => j.code === code);
                   return (
                     <span
                       key={code}

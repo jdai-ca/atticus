@@ -39,12 +39,7 @@ export default function AnalysisDialog({
             className="text-gray-400 hover:text-white transition-colors"
             title="Close analysis dialog"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -57,8 +52,8 @@ export default function AnalysisDialog({
 
         <div className="space-y-4">
           <p className="text-sm text-gray-300">
-            Select an unused model to independently analyze this response
-            cluster for accuracy, consistency, and potential confabulations.
+            Select an unused model to independently analyze this response cluster for accuracy,
+            consistency, and potential confabulations.
           </p>
 
           {/* Model Selection */}
@@ -71,33 +66,32 @@ export default function AnalysisDialog({
             </label>
             {availableModels.length === 0 ? (
               <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 text-sm text-yellow-300">
-                <p className="font-medium mb-1">
-                  ⚠️ No unused models available
-                </p>
+                <p className="font-medium mb-1">⚠️ No unused models available</p>
                 <p className="text-xs text-yellow-400">
-                  All configured models were already used in this cluster.
-                  Analysis requires an independent model for validation.
+                  All configured models were already used in this cluster. Analysis requires an
+                  independent model for validation.
                 </p>
               </div>
             ) : (
               <>
                 <select
                   id="analysis-model-select"
-                  value={selectedAnalysisModel || ""}
-                  onChange={(e) => onSelectedModelChange(e.target.value)}
+                  value={selectedAnalysisModel || ''}
+                  onChange={e => onSelectedModelChange(e.target.value)}
                   className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-legal-blue"
                 >
                   <option value="">{selectModelLabel}</option>
-                  {availableModels.map((model): JSX.Element => (
-                    <option key={model.key} value={model.key}>
-                      {model.label} ({model.provider})
-                    </option>
-                  ))}
+                  {availableModels.map(
+                    (model): JSX.Element => (
+                      <option key={model.key} value={model.key}>
+                        {model.label} ({model.provider})
+                      </option>
+                    )
+                  )}
                 </select>
                 {modelsUsedInCluster.size > 0 && (
                   <p className="text-xs text-gray-400 mt-2">
-                    Models used in cluster:{" "}
-                    {Array.from(modelsUsedInCluster).join(", ")}
+                    Models used in cluster: {Array.from(modelsUsedInCluster).join(', ')}
                   </p>
                 )}
               </>
@@ -108,9 +102,9 @@ export default function AnalysisDialog({
           <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 text-sm text-blue-300">
             <p className="font-medium mb-1">ℹ️ Analysis Process</p>
             <p className="text-xs text-blue-400">
-              The selected model will receive the original query and all
-              responses, then provide an independent assessment of accuracy,
-              consistency, completeness, and potential confabulations.
+              The selected model will receive the original query and all responses, then provide an
+              independent assessment of accuracy, consistency, completeness, and potential
+              confabulations.
             </p>
           </div>
         </div>

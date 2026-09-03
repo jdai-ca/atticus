@@ -1,5 +1,5 @@
-import type { AttachmentMeta } from "../types";
-import ChatInput from "./ChatInput";
+import type { AttachmentMeta } from '../types';
+import ChatInput from './ChatInput';
 
 interface ChatInputSectionProps {
   readonly input: string;
@@ -31,9 +31,7 @@ export function ChatInputSection({
       input={input}
       onInputChange={onInputChange}
       attachments={attachments}
-      onAttachmentRemove={(id) =>
-        onSetAttachments(attachments.filter((a): boolean => a.id !== id))
-      }
+      onAttachmentRemove={id => onSetAttachments(attachments.filter((a): boolean => a.id !== id))}
       onFileUpload={onFileUpload}
       onSend={onSend}
       onKeyDown={onKeyDown}

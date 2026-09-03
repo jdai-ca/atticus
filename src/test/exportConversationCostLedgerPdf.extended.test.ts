@@ -48,78 +48,117 @@ const mockParams = {
 };
 
 describe('exportConversationCostLedgerPdf (edge/extended)', () => {
-    it('should run with extremely large numbers', () => {
-      const big = 1e12;
-      expect(() => exportConversationCostLedgerPdf({
+  it('should run with extremely large numbers', () => {
+    const big = 1e12;
+    expect(() =>
+      exportConversationCostLedgerPdf({
         ...mockParams,
-        costEntries: [{
-          ...mockParams.costEntries[0],
+        costEntries: [
+          {
+            ...mockParams.costEntries[0],
+            inputTokens: big,
+            outputTokens: big,
+            totalTokens: big,
+            inputCost: big,
+            outputCost: big,
+            cost: big,
+            durationMs: big,
+            tokensPerSecond: big,
+          },
+        ],
+        totals: {
           inputTokens: big,
           outputTokens: big,
           totalTokens: big,
           inputCost: big,
           outputCost: big,
           cost: big,
-          durationMs: big,
-          tokensPerSecond: big,
-        }],
-        totals: { inputTokens: big, outputTokens: big, totalTokens: big, inputCost: big, outputCost: big, cost: big },
-      } as any)).not.toThrow();
-    });
+        },
+      } as any)
+    ).not.toThrow();
+  });
 
-    it('throws on missing/invalid cost fields in entries', () => {
-      const entry: any = { ...mockParams.costEntries[0] };
-      delete entry.provider;
-      delete entry.model;
-      delete entry.tokensPerSecond;
-      entry.role = 123;
-      entry.messageId = null;
-      // Remove cost to trigger error
-      delete entry.inputCost;
-      expect(() => exportConversationCostLedgerPdf({
+  it('throws on missing/invalid cost fields in entries', () => {
+    const entry: any = { ...mockParams.costEntries[0] };
+    delete entry.provider;
+    delete entry.model;
+    delete entry.tokensPerSecond;
+    entry.role = 123;
+    entry.messageId = null;
+    // Remove cost to trigger error
+    delete entry.inputCost;
+    expect(() =>
+      exportConversationCostLedgerPdf({
         ...mockParams,
         costEntries: [entry],
-      } as any)).toThrow();
-    });
+      } as any)
+    ).toThrow();
+  });
 
-    it('should run with unusual characters in conversationTitle', () => {
-      expect(() => exportConversationCostLedgerPdf({
+  it('should run with unusual characters in conversationTitle', () => {
+    expect(() =>
+      exportConversationCostLedgerPdf({
         ...mockParams,
         conversationTitle: '测试 🚀 "Quotes" \ Backslash',
-      } as any)).not.toThrow();
-    });
+      } as any)
+    ).not.toThrow();
+  });
 
-    it('should run with very long costEntries array', () => {
-      const entries = Array.from({ length: 100 }, (_, i) => ({ ...mockParams.costEntries[0], messageId: `m${i}` }));
-      expect(() => exportConversationCostLedgerPdf({
+  it('should run with very long costEntries array', () => {
+    const entries = Array.from({ length: 100 }, (_, i) => ({
+      ...mockParams.costEntries[0],
+      messageId: `m${i}`,
+    }));
+    expect(() =>
+      exportConversationCostLedgerPdf({
         ...mockParams,
         costEntries: entries,
-      } as any)).not.toThrow();
-    });
+      } as any)
+    ).not.toThrow();
+  });
   it('should run without throwing for empty entries', () => {
-    expect(() => exportConversationCostLedgerPdf({
-      ...mockParams,
-      costEntries: [],
-      totals: { inputTokens: 0, outputTokens: 0, totalTokens: 0, inputCost: 0, outputCost: 0, cost: 0 },
-    } as any)).not.toThrow();
+    expect(() =>
+      exportConversationCostLedgerPdf({
+        ...mockParams,
+        costEntries: [],
+        totals: {
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          inputCost: 0,
+          outputCost: 0,
+          cost: 0,
+        },
+      } as any)
+    ).not.toThrow();
   });
 
   it('should run with high/low cost tiers', () => {
-    expect(() => exportConversationCostLedgerPdf({
-      ...mockParams,
-      totalTier: 'low',
-    } as any)).not.toThrow();
-    expect(() => exportConversationCostLedgerPdf({
-      ...mockParams,
-      totalTier: 'high',
-    } as any)).not.toThrow();
+    expect(() =>
+      exportConversationCostLedgerPdf({
+        ...mockParams,
+        totalTier: 'low',
+      } as any)
+    ).not.toThrow();
+    expect(() =>
+      exportConversationCostLedgerPdf({
+        ...mockParams,
+        totalTier: 'high',
+      } as any)
+    ).not.toThrow();
   });
 
   it('should run with missing provider/model', () => {
-    const entries = mockParams.costEntries.map(e => ({ ...e, provider: undefined, model: undefined }));
-    expect(() => exportConversationCostLedgerPdf({
-      ...mockParams,
-      costEntries: entries,
-    } as any)).not.toThrow();
+    const entries = mockParams.costEntries.map(e => ({
+      ...e,
+      provider: undefined,
+      model: undefined,
+    }));
+    expect(() =>
+      exportConversationCostLedgerPdf({
+        ...mockParams,
+        costEntries: entries,
+      } as any)
+    ).not.toThrow();
   });
 });

@@ -1,12 +1,10 @@
-import { Loader2 } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 
 interface ChatLoadingIndicatorProps {
   readonly isLoading: boolean;
 }
 
-export function ChatLoadingIndicator({
-  isLoading,
-}: ChatLoadingIndicatorProps) {
+export function ChatLoadingIndicator({ isLoading }: ChatLoadingIndicatorProps) {
   if (!isLoading) {
     return null;
   }

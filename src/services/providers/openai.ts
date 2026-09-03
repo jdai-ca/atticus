@@ -7,53 +7,53 @@ import { ProviderConfig, SecureProviderConfig, ChatResponse, Message } from '../
 import { validateOpenAIResponse, extractUsage } from '../apiHelpers';
 
 export class OpenAIAdapter extends BaseProviderAdapter {
-    readonly providerId = 'openai';
+  readonly providerId = 'openai';
 
-    getDefaultEndpoint(): string {
-        return 'https://api.openai.com/v1/chat/completions';
+  getDefaultEndpoint(): string {
+    return 'https://api.openai.com/v1/chat/completions';
+  }
+
+  transformMessages(messages: Message[], systemPrompt?: string): unknown[] {
+    const apiMessages = messages.map(m => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    if (systemPrompt) {
+      apiMessages.unshift({ role: 'system', content: systemPrompt });
     }
 
-    transformMessages(messages: Message[], systemPrompt?: string): unknown[] {
-        const apiMessages = messages.map(m => ({
-            role: m.role,
-            content: m.content,
-        }));
+    return apiMessages;
+  }
 
-        if (systemPrompt) {
-            apiMessages.unshift({ role: 'system', content: systemPrompt });
-        }
+  protected buildHeaders(provider: ProviderConfig): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${(provider as SecureProviderConfig).apiKey}`,
+    };
+  }
 
-        return apiMessages;
-    }
+  protected buildRequestBody(
+    provider: ProviderConfig,
+    messages: unknown[],
+    temperature: number,
+    maxTokens: number
+  ): unknown {
+    return {
+      model: provider.model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    };
+  }
 
-    protected buildHeaders(provider: ProviderConfig): Record<string, string> {
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(provider as SecureProviderConfig).apiKey}`,
-        };
-    }
+  parseResponse(data: unknown): ChatResponse {
+    validateOpenAIResponse(data);
 
-    protected buildRequestBody(
-        provider: ProviderConfig,
-        messages: unknown[],
-        temperature: number,
-        maxTokens: number
-    ): unknown {
-        return {
-            model: provider.model,
-            messages,
-            temperature,
-            max_tokens: maxTokens,
-        };
-    }
-
-    parseResponse(data: unknown): ChatResponse {
-        validateOpenAIResponse(data);
-
-        const responseData = data as { choices: Array<{ message: { content: string } }> };
-        return {
-            content: responseData.choices[0].message.content,
-            usage: extractUsage(responseData, 'openai'),
-        };
-    }
+    const responseData = data as { choices: Array<{ message: { content: string } }> };
+    return {
+      content: responseData.choices[0].message.content,
+      usage: extractUsage(responseData, 'openai'),
+    };
+  }
 }

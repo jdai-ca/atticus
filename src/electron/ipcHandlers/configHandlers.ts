@@ -6,6 +6,15 @@ import { getUserConfigPath, type ConfigProvider } from '../secureStorage';
 
 const logger = createLogger('ConfigHandlers');
 
+// Conversation IDs originate from the renderer over IPC; sanitize before use in a file path
+// to prevent path traversal (e.g. "../../../etc/passwd") escaping the conversations directory.
+function sanitizeConversationId(id: unknown): string {
+  if (typeof id !== 'string' || id.length === 0) {
+    throw new Error('Invalid conversation id: must be a non-empty string.');
+  }
+  return id.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
 export function registerConfigHandlers(): void {
   // Save configuration
   ipcMain.handle('save-config', async (_event, config) => {
@@ -15,11 +24,11 @@ export function registerConfigHandlers(): void {
         ...config,
         providers: Array.isArray(config?.providers)
           ? config.providers.map((provider: ConfigProvider): ConfigProvider => {
-            const sanitizedProvider = { ...provider };
-            delete sanitizedProvider._tempApiKey;
-            return sanitizedProvider;
-          })
-          : []
+              const sanitizedProvider = { ...provider };
+              delete sanitizedProvider._tempApiKey;
+              return sanitizedProvider;
+            })
+          : [],
       };
 
       await fs.promises.writeFile(configPath, JSON.stringify(sanitizedConfig, null, 2));
@@ -30,8 +39,8 @@ export function registerConfigHandlers(): void {
         success: false,
         error: {
           code: 'CONFIG_SAVE_FAILED',
-          message: 'Failed to save configuration. Check logs for details.'
-        }
+          message: 'Failed to save configuration. Check logs for details.',
+        },
       };
     }
   });
@@ -53,8 +62,8 @@ export function registerConfigHandlers(): void {
         success: false,
         error: {
           code: 'CONFIG_LOAD_FAILED',
-          message: 'Failed to load configuration. Check logs for details.'
-        }
+          message: 'Failed to load configuration. Check logs for details.',
+        },
       };
     }
   });
@@ -70,7 +79,7 @@ export function registerConfigHandlers(): void {
       }
 
       // Use conversation ID for filename to enable updates
-      const filename = `${conversation.id}.json`;
+      const filename = `${sanitizeConversationId(conversation?.id)}.json`;
       const filepath = path.join(conversationsDir, filename);
       await fs.promises.writeFile(filepath, JSON.stringify(conversation, null, 2));
 
@@ -81,8 +90,8 @@ export function registerConfigHandlers(): void {
         success: false,
         error: {
           code: 'CONVERSATION_SAVE_FAILED',
-          message: 'Failed to save conversation. Check logs for details.'
-        }
+          message: 'Failed to save conversation. Check logs for details.',
+        },
       };
     }
   });
@@ -98,27 +107,31 @@ export function registerConfigHandlers(): void {
       }
 
       const files = await fs.promises.readdir(conversationsDir);
-      const conversations = await Promise.all(
+      const results = await Promise.all(
         files
           .filter((f): boolean => f.endsWith('.json'))
           .map(async (file): Promise<unknown> => {
-            const data = await fs.promises.readFile(
-              path.join(conversationsDir, file),
-              'utf-8'
-            );
-            return JSON.parse(data);
+            try {
+              const data = await fs.promises.readFile(path.join(conversationsDir, file), 'utf-8');
+              return JSON.parse(data);
+            } catch (error) {
+              // Skip a single corrupted/unreadable conversation file rather than failing
+              // the entire load, which would make every conversation inaccessible.
+              logger.warn('Skipping unreadable conversation file', { file, error });
+              return null;
+            }
           })
       );
 
-      return { success: true, data: conversations };
+      return { success: true, data: results.filter((c): boolean => c !== null) };
     } catch (error) {
       logger.error('Failed to load conversations', { error });
       return {
         success: false,
         error: {
           code: 'CONVERSATIONS_LOAD_FAILED',
-          message: 'Failed to load conversations. Check logs for details.'
-        }
+          message: 'Failed to load conversations. Check logs for details.',
+        },
       };
     }
   });
@@ -128,7 +141,7 @@ export function registerConfigHandlers(): void {
     try {
       const userDataPath = app.getPath('userData');
       const conversationsDir = path.join(userDataPath, 'conversations');
-      const filename = `${conversationId}.json`;
+      const filename = `${sanitizeConversationId(conversationId)}.json`;
       const filepath = path.join(conversationsDir, filename);
 
       // Check if file exists before attempting to delete
@@ -146,8 +159,8 @@ export function registerConfigHandlers(): void {
         success: false,
         error: {
           code: 'CONVERSATION_DELETE_FAILED',
-          message: 'Failed to delete conversation. Check logs for details.'
-        }
+          message: 'Failed to delete conversation. Check logs for details.',
+        },
       };
     }
   });

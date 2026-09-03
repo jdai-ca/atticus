@@ -1,5 +1,5 @@
-import { useTranslation } from "../../i18n/LanguageContext";
-import { piiScanner } from "../../services/piiScanner";
+import { useTranslation } from '../../i18n/LanguageContext';
+import { piiScanner } from '../../services/piiScanner';
 
 export function PrivacyTab() {
   const { t } = useTranslation();
@@ -7,12 +7,8 @@ export function PrivacyTab() {
   return (
     <div>
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-2">
-          {t.settingsContent.piiScanningTitle}
-        </h3>
-        <p className="text-gray-400 text-sm">
-          {t.settingsContent.piiScanningDescription}
-        </p>
+        <h3 className="text-xl font-bold text-white mb-2">{t.settingsContent.piiScanningTitle}</h3>
+        <p className="text-gray-400 text-sm">{t.settingsContent.piiScanningDescription}</p>
       </div>
 
       {/* PII Scanner - ALWAYS ENABLED Notice */}
@@ -26,9 +22,7 @@ export function PrivacyTab() {
                 {t.settingsContent.alwaysEnabled}
               </span>
             </h4>
-            <p className="text-gray-400 text-sm mb-2">
-              {t.settingsContent.automaticallyScans}
-            </p>
+            <p className="text-gray-400 text-sm mb-2">{t.settingsContent.automaticallyScans}</p>
             <div className="bg-yellow-900/20 border border-yellow-700 rounded p-3 mt-3">
               <p className="text-yellow-300 text-xs font-medium flex items-start gap-2">
                 <span>⚠️</span>
@@ -49,36 +43,22 @@ export function PrivacyTab() {
               return (
                 <>
                   <div className="bg-red-900/20 border border-red-800 rounded p-2">
-                    <div className="text-red-400 font-bold text-lg">
-                      {stats.criticalPatterns}
-                    </div>
-                    <div className="text-red-300">
-                      {t.settingsAnalysis.critical}
-                    </div>
+                    <div className="text-red-400 font-bold text-lg">{stats.criticalPatterns}</div>
+                    <div className="text-red-300">{t.settingsAnalysis.critical}</div>
                   </div>
                   <div className="bg-orange-900/20 border border-orange-800 rounded p-2">
-                    <div className="text-orange-400 font-bold text-lg">
-                      {stats.highPatterns}
-                    </div>
-                    <div className="text-orange-300">
-                      {t.settingsContent.highRisk}
-                    </div>
+                    <div className="text-orange-400 font-bold text-lg">{stats.highPatterns}</div>
+                    <div className="text-orange-300">{t.settingsContent.highRisk}</div>
                   </div>
                   <div className="bg-yellow-900/20 border border-yellow-800 rounded p-2">
                     <div className="text-yellow-400 font-bold text-lg">
                       {stats.moderatePatterns}
                     </div>
-                    <div className="text-yellow-300">
-                      {t.settingsContent.moderate}
-                    </div>
+                    <div className="text-yellow-300">{t.settingsContent.moderate}</div>
                   </div>
                   <div className="bg-blue-900/20 border border-blue-800 rounded p-2">
-                    <div className="text-blue-400 font-bold text-lg">
-                      {stats.totalPatterns}
-                    </div>
-                    <div className="text-blue-300">
-                      {t.settingsContent.totalPatterns}
-                    </div>
+                    <div className="text-blue-400 font-bold text-lg">{stats.totalPatterns}</div>
+                    <div className="text-blue-300">{t.settingsContent.totalPatterns}</div>
                   </div>
                 </>
               );
@@ -92,9 +72,7 @@ export function PrivacyTab() {
         <h4 className="text-lg font-semibold text-white mb-4">
           {t.settingsContent.whatGetsDetected}
         </h4>
-        <p className="text-gray-400 text-sm mb-4">
-          {t.settingsContent.examplesOfSensitiveData}
-        </p>
+        <p className="text-gray-400 text-sm mb-4">{t.settingsContent.examplesOfSensitiveData}</p>
 
         <div className="space-y-4">
           {/* Critical */}
@@ -102,8 +80,7 @@ export function PrivacyTab() {
             <h5 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
               <span>🔴</span>
               <span>
-                {t.settingsContent.criticalRisk} (
-                {piiScanner.getStatistics().criticalPatterns}{" "}
+                {t.settingsContent.criticalRisk} ({piiScanner.getStatistics().criticalPatterns}{' '}
                 {t.settingsContent.patterns})
               </span>
             </h5>
@@ -114,7 +91,9 @@ export function PrivacyTab() {
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.mexicanRfc}</div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.euUkNationalId}</div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.creditCards}</div>
-              <div className="bg-gray-800 rounded p-2">{t.settingsContent.passwordsCredentials}</div>
+              <div className="bg-gray-800 rounded p-2">
+                {t.settingsContent.passwordsCredentials}
+              </div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.apiKeysTokens}</div>
             </div>
           </div>
@@ -124,8 +103,7 @@ export function PrivacyTab() {
             <h5 className="text-sm font-semibold text-orange-400 mb-2 flex items-center gap-2">
               <span>🟠</span>
               <span>
-                {t.settingsContent.highRiskCategory} (
-                {piiScanner.getStatistics().highPatterns}{" "}
+                {t.settingsContent.highRiskCategory} ({piiScanner.getStatistics().highPatterns}{' '}
                 {t.settingsContent.patterns})
               </span>
             </h5>
@@ -139,9 +117,13 @@ export function PrivacyTab() {
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.phoneNumbers}</div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.bankAccounts}</div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.usRoutingNumbers}</div>
-              <div className="bg-gray-800 rounded p-2">{t.settingsContent.canadianTransitNumbers}</div>
+              <div className="bg-gray-800 rounded p-2">
+                {t.settingsContent.canadianTransitNumbers}
+              </div>
               <div className="bg-gray-800 rounded p-2">{t.settingsContent.swiftBicCodes}</div>
-              <div className="bg-gray-800 rounded p-2">{t.settingsContent.medicalRecordNumbers}</div>
+              <div className="bg-gray-800 rounded p-2">
+                {t.settingsContent.medicalRecordNumbers}
+              </div>
             </div>
           </div>
 
@@ -150,8 +132,7 @@ export function PrivacyTab() {
             <h5 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-2">
               <span>🟡</span>
               <span>
-                {t.settingsContent.moderateRisk} (
-                {piiScanner.getStatistics().moderatePatterns}{" "}
+                {t.settingsContent.moderateRisk} ({piiScanner.getStatistics().moderatePatterns}{' '}
                 {t.settingsContent.patterns})
               </span>
             </h5>
@@ -169,8 +150,8 @@ export function PrivacyTab() {
 
         <div className="mt-4 text-xs text-gray-400 italic">
           {t.settingsContent.patternsNote.replace(
-            "{count}",
-            piiScanner.getStatistics().totalPatterns.toString(),
+            '{count}',
+            piiScanner.getStatistics().totalPatterns.toString()
           )}
         </div>
       </div>

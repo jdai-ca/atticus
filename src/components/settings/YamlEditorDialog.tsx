@@ -200,7 +200,9 @@ export function YamlEditorDialog({
                             </label>
                             <textarea
                               value={area.description}
-                              onChange={e => onUpdateAreaField(index, 'description', e.target.value)}
+                              onChange={e =>
+                                onUpdateAreaField(index, 'description', e.target.value)
+                              }
                               className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-700 focus:outline-none focus:ring-2 focus:ring-legal-blue resize-none"
                               rows={3}
                               placeholder={t.settingsAreas.areaDescription}
@@ -262,22 +264,24 @@ export function YamlEditorDialog({
                                   {t.settingsContent.noKeywordsYet}
                                 </span>
                               ) : (
-                                area.keywords.map((keyword: string, kIndex: number): JSX.Element => (
-                                  <span
-                                    key={kIndex}
-                                    className="inline-flex items-center gap-1 bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded"
-                                  >
-                                    {keyword}
-                                    <button
-                                      onClick={() => onRemoveKeywordFromArea(index, kIndex)}
-                                      className="text-gray-400 hover:text-red-400 transition-colors"
-                                      title="Remove keyword"
-                                      aria-label={`Remove keyword ${keyword}`}
+                                area.keywords.map(
+                                  (keyword: string, kIndex: number): JSX.Element => (
+                                    <span
+                                      key={kIndex}
+                                      className="inline-flex items-center gap-1 bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded"
                                     >
-                                      <X className="w-3 h-3" />
-                                    </button>
-                                  </span>
-                                ))
+                                      {keyword}
+                                      <button
+                                        onClick={() => onRemoveKeywordFromArea(index, kIndex)}
+                                        className="text-gray-400 hover:text-red-400 transition-colors"
+                                        title="Remove keyword"
+                                        aria-label={`Remove keyword ${keyword}`}
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </span>
+                                  )
+                                )
                               )}
                             </div>
                             <div className="flex gap-2">

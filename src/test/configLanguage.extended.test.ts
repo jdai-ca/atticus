@@ -11,7 +11,10 @@ describe('configLanguage (edge/extended)', () => {
   });
 
   it('returns fallback for unknown language', () => {
-    expect(getConfigFilenameWithFallback('practices.yaml', 'xx' as any)).toEqual(['practices.xx.yaml', 'practices.en.yaml']);
+    expect(getConfigFilenameWithFallback('practices.yaml', 'xx' as any)).toEqual([
+      'practices.xx.yaml',
+      'practices.en.yaml',
+    ]);
   });
 
   it('is case-sensitive for language code', () => {

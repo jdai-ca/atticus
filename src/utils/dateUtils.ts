@@ -7,92 +7,92 @@
  * Get current timestamp as ISO string
  */
 export function now(): string {
-    return new Date().toISOString();
+  return new Date().toISOString();
 }
 
 /**
  * Parse ISO string to Date object
  */
 export function parse(isoString: string): Date {
-    return new Date(isoString);
+  return new Date(isoString);
 }
 
 /**
  * Format date for display
  */
 export function formatDateTime(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? parse(date) : date;
-    return dateObj.toLocaleString();
+  const dateObj = typeof date === 'string' ? parse(date) : date;
+  return dateObj.toLocaleString();
 }
 
 /**
  * Format date for display (date only)
  */
 export function formatDate(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? parse(date) : date;
-    return dateObj.toLocaleDateString();
+  const dateObj = typeof date === 'string' ? parse(date) : date;
+  return dateObj.toLocaleDateString();
 }
 
 /**
  * Format time for display (time only)
  */
 export function formatTime(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? parse(date) : date;
-    return dateObj.toLocaleTimeString();
+  const dateObj = typeof date === 'string' ? parse(date) : date;
+  return dateObj.toLocaleTimeString();
 }
 
 /**
  * Format timestamp for conversation messages (date + time, without seconds)
  */
 export function formatMessageTimestamp(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? parse(date) : date;
-    return dateObj.toLocaleString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
+  const dateObj = typeof date === 'string' ? parse(date) : date;
+  return dateObj.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 /**
  * Check if a date string is valid
  */
 export function isValidDate(isoString: string): boolean {
-    const date = new Date(isoString);
-    return !Number.isNaN(date.getTime());
+  const date = new Date(isoString);
+  return !Number.isNaN(date.getTime());
 }
 
 /**
  * Convert Date object to ISO string for persistence
  */
 export function toISOString(date: Date): string {
-    return date.toISOString();
+  return date.toISOString();
 }
 
 /**
  * Get relative time description (e.g., "2 hours ago")
  */
 export function getRelativeTime(date: Date | string): string {
-    const dateObj = typeof date === 'string' ? parse(date) : date;
-    const now = new Date();
-    const diffMs = now.getTime() - dateObj.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const dateObj = typeof date === 'string' ? parse(date) : date;
+  const now = new Date();
+  const diffMs = now.getTime() - dateObj.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMinutes < 1) {
-        return 'just now';
-    } else if (diffMinutes < 60) {
-        return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
-    } else if (diffHours < 24) {
-        return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-    } else if (diffDays < 7) {
-        return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
-    } else {
-        return formatDate(dateObj);
-    }
+  if (diffMinutes < 1) {
+    return 'just now';
+  } else if (diffMinutes < 60) {
+    return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  } else if (diffDays < 7) {
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  } else {
+    return formatDate(dateObj);
+  }
 }
 
 /**
@@ -100,43 +100,43 @@ export function getRelativeTime(date: Date | string): string {
  * Handles both Date objects and ISO strings
  */
 export function ensureISOString(timestamp: Date | string): string {
-    if (typeof timestamp === 'string') {
-        // Always normalize to full ISO string with milliseconds
-        const d = new Date(timestamp);
-        return d.toISOString();
-    }
-    return timestamp.toISOString();
+  if (typeof timestamp === 'string') {
+    // Always normalize to full ISO string with milliseconds
+    const d = new Date(timestamp);
+    return d.toISOString();
+  }
+  return timestamp.toISOString();
 }
 
 /**
  * Migration helper: convert Date objects to ISO strings in data structures
  */
 export function migrateDateFields<T extends Record<string, unknown>>(
-    obj: T,
-    dateFields: (keyof T)[]
+  obj: T,
+  dateFields: (keyof T)[]
 ): T {
-    const migrated = { ...obj };
+  const migrated = { ...obj };
 
-    for (const field of dateFields) {
-        const value = migrated[field];
-        if (value instanceof Date || typeof value === 'string') {
-            migrated[field] = ensureISOString(value as Date | string) as T[keyof T];
-        }
+  for (const field of dateFields) {
+    const value = migrated[field];
+    if (value instanceof Date || typeof value === 'string') {
+      migrated[field] = ensureISOString(value as Date | string) as T[keyof T];
     }
+  }
 
-    return migrated;
+  return migrated;
 }
 
 export const DateUtils = {
-    now,
-    parse,
-    formatDateTime,
-    formatDate,
-    formatTime,
-    formatMessageTimestamp,
-    isValidDate,
-    toISOString,
-    getRelativeTime,
-    ensureISOString,
-    migrateDateFields,
+  now,
+  parse,
+  formatDateTime,
+  formatDate,
+  formatTime,
+  formatMessageTimestamp,
+  isValidDate,
+  toISOString,
+  getRelativeTime,
+  ensureISOString,
+  migrateDateFields,
 };
